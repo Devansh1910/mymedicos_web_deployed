@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'package:mymedicosweb/homescreen2/home_screen_2.dart';
 import 'package:mymedicosweb/login/login_check.dart';
+import 'package:mymedicosweb/login/sign_up.dart';
 
 import 'package:mymedicosweb/pg_neet/QuizScreen.dart';
 
 import 'package:mymedicosweb/pg_neet/pg_neet.dart';
 import 'package:mymedicosweb/pg_neet/pg_neet_payment.dart';
 import 'package:mymedicosweb/profile.dart';
-import 'package:mymedicosweb/sign_up.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart'; // Import the generated file

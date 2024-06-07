@@ -12,7 +12,7 @@ import 'package:mymedicosweb/pg_neet/proven_effective_content.dart';
 import 'package:mymedicosweb/pg_neet/top_image.dart';
 import '../settings_screen.dart';
 import '../login/login_screen.dart';
-import '../sign_up.dart';  // Import SignUpScreen
+import '../login/sign_up.dart';  // Import SignUpScreen
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.title});

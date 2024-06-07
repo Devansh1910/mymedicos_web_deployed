@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:mymedicosweb/sign_up.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mymedicosweb/login/login_check.dart';
+import 'package:mymedicosweb/login/sign_up.dart';
 import 'package:provider/provider.dart';
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
