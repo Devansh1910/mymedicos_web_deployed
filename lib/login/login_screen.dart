@@ -1,12 +1,19 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
+import 'package:mymedicosweb/sign_up.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mymedicosweb/login/login_check.dart';
+import 'package:provider/provider.dart';
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
+
   @override
   Widget build(BuildContext context) {
+
     final Size screenSize = MediaQuery.of(context).size;
     final bool isLargeScreen = screenSize.width > 800;
 
@@ -73,21 +80,178 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-class LoginForm extends StatelessWidget {
-  const LoginForm({
+class LoginForm extends StatefulWidget {
+  final Size screenSize;
+  final bool isLargeScreen;
+
+
+
+   LoginForm({
     Key? key,
     required this.screenSize,
     required this.isLargeScreen,
+
   }) : super(key: key);
 
-  final Size screenSize;
-  final bool isLargeScreen;
+  @override
+  _LoginFormState createState() => _LoginFormState();
+}
+
+class _LoginFormState extends State<LoginForm> {
+  bool isOtpSent = false;
+  final TextEditingController phoneController = TextEditingController();
+  final List<TextEditingController> otpControllers = List.generate(6, (_) => TextEditingController());
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  String verificationId = '';
+  UserNotifier userNotifier = UserNotifier();
+
+  // void sendOtp() {
+  //
+  // }
+
+
+
+  Future<bool> checkIfUserRegistered(String phoneNumber) async {
+    try {
+      // Query the Firestore collection 'users' to check if the phone number exists
+      var querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('Phone Number', isEqualTo: phoneNumber)
+          .get();
+
+      // If the query returns documents, the user is registered
+      if (querySnapshot.docs.isNotEmpty) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print('Error checking user registration: $e');
+      return false;
+    }
+  }
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+
+
+  void sendOtp() async {
+    String phoneNumber = "+91" + phoneController.text;
+
+    // Check if the user is registered with the provided phone number
+    bool isUserRegistered = await checkIfUserRegistered(phoneNumber);
+    if (!isUserRegistered) {
+      // Navigate to the signup screen
+      Navigator.pushNamed(context, '/register');
+      return;
+    }
+
+    if (isUserRegistered) {
+      // User is registered, proceed with sending OTP
+      try {
+        await _auth.verifyPhoneNumber(
+          phoneNumber: phoneNumber,
+          verificationCompleted: (PhoneAuthCredential credential) async {
+            await _auth.signInWithCredential(credential);
+          },
+          verificationFailed: (FirebaseAuthException e) {
+            print('Failed to verify phone number: ${e.message}');
+            print('Error code: ${e.code}');
+            if (e.code == 'invalid-phone-number') {
+              showError('The phone number entered is invalid!');
+            } else {
+              showError('Failed to verify phone number. Please try again.');
+            }
+          },
+          codeSent: (String verId, int? resendToken) {
+            setState(() {
+              verificationId = verId;
+              isOtpSent = true;
+            });
+          },
+          codeAutoRetrievalTimeout: (String verId) {
+            setState(() {
+              verificationId = verId;
+            });
+          },
+        );
+
+        setState(() {
+          isOtpSent = true;
+        });
+      } catch (e) {
+        // Improved error handling to identify the type issue
+        print('Error during phone number verification: $e');
+        if (e is PlatformException) {
+          print('PlatformException details: ${e.details}');
+        } else if (e is FirebaseAuthException) {
+          print('FirebaseAuthException message: ${e.message}');
+        } else {
+          print('Unexpected error type: ${e.runtimeType}');
+        }
+      }
+    } else {
+      // User is not registered, navigate to the registration screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SignUpScreen()),
+      );
+    }
+  }
+
+
+
+  void registered() async{
+    String phoneNumber = "+91"+phoneController.text;
+
+    // Check if the user is registered with the provided phone number
+    bool isUserRegistered = await checkIfUserRegistered(phoneNumber);
+    if (!isUserRegistered) {
+      // Navigate to the signup screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SignUpScreen()),
+      );
+      return;
+    }
+    else{
+      sendOtp();
+    }
+
+  }
+
+
+
+  void verifyOtp() async {
+    String otp = otpControllers.map((controller) => controller.text).join();
+    PhoneAuthCredential credential = PhoneAuthProvider.credential(
+      verificationId: verificationId,
+      smsCode: otp,
+    );
+
+    try {
+      await _auth.signInWithCredential(credential);
+      String phoneNumber = "+91" + phoneController.text;
+      Provider.of<UserNotifier>(context, listen: false).logIn(phoneNumber);
+
+      Navigator.pushNamed(context, '/homescreen');
+      // Handle successful verification (e.g., navigate to the next screen)
+
+      print('Phone number verified successfully!');
+    } catch (e) {
+      // Handle error
+      print('Failed to verify OTP: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.all(isLargeScreen ? 20 : 10),
-      padding: EdgeInsets.symmetric(vertical: isLargeScreen ? 45 : 10, horizontal: isLargeScreen ? 20 : 10),
+      margin: EdgeInsets.all(widget.isLargeScreen ? 20 : 10),
+      padding: EdgeInsets.symmetric(vertical: widget.isLargeScreen ? 45 : 10, horizontal: widget.isLargeScreen ? 20 : 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -112,53 +276,105 @@ class LoginForm extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Enter your mobile number to Sign up/Sign in to your account',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.black54,
+          if (!isOtpSent) ...[
+            const Text(
+              'Enter your mobile number to Sign up/Sign in to your account',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.black54,
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              CountryCodeDropdown(),
-              const SizedBox(width: 10),
-              Expanded(
-                child: TextFormField(
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText: 'Enter Phone Number',
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                CountryCodeDropdown(),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextFormField(
+                    controller: phoneController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Enter Phone Number',
+                    ),
                   ),
                 ),
+              ],
+            ),
+          ] else ...[
+            const Text(
+              'Enter the 6-digit OTP sent to your phone',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.black54,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: List.generate(6, (index) {
+                return SizedBox(
+                  width: 40,
+                  child: TextField(
+                    controller: otpControllers[index],
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                    ),
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.number,
+                    maxLength: 1,
+                  ),
+                );
+              }),
+            ),
+          ],
           const SizedBox(height: 30),
           Center(
             child: ElevatedButton(
-              onPressed: () {},
-              child: const Text(
-                'Continue',
-                style: TextStyle(color: Colors.black, fontFamily: 'Inter'),
+              onPressed: isOtpSent ? verifyOtp : registered,
+              child: Text(
+                isOtpSent ? 'Verify' : 'Continue',
+                style: const TextStyle(color: Colors.black, fontFamily: 'Inter'),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 elevation: 0,
                 padding: EdgeInsets.symmetric(
                   vertical: 20,
-                  horizontal: screenSize.width > 800 ? 80 : 50,
+                  horizontal: widget.screenSize.width > 800 ? 80 : 50,
                 ),
                 textStyle: const TextStyle(fontSize: 16),
               ),
             ),
+
           ),
+          Positioned(
+                bottom: 20, // Adjust as needed
+                left: 0,
+              right: 0,
+            child: Center(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, '/register'
+                );
+                  },
+              child: Text(
+              "Don't have an account? Register",
+              style: TextStyle(
+              color: Colors.blue,
+                fontFamily: 'Inter',
+                decoration: TextDecoration.underline,
+          ),
+        ),
+        ),
+      ),),
+
           const SizedBox(height: 20),
           const Text(
             'By signing up, you agree to Terms & Conditions and Privacy Policy',
             style: TextStyle(
               fontSize: 12,
               color: Colors.black54,
+              fontFamily: 'Inter'
             ),
             textAlign: TextAlign.center,
           ),
@@ -266,6 +482,7 @@ class _CarouselWithCustomTextState extends State<CarouselWithCustomText> {
     );
   }
 }
+
 class CountryCodeDropdown extends StatefulWidget {
   @override
   _CountryCodeDropdownState createState() => _CountryCodeDropdownState();
@@ -283,31 +500,31 @@ class _CountryCodeDropdownState extends State<CountryCodeDropdown> {
   @override
   Widget build(BuildContext context) {
     return DropdownButton<String>(
-        value: currentCode,
-        icon: const Icon(Icons.arrow_drop_down),
-        underline: Container(
-          height: 1,
-          color: Colors.deepPurpleAccent,
-        ),
-        onChanged: (String? newValue) {
-          setState(() {
-            currentCode = newValue!;
-          });
-        },
-        items: codes.map<DropdownMenuItem<String>>((CountryCode code) {
-      return DropdownMenuItem<String>(
+      value: currentCode,
+      icon: const Icon(Icons.arrow_drop_down),
+      underline: Container(
+        height: 1,
+        color: Colors.deepPurpleAccent,
+      ),
+      onChanged: (String? newValue) {
+        setState(() {
+          currentCode = newValue!;
+        });
+      },
+      items: codes.map<DropdownMenuItem<String>>((CountryCode code) {
+        return DropdownMenuItem<String>(
           value: code.code,
           child: Row(
-          children: [
-          code.flagUri.endsWith('.svg')
-          ? SvgPicture.asset(code.flagUri, width: 20, height: 12)
-          : Image.asset(code.flagUri, width: 20, height: 12),
-    const SizedBox(width: 8),
-            Text(code.code),
-          ],
+            children: [
+              code.flagUri.endsWith('.svg')
+                  ? SvgPicture.asset(code.flagUri, width: 20, height: 12)
+                  : Image.asset(code.flagUri, width: 20, height: 12),
+              const SizedBox(width: 8),
+              Text(code.code),
+            ],
           ),
-      );
-        }).toList(),
+        );
+      }).toList(),
     );
   }
 }
@@ -318,4 +535,3 @@ class CountryCode {
 
   CountryCode({required this.code, required this.flagUri});
 }
-
