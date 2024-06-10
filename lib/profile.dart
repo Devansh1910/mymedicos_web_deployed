@@ -1,3 +1,38 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:mymedicosweb/Usersdetails.dart';
+import 'package:mymedicosweb/footer2.dart';
+import 'package:mymedicosweb/login/login_check.dart';
+import 'package:mymedicosweb/pg_neet/app_bar_content.dart';
+import 'package:mymedicosweb/pg_neet/app_drawer.dart';
+import 'package:mymedicosweb/pg_neet/proven_effective_content.dart';
+import 'package:mymedicosweb/pg_neet/sideDrawer.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:mymedicosweb/footer2.dart';
+import 'package:mymedicosweb/login/login_check.dart';
+import 'package:mymedicosweb/pg_neet/app_bar_content.dart';
+import 'package:mymedicosweb/pg_neet/app_drawer.dart';
+import 'package:mymedicosweb/pg_neet/proven_effective_content.dart';
+import 'package:mymedicosweb/pg_neet/sideDrawer.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:mymedicosweb/footer2.dart';
+import 'package:mymedicosweb/login/login_check.dart';
+import 'package:mymedicosweb/pg_neet/app_bar_content.dart';
+import 'package:mymedicosweb/pg_neet/app_drawer.dart';
+
+import 'package:mymedicosweb/pg_neet/sideDrawer.dart';
+import 'package:flutter_svg/svg.dart';
+// Import your UserDetailsFetcher class
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mymedicosweb/footer2.dart';
@@ -7,6 +42,8 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
 import 'package:mymedicosweb/pg_neet/proven_effective_content.dart';
 import 'package:mymedicosweb/pg_neet/sideDrawer.dart';
 import 'package:flutter_svg/svg.dart';
+// Import your UserDetailsFetcher class
+
 class ProfileScreen extends StatefulWidget {
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
@@ -15,6 +52,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoggedIn = false;
   bool _isInitialized = false;
+  late Map<String, dynamic> _userDetails;
 
   @override
   void initState() {
@@ -23,26 +61,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _initializeUser() async {
-    UserNotifier userNotifier = UserNotifier();
-    await userNotifier.isInitialized;
-    setState(() {
-      _isLoggedIn = userNotifier.isLoggedIn;
-      _isInitialized = true;
-    });
-    // If the user is not logged in, navigate to the login screen
-    if (!_isLoggedIn) {
-      // You can replace '/login' with the route name of your login screen
-      Navigator.of(context).pushReplacementNamed('/login');
+    UserDetailsFetcher userFetcher = UserDetailsFetcher();
+    try {
+      final userDetails = await userFetcher.fetchUserDetails();
+      setState(() {
+        _userDetails = userDetails;
+        _isLoggedIn = true;
+        _isInitialized = true;
+      });
+    } catch (error) {
+      print("Error initializing user: $error");
+      setState(() {
+        _isLoggedIn = false;
+        _isInitialized = true;
+      });
+      // Handle error or navigate to login screen
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final bool isLargeScreen = screenWidth > 600;
-    UserNotifier userNotifier = UserNotifier();
-    bool isLoggedIn = userNotifier.isLoggedIn;
-
-
 
     if (!_isInitialized) {
       return Scaffold(
@@ -58,8 +98,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
-      appBar:AppBar(
-        automaticallyImplyLeading: false, // Set to true to show the back button
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -72,7 +112,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     }
                   },
                   child: CircleAvatar(
-                    backgroundImage: NetworkImage('url_to_user_profile_image'),
+                    backgroundImage: NetworkImage(
+                      _userDetails["userProfileImageUrl"] ?? 'https://via.placeholder.com/150',
+                    ),
                   ),
                 ),
                 SizedBox(width: 8.0),
@@ -80,19 +122,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Good Morning!', // Replace with the actual title
+                      'Good Morning!',
                       style: TextStyle(
                         fontFamily: 'Inter',
-                        fontSize: 16.0, // Adjust the font size as needed
-                        fontWeight: FontWeight.bold, // Adjust the font weight as needed
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      'UserName', // Replace with the actual subtitle
+                      _userDetails["userName"] ?? 'Unknown User',
                       style: TextStyle(
                         fontFamily: 'Inter',
-                        fontSize: 14.0, // Adjust the font size as needed
-                        color: Colors.grey, // Adjust the color as needed
+                        fontSize: 14.0,
+                        color: Colors.grey,
                       ),
                     ),
                   ],
@@ -124,10 +166,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: SingleChildScrollView(
                     child: MainContent(
                       isLargeScreen: isLargeScreen,
-
-
-
-
+                      userDetails: _userDetails,
                     ),
                   ),
                 ),
@@ -140,21 +179,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-
 class MainContent extends StatelessWidget {
   final bool isLargeScreen;
+  final Map<String, dynamic> userDetails;
 
-  MainContent({required this.isLargeScreen});
+  MainContent({required this.isLargeScreen, required this.userDetails});
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery
-        .of(context)
-        .size
-        .width;
-    final screenSize = MediaQuery
-        .of(context)
-        .size;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenSize = MediaQuery.of(context).size;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: isLargeScreen ? 0 : 16),
       child: Column(
@@ -173,7 +207,7 @@ class MainContent extends StatelessWidget {
                 CircleAvatar(
                   radius: 40,
                   backgroundImage: NetworkImage(
-                      'https://via.placeholder.com/150'), // Replace with the actual image URL
+                      userDetails["userProfileImageUrl"] ?? 'https://via.placeholder.com/150'), // Replace with the actual image URL
                 ),
                 SizedBox(height: 10),
                 Text('Your profile is up to date',
@@ -185,11 +219,11 @@ class MainContent extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text("Name"),
-              _buildStyledTextField('Name','Name'),
+              _buildStyledTextField('Name', userDetails["userName"]),
               Text("Email ID"),
-              _buildStyledTextField('Email ID','Name'),
+              _buildStyledTextField('Email ID', userDetails["userEmail"]),
               Text("Contact Number"),
-              _buildStyledTextField('Contact Number','Name'),
+              _buildStyledTextField('Contact Number', userDetails["Phone Number"]),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 20.0),
                 child: Row(
@@ -199,37 +233,34 @@ class MainContent extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text("Interest"),
-                          _buildStyledTextField('Name', 'Speciality'),
+                          _buildStyledTextField('Interest', userDetails["userInterest"]),
                         ],
                       ),
                     ),
-                     // Add some space between the columns
+                    // Add some space between the columns
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("Interes2"),
-                          _buildStyledTextField('Email ID', 'SPeciality'),
+                          Text("Location"),
+                          _buildStyledTextField('Location', userDetails["userLocation"]),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-
-
-
-
-              Text("Location"),
-              _buildStyledTextField('Location','Name'),
             ],
           ),
 
           SizedBox(height: 30),
-          Text('Med Wallet',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           Text(
-              'Get the coins in your wallet to explore all features of our application with ease.'),
+            'Med Wallet',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            'Get the coins in your wallet to explore all features of our application with ease.',
+          ),
           SizedBox(height: 20),
           Container(
             padding: EdgeInsets.all(16),
@@ -237,7 +268,6 @@ class MainContent extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(0),
               border: Border.all(color: Colors.black, width: 1),
-
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,13 +289,12 @@ class MainContent extends StatelessWidget {
           ),
           ProvenEffectiveContent(screenWidth: screenWidth),
           Footer2(),
-
         ],
       ),
     );
   }
 
-  Widget _buildStyledTextField(String labelText, String valueText) {
+  Widget _buildStyledTextField(String labelText, String? valueText) {
     return Container(
       width: 600,
       decoration: BoxDecoration(
@@ -277,7 +306,7 @@ class MainContent extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.all(8.0),
         child: Text(
-          valueText,
+          valueText ?? 'No data available',
           style: TextStyle(
             fontSize: 16.0,
           ),
@@ -285,15 +314,75 @@ class MainContent extends StatelessWidget {
       ),
     );
   }
-
-
-
-
 }
+
+class AdManager {
+  static RewardedAd? _rewardedAd;
+
+  static void loadAd() {
+    RewardedAd.load(
+      adUnitId: "ca-app-pub-1452770494559845/3094113721",
+      request: AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdFailedToLoad: (LoadAdError error) {
+          _rewardedAd = null;
+          print('Ad failed to load: $error');
+          // Handle ad loading failure
+        },
+        onAdLoaded: (RewardedAd ad) {
+          _rewardedAd = ad;
+          print('Ad loaded successfully');
+          // Handle ad loading success
+        },
+      ),
+    );
+  }
+
+  static RewardedAd? get rewardedAd => _rewardedAd;
+}
+
 class AdWatchButton extends StatelessWidget {
   final int coinValue;
 
   AdWatchButton({required this.coinValue});
+
+  void watchAd(BuildContext context) {
+    RewardedAd? ad = AdManager.rewardedAd;
+    if (ad != null) {
+      ad.fullScreenContentCallback = FullScreenContentCallback(
+        onAdShowedFullScreenContent: (RewardedAd ad) {
+          print('Ad showed fullscreen content');
+          // Ad showed fullscreen content.
+        },
+        onAdDismissedFullScreenContent: (RewardedAd ad) {
+          print('Ad dismissed fullscreen content');
+          // Ad dismissed fullscreen content.
+        },
+        onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
+          print('Failed to show fullscreen ad: $error');
+          // Ad failed to show fullscreen content.
+        },
+      );
+
+      ad.show(
+        onUserEarnedReward: (Ad ad, RewardItem reward) {
+          print('User earned reward: ${reward.amount}');
+          // User earned reward, update coins accordingly
+          updateCoinsAndDatabase(reward.amount);
+        },
+      );
+    } else {
+      print('Rewarded ad is null');
+      // Ad not loaded, handle accordingly
+    }
+  }
+
+  void updateCoinsAndDatabase(num rewardAmount) {
+    // Update coins in your database and do any other necessary operations
+    num totalCoins = coinValue + rewardAmount;
+    print("Total coins after watching ad: $totalCoins");
+    // Update database here
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -308,16 +397,19 @@ class AdWatchButton extends StatelessWidget {
         ),
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFFF9F1E7), // Background color
-            padding: EdgeInsets.all(15),
-            textStyle: TextStyle(fontSize: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(9.0), // Button radius
-            ),
-            elevation: 0
+              backgroundColor: Color(0xFFF9F1E7), // Background color
+              padding: EdgeInsets.all(15),
+              textStyle: TextStyle(fontSize: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(9.0), // Button radius
+              ),
+              elevation: 0
           ),
           onPressed: () {
-            // Add your ad watching logic here
+            print("button preseed");
+            // Call the watchAd function when the button is pressed
+            watchAd(context);
+
           },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -341,7 +433,10 @@ class AdWatchButton extends StatelessWidget {
       ),
     );
   }
+
 }
+
+
 
 //
 // @override
@@ -431,6 +526,540 @@ class AdWatchButton extends StatelessWidget {
 //   }
 
 
+class ProvenEffectiveContent extends StatelessWidget {
+  final double screenWidth;
+
+  ProvenEffectiveContent({required this.screenWidth});
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: screenWidth,
+      decoration: const BoxDecoration(
+        color: Color(0xFFEAFBF9),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Proven Effective Content',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.start,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Concise, high yield, highly effective content that yields results. The strike rate proves it.',
+            style: TextStyle(
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.start,
+          ),
+          const SizedBox(height: 32),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 600) {
+                return Column(
+                  children:  [
+                    FeatureCard(
+                      imagePath: 'assets/top_quality_content.png',
+                      title: 'Top Quality Content',
+                      description: 'Enrich your knowledge with highly informative, engaging content crafted by the Dream Team.',
+                      onTap: () =>  processCreditsOrderPackage1(context),
+                    ),
+                    FeatureCard(
+                      imagePath: 'assets/learn_anytime_anywhere.png',
+                      title: 'Learn Anytime, Anywhere',
+                      description: 'Access the best quality content and turn any place into a classroom whenever you want.',
+                      onTap: () => processCreditsOrderPackage2(context),
+                    ),
+                    FeatureCard(
+                      imagePath: 'assets/in_depth_analytics.png',
+                      title: 'In-Depth Analytics',
+                      description: 'Evaluate your strengths and shortcomings with the help of performance graphs.',
+                      onTap: () =>  processCreditsOrderPackage3(context),
+                    ),
+                  ],
+                );
+              } else {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Wrap(
+                    spacing: 16.0,
+                    runSpacing: 16.0,
+                    children:  [
+                      FeatureCard(
+                        imagePath: 'assets/top_quality_content.png',
+                        title: 'Top Quality Content',
+                        description: 'Enrich your knowledge with highly informative, engaging content crafted by the Dream Team.',
+                        onTap: () => processCreditsOrderPackage1(context),
+                      ),
+                      FeatureCard(
+                        imagePath: 'assets/learn_anytime_anywhere.png',
+                        title: 'Learn Anytime, Anywhere',
+                        description: 'Access the best quality content and turn any place into a classroom whenever you want.',
+                        onTap: () =>  processCreditsOrderPackage2(context),
+                      ),
+                      FeatureCard(
+                        imagePath: 'assets/in_depth_analytics.png',
+                        title: 'In-Depth Analytics',
+                        description: 'Evaluate your strengths and shortcomings with the help of performance graphs.',
+                        onTap: () =>  processCreditsOrderPackage3(context),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+
+}
+
+Future<void> processCreditsOrderPackage1(BuildContext context) async {
+  // Show a loading indicator
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return Dialog(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text("Processing order..."),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+
+  User? currentUser = FirebaseAuth.instance.currentUser;
+
+  if (currentUser != null) {
+    String userId = currentUser.phoneNumber ?? "";
+
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    CollectionReference usersRef = db.collection("users");
+
+    QuerySnapshot querySnapshot = await usersRef.where("Phone Number", isEqualTo: userId).get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      DocumentSnapshot document = querySnapshot.docs.first;
+
+      String url = "https://admin.mymedicos.in/api/ecom/medcoins/generateOrder/$userId/package1";
+      print("API Request URL: $url");
+
+      try {
+        http.Response response = await http.get(Uri.parse(url));
+        print("API Response: ${response.body}");
+
+        var requestBody = json.decode(response.body);
+        if (requestBody["status"] == "success") {
+          String orderNumber = requestBody["order_id"];
+          print("Order ID check: $orderNumber");
+
+          // Dismiss the loading indicator
+          Navigator.of(context, rootNavigator: true).pop();
+
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("Order Successful"),
+                content: Text("Your order number is: $orderNumber"),
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text("Pay Now"),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      // Navigate to the payment screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PaymentPublicationActivity(orderCode: orderNumber),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        } else {
+          // Dismiss the loading indicator
+          Navigator.of(context, rootNavigator: true).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Failed order.")),
+          );
+        }
+      } catch (e) {
+        // Dismiss the loading indicator
+        Navigator.of(context, rootNavigator: true).pop();
+        print("Error: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
+        );
+      }
+    } else {
+      // Dismiss the loading indicator
+      Navigator.of(context, rootNavigator: true).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to retrieve user information")),
+      );
+    }
+  } else {
+    // Dismiss the loading indicator
+    Navigator.of(context, rootNavigator: true).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("User not authenticated")),
+    );
+  }
+}
+
+Future<void> processCreditsOrderPackage2(BuildContext context) async {
+  // Show a loading indicator
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return Dialog(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text("Processing order..."),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+
+  User? currentUser = FirebaseAuth.instance.currentUser;
+
+  if (currentUser != null) {
+    String userId = currentUser.phoneNumber ?? "";
+
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    CollectionReference usersRef = db.collection("users");
+
+    QuerySnapshot querySnapshot = await usersRef.where("Phone Number", isEqualTo: userId).get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      DocumentSnapshot document = querySnapshot.docs.first;
+
+      String url = "https://admin.mymedicos.in/api/ecom/medcoins/generateOrder/$userId/package2";
+      print("API Request URL: $url");
+
+      try {
+        http.Response response = await http.get(Uri.parse(url));
+        print("API Response: ${response.body}");
+
+        var requestBody = json.decode(response.body);
+        if (requestBody["status"] == "success") {
+          String orderNumber = requestBody["order_id"];
+          print("Order ID check: $orderNumber");
+
+          // Dismiss the loading indicator
+          Navigator.of(context, rootNavigator: true).pop();
+
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("Order Successful"),
+                content: Text("Your order number is: $orderNumber"),
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text("Pay Now"),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      // Navigate to the payment screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PaymentPublicationActivity(orderCode: orderNumber),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        } else {
+          // Dismiss the loading indicator
+          Navigator.of(context, rootNavigator: true).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Failed order.")),
+          );
+        }
+      } catch (e) {
+        // Dismiss the loading indicator
+        Navigator.of(context, rootNavigator: true).pop();
+        print("Error: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
+        );
+      }
+    } else {
+      // Dismiss the loading indicator
+      Navigator.of(context, rootNavigator: true).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to retrieve user information")),
+      );
+    }
+  } else {
+    // Dismiss the loading indicator
+    Navigator.of(context, rootNavigator: true).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("User not authenticated")),
+    );
+  }
+}
+
+Future<void> processCreditsOrderPackage3(BuildContext context) async {
+  // Show a loading indicator
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return Dialog(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text("Processing order..."),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+
+  User? currentUser = FirebaseAuth.instance.currentUser;
+
+  if (currentUser != null) {
+    String userId = currentUser.phoneNumber ?? "";
+
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    CollectionReference usersRef = db.collection("users");
+
+    QuerySnapshot querySnapshot = await usersRef.where("Phone Number", isEqualTo: userId).get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      DocumentSnapshot document = querySnapshot.docs.first;
+
+      String url = "https://admin.mymedicos.in/api/ecom/medcoins/generateOrder/$userId/package3";
+      print("API Request URL: $url");
+
+      try {
+        http.Response response = await http.get(Uri.parse(url));
+        print("API Response: ${response.body}");
+
+        var requestBody = json.decode(response.body);
+        if (requestBody["status"] == "success") {
+          String orderNumber = requestBody["order_id"];
+          print("Order ID check: $orderNumber");
+
+          // Dismiss the loading indicator
+          Navigator.of(context, rootNavigator: true).pop();
+
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("Order Successful"),
+                content: Text("Your order number is: $orderNumber"),
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text("Pay Now"),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      // Navigate to the payment screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PaymentPublicationActivity(orderCode: orderNumber),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        } else {
+          // Dismiss the loading indicator
+          Navigator.of(context, rootNavigator: true).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Failed order.")),
+          );
+        }
+      } catch (e) {
+        // Dismiss the loading indicator
+        Navigator.of(context, rootNavigator: true).pop();
+        print("Error: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
+        );
+      }
+    } else {
+      // Dismiss the loading indicator
+      Navigator.of(context, rootNavigator: true).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to retrieve user information")),
+      );
+    }
+  } else {
+    // Dismiss the loading indicator
+    Navigator.of(context, rootNavigator: true).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("User not authenticated")),
+    );
+  }
+}
+class PaymentPublicationActivity extends StatelessWidget {
+  final String orderCode;
+
+  const PaymentPublicationActivity({Key? key, required this.orderCode}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Payment"),
+      ),
+      body: Center(
+        child: Text("Order Code: $orderCode"),
+      ),
+    );
+  }
+}
+
+
+class FeatureCard extends StatelessWidget {
+  final String imagePath;
+  final String title;
+  final String description;
+  final VoidCallback onTap;
+
+  const FeatureCard({
+    Key? key,
+    required this.imagePath,
+    required this.title,
+    required this.description,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    final double cardWidth = isMobile ? screenWidth * 0.9 : screenWidth / 3 - 24;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: cardWidth,
+        margin: EdgeInsets.symmetric(vertical: 5, horizontal: isMobile ? 0 : 0),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              spreadRadius: 2,
+              blurRadius: 5,
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            AspectRatio(
+              aspectRatio: 16 / 9, // Adjust the aspect ratio as needed
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  imagePath,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Icon(Icons.error),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              description,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class FeatureCardList extends StatelessWidget {
+  final List<FeatureCard> cards;
+
+  const FeatureCardList({
+    Key? key,
+    required this.cards,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: isMobile ? 10 : 30, vertical: 20),
+      child: isMobile
+          ? Column(
+        children: cards,
+      )
+          : Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        children: cards,
+      ),
+    );
+  }
+}
 class ProfilePictureSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

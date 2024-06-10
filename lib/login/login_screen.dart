@@ -1,20 +1,21 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+
+
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mymedicosweb/login/login_check.dart';
 import 'package:mymedicosweb/login/sign_up.dart';
 import 'package:provider/provider.dart';
+// import 'package:carousel_slider/carousel_slider.dart' as carousel_slider;
+// import 'package:carousel_slider/carousel_controller.dart' as carousel_slider_controller;
+
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
-
   @override
   Widget build(BuildContext context) {
-
     final Size screenSize = MediaQuery.of(context).size;
     final bool isLargeScreen = screenSize.width > 800;
 
@@ -27,7 +28,8 @@ class LoginScreen extends StatelessWidget {
             const SizedBox(width: 10),
             Text(
               'mymedicos',
-              style: TextStyle(fontFamily: 'Inter',
+              style: TextStyle(
+                fontFamily: 'Inter',
                 fontWeight: FontWeight.bold,
                 color: Colors.grey,
               ),
@@ -53,10 +55,10 @@ class LoginScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(
-                    flex: 1,
-                    child: CarouselWithCustomText(),
-                  ),
+                  // Expanded(
+                  //   flex: 1,
+                  //   // child: CarouselWithCustomText(),
+                  // ),
                   const SizedBox(width: 200),
                   Expanded(
                     flex: 1,
@@ -68,7 +70,7 @@ class LoginScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  CarouselWithCustomText(),
+                  // CarouselWithCustomText(),
                   const SizedBox(height: 20),
                   LoginForm(screenSize: screenSize, isLargeScreen: isLargeScreen),
                 ],
@@ -85,13 +87,10 @@ class LoginForm extends StatefulWidget {
   final Size screenSize;
   final bool isLargeScreen;
 
-
-
-   LoginForm({
+  LoginForm({
     Key? key,
     required this.screenSize,
     required this.isLargeScreen,
-
   }) : super(key: key);
 
   @override
@@ -106,21 +105,13 @@ class _LoginFormState extends State<LoginForm> {
   String verificationId = '';
   UserNotifier userNotifier = UserNotifier();
 
-  // void sendOtp() {
-  //
-  // }
-
-
-
   Future<bool> checkIfUserRegistered(String phoneNumber) async {
     try {
-      // Query the Firestore collection 'users' to check if the phone number exists
       var querySnapshot = await FirebaseFirestore.instance
           .collection('users')
           .where('Phone Number', isEqualTo: phoneNumber)
           .get();
 
-      // If the query returns documents, the user is registered
       if (querySnapshot.docs.isNotEmpty) {
         return true;
       } else {
@@ -131,27 +122,23 @@ class _LoginFormState extends State<LoginForm> {
       return false;
     }
   }
+
   void showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
   }
 
-
-
   void sendOtp() async {
     String phoneNumber = "+91" + phoneController.text;
 
-    // Check if the user is registered with the provided phone number
     bool isUserRegistered = await checkIfUserRegistered(phoneNumber);
     if (!isUserRegistered) {
-      // Navigate to the signup screen
       Navigator.pushNamed(context, '/register');
       return;
     }
 
     if (isUserRegistered) {
-      // User is registered, proceed with sending OTP
       try {
         await _auth.verifyPhoneNumber(
           phoneNumber: phoneNumber,
@@ -184,7 +171,6 @@ class _LoginFormState extends State<LoginForm> {
           isOtpSent = true;
         });
       } catch (e) {
-        // Improved error handling to identify the type issue
         print('Error during phone number verification: $e');
         if (e is PlatformException) {
           print('PlatformException details: ${e.details}');
@@ -195,7 +181,6 @@ class _LoginFormState extends State<LoginForm> {
         }
       }
     } else {
-      // User is not registered, navigate to the registration screen
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => SignUpScreen()),
@@ -203,28 +188,20 @@ class _LoginFormState extends State<LoginForm> {
     }
   }
 
+  void registered() async {
+    String phoneNumber = "+91" + phoneController.text;
 
-
-  void registered() async{
-    String phoneNumber = "+91"+phoneController.text;
-
-    // Check if the user is registered with the provided phone number
     bool isUserRegistered = await checkIfUserRegistered(phoneNumber);
     if (!isUserRegistered) {
-      // Navigate to the signup screen
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => SignUpScreen()),
       );
       return;
-    }
-    else{
+    } else {
       sendOtp();
     }
-
   }
-
-
 
   void verifyOtp() async {
     String otp = otpControllers.map((controller) => controller.text).join();
@@ -239,11 +216,8 @@ class _LoginFormState extends State<LoginForm> {
       Provider.of<UserNotifier>(context, listen: false).logIn(phoneNumber);
 
       Navigator.pushNamed(context, '/homescreen');
-      // Handle successful verification (e.g., navigate to the next screen)
-
       print('Phone number verified successfully!');
     } catch (e) {
-      // Handle error
       print('Failed to verify OTP: $e');
     }
   }
@@ -346,28 +320,22 @@ class _LoginFormState extends State<LoginForm> {
                 textStyle: const TextStyle(fontSize: 16),
               ),
             ),
-
           ),
-          Positioned(
-                bottom: 20, // Adjust as needed
-                left: 0,
-              right: 0,
-            child: Center(
+           Center(
               child: GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(context, '/register'
-                );
-                  },
-              child: Text(
-              "Don't have an account? Register",
-              style: TextStyle(
-              color: Colors.blue,
-                fontFamily: 'Inter',
-                decoration: TextDecoration.underline,
-          ),
-        ),
-        ),
-      ),),
+                  Navigator.pushNamed(context, '/register');
+                },
+                child: Text(
+                  "Don't have an account? Register",
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontFamily: 'Inter',
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ),
 
           const SizedBox(height: 20),
           const Text(
@@ -375,7 +343,7 @@ class _LoginFormState extends State<LoginForm> {
             style: TextStyle(
               fontSize: 12,
               color: Colors.black54,
-              fontFamily: 'Inter'
+              fontFamily: 'Inter',
             ),
             textAlign: TextAlign.center,
           ),
@@ -385,104 +353,72 @@ class _LoginFormState extends State<LoginForm> {
   }
 }
 
-class CarouselWithCustomText extends StatefulWidget {
-  @override
-  _CarouselWithCustomTextState createState() => _CarouselWithCustomTextState();
-}
-
-class _CarouselWithCustomTextState extends State<CarouselWithCustomText> {
-  int _current = 0;
-  final CarouselController _controller = CarouselController();
-
-  final List<String> captions = [
-    'Embarking on the PG NEET Journey',
-    'Strategies, Tools, and Insights for Success with mymedicos',
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Transform.translate(
-            offset: Offset(0, -20),
-            child: CarouselSlider(
-              items: captions.map((caption) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      RichText(
-                        textAlign: TextAlign.center,
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: 'Embarking on the ',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, fontFamily: 'Inter'),
-                            ),
-                            TextSpan(
-                              text: 'PG NEET Journey',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, fontFamily: 'Inter'),
-                            ),
-                            TextSpan(
-                              text: ' ',
-                              style: TextStyle(fontSize: 24, fontFamily: 'Inter'),
-                            ),
-                            TextSpan(
-                              text: 'Strategies, Tools, and Insights ',
-                              style: TextStyle(fontSize: 24, fontFamily: 'Inter'),
-                            ),
-                            TextSpan(
-                              text: 'for Success with mymedicos',
-                              style: TextStyle(fontSize: 24, fontFamily: 'Inter'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-              carouselController: _controller,
-              options: CarouselOptions(
-                autoPlay: true,
-                aspectRatio: 16 / 9,
-                enlargeCenterPage: true,
-                height: 200,
-                onPageChanged: (index, reason) {
-                  setState(() {
-                    _current = index;
-                  });
-                },
-              ),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: captions.asMap().entries.map((entry) {
-              return GestureDetector(
-                onTap: () => _controller.animateToPage(entry.key),
-                child: Container(
-                  width: 12.0,
-                  height: 12.0,
-                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _current == entry.key
-                        ? Color.fromRGBO(0, 0, 0, 0.9)
-                        : Color.fromRGBO(0, 0, 0, 0.4),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-}
+//
+// class CarouselWithCustomText extends StatefulWidget {
+//   @override
+//   _CarouselWithCustomTextState createState() => _CarouselWithCustomTextState();
+// }
+//
+// class _CarouselWithCustomTextState extends State<CarouselWithCustomText> {
+//   int _current = 0;
+//   final carousel_slider_controller.CarouselController _controller = carousel_slider_controller.CarouselController();
+//
+//   final List<String> captions = [
+//     'Embarking on the PG NEET Journey',
+//     'Strategies, Tools, and Insights for Success with mymedicos',
+//   ];
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       mainAxisAlignment: MainAxisAlignment.center,
+//       children: [
+//         carousel_slider.CarouselSlider(
+//           items: captions.map((caption) {
+//             return Center(
+//               child: Text(
+//                 caption,
+//                 textAlign: TextAlign.center,
+//                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, fontFamily: 'Inter'),
+//               ),
+//             );
+//           }).toList(),
+//           carouselController: _controller,
+//           options: carousel_slider.CarouselOptions(
+//             autoPlay: true,
+//             aspectRatio: 16 / 9,
+//             enlargeCenterPage: true,
+//             height: 200,
+//             onPageChanged: (index, reason) {
+//               setState(() {
+//                 _current = index;
+//               });
+//             },
+//           ),
+//         ),
+//         Row(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: captions.asMap().entries.map((entry) {
+//             return GestureDetector(
+//               onTap: () => _controller.animateToPage(entry.key),
+//               child: Container(
+//                 width: 12.0,
+//                 height: 12.0,
+//                 margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+//                 decoration: BoxDecoration(
+//                   shape: BoxShape.circle,
+//                   color: _current == entry.key
+//                       ? Color.fromRGBO(0, 0, 0, 0.9)
+//                       : Color.fromRGBO(0, 0, 0, 0.4),
+//                 ),
+//               ),
+//             );
+//           }).toList(),
+//         ),
+//       ],
+//     );
+//   }
+// }
 
 class CountryCodeDropdown extends StatefulWidget {
   @override

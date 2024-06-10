@@ -1,14 +1,17 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mymedicosweb/QuizResult.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class QuizPage extends StatefulWidget {
   final String quizId;
   final String title;
+  final String duedate;
 
-  QuizPage({Key? key, required this.quizId,required this.title}) : super(key: key);
+  QuizPage({Key? key, required this.quizId,required this.title,required this.duedate}) : super(key: key);
 
   @override
   _QuizPageState createState() => _QuizPageState();
@@ -22,10 +25,12 @@ class _QuizPageState extends State<QuizPage> {
   late Timer _timer;
   int _remainingTime = 12600; // Time in seconds (210 minutes)
   bool _timeUp = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    fetchPhoneNumberFromLocalStorage();
     _fetchQuizData();
     _startTimer();
   }
@@ -46,6 +51,50 @@ class _QuizPageState extends State<QuizPage> {
           _timer.cancel();
         }
       });
+    });
+  }
+
+  Future<void> fetchPhoneNumberFromLocalStorage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? phoneNumber = prefs.getString('phoneNumber');
+    if (phoneNumber != null) {
+      deductCoinsAndNavigate(phoneNumber);
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> deductCoinsAndNavigate(String phoneNumber) async {
+    setState(() {
+      _isLoading = true;
+    });
+    DatabaseReference databaseReference = FirebaseDatabase.instance.reference();
+    DataSnapshot snapshot = await databaseReference.child('profiles').child(
+        phoneNumber).child('coins').get();
+    int currentCoins = snapshot.value as int;
+
+    if (currentCoins >= 50) {
+      // Deduct 50 coins
+      currentCoins -= 50;
+      await databaseReference.child('profiles').child(phoneNumber).child(
+          'coins').set(currentCoins);
+
+
+      // Navigate to QuizPage
+
+    } else {
+      // Show error message if not enough coins
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Not enough coins to proceed.'),
+        ),
+      );
+    }
+
+    setState(() {
+      _isLoading = false;
     });
   }
 
@@ -82,7 +131,7 @@ class _QuizPageState extends State<QuizPage> {
             questionsMarkedForReview.add(false);
           }
 
-           // Assuming you want to stop after fetching one quiz
+          // Assuming you want to stop after fetching one quiz
         }
       }
 
@@ -94,9 +143,16 @@ class _QuizPageState extends State<QuizPage> {
 
   void selectAnswer(int? answer) {
     setState(() {
-      selectedAnswers[currentQuestionIndex] = answer;
+      if (selectedAnswers[currentQuestionIndex] == answer) {
+        // If the same option is selected again, deselect it
+        selectedAnswers[currentQuestionIndex] = null;
+      } else {
+        // Otherwise, select the new option
+        selectedAnswers[currentQuestionIndex] = answer;
+      }
     });
   }
+
 
   void toggleMarkForReview() {
     setState(() {
@@ -119,6 +175,7 @@ class _QuizPageState extends State<QuizPage> {
       }
     });
   }
+
   Future<void> _submitQuiz() async {
     int correctAnswers = 0;
     int skip = 0;
@@ -132,7 +189,8 @@ class _QuizPageState extends State<QuizPage> {
     }
 
     int totalQuestions = questions.length;
-    int score = (correctAnswers * 100) ~/ totalQuestions; // Example scoring formula
+    int score = (correctAnswers * 100) ~/
+        totalQuestions; // Example scoring formula
 
     // Upload the quiz result
     QuizResultUploader uploader = QuizResultUploader();
@@ -148,23 +206,71 @@ class _QuizPageState extends State<QuizPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => QuizResultScreen(
-          quizId: widget.quizId,
-          quizTitle: widget.title,
-          questions: questions,
-          selectedAnswers: selectedAnswers,
-          remainingTime: _remainingTime,
-        ),
+        builder: (context) =>
+            QuizResultScreen(
+              quizId: widget.quizId,
+              quizTitle: widget.title,
+              questions: questions,
+              selectedAnswers: selectedAnswers,
+              remainingTime: _remainingTime,
+              dueDate:widget.duedate,
+
+            ),
       ),
     );
   }
+  void clearSelection() {
+    setState(() {
+      selectedAnswers[currentQuestionIndex] = null;
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
     if (questions.isEmpty) {
       return Scaffold(
         appBar: AppBar(
-          title: Text('Quiz'),
+          backgroundColor: Colors.white,
+
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(widget.title), // Grandtest heading
+              Text(
+               widget.duedate, // Replace with actual due date
+                style: TextStyle(fontSize: 12),
+              ),
+            ],
+          ),
+          actions: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(8), // Adjust the border radius as needed
+              ),
+              child: ElevatedButton(
+                onPressed: _submitQuiz,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent, // Make the button transparent to show the container's background color
+                  elevation: 0, // Remove elevation
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8), // Adjust the border radius to match the container
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16), // Adjust padding as needed
+                  child: Text(
+                    'End Quiz',
+                    style: TextStyle(
+                      color: Colors.white, // Text color
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
         body: Center(
           child: CircularProgressIndicator(),
@@ -172,82 +278,196 @@ class _QuizPageState extends State<QuizPage> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Quiz'),
-      ),
-      body: Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: Column(
-              children: [
-                HeaderSection(remainingTime: _remainingTime),
-                QuestionSection(
-                  question: questions[currentQuestionIndex]['Question'],
-                  options: [
-                    questions[currentQuestionIndex]['A'],
-                    questions[currentQuestionIndex]['B'],
-                    questions[currentQuestionIndex]['C'],
-                    questions[currentQuestionIndex]['D'],
-                  ],
-                  selectedAnswer: selectedAnswers[currentQuestionIndex],
-                  onAnswerSelected: selectAnswer,
-                ),
-                NavigationButtons(
-                  onNextPressed: goToNextQuestion,
-                  onPreviousPressed: goToPreviousQuestion,
-                  onMarkForReviewPressed: toggleMarkForReview,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isMobile = constraints.maxWidth < 600;
 
+        return Scaffold(
+          appBar:PreferredSize(
+            preferredSize: Size.fromHeight(kToolbarHeight + 1), // Adjust the height as needed
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Colors.black, width: 1.0), // Border styling for the bottom side
                 ),
-                ElevatedButton(
-                  onPressed: _submitQuiz,
-                  child: Text('End Quiz'),
+              ),
+              child: AppBar(
+                backgroundColor: Colors.white,
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.title), // Grandtest heading
+                    Text(
+                      widget.duedate, // Replace with actual due date
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ],
                 ),
-              ],
+                actions: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(8), // Adjust the border radius as needed
+                    ),
+                    child: ElevatedButton(
+                      onPressed: _submitQuiz,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent, // Make the button transparent to show the container's background color
+                        elevation: 0, // Remove elevation
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8), // Adjust the border radius to match the container
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16), // Adjust padding as needed
+                        child: Text(
+                          'End Quiz',
+                          style: TextStyle(
+                            color: Colors.white, // Text color
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          Expanded(
-            flex: 1,
+          drawer: isMobile
+              ? Drawer(
             child: Column(
               children: [
                 InstructionPanel(
-                  notVisited: selectedAnswers.where((a) => a == null).length,
-                  notAnswered: selectedAnswers.where((a) => a == null).length,
-                  answered: selectedAnswers.where((a) => a != null).length,
-                  markedForReview:
-                  questionsMarkedForReview.where((r) => r).length,
-                  answeredAndMarkedForReview: selectedAnswers
-                      .asMap()
-                      .entries
-                      .where((entry) =>
-                  entry.value != null &&
-                      questionsMarkedForReview[entry.key])
+                  notVisited: selectedAnswers
+                      .where((a) => a == null)
                       .length,
+                  notAnswered: selectedAnswers
+                      .where((a) => a == null)
+                      .length,
+                  answered: selectedAnswers
+                      .where((a) => a != null)
+                      .length,
+                  markedForReview: questionsMarkedForReview
+                      .where((r) => r)
+                      .length,
+                  // answeredAndMarkedForReview: selectedAnswers
+                  //     .asMap()
+                  //     .entries
+                  //     .where((entry) =>
+                  // entry.value != null &&
+                  //     questionsMarkedForReview[entry.key])
+                  //     .length,
                 ),
                 Expanded(
-                  child: QuestionNavigationPanel(
-                    questionCount: questions.length,
-                    currentQuestionIndex: currentQuestionIndex,
-                    questionsMarkedForReview: questionsMarkedForReview,
-                    selectedAnswers: selectedAnswers,
-                    onSelectQuestion: (index) {
-                      setState(() {
-                        currentQuestionIndex = index;
-                      });
-                    },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black, width: 1.0), // Border styling
+                      borderRadius: BorderRadius.circular(8.0), // Optional: rounded corners
+                    ),
+                    child: QuestionNavigationPanel(
+                      questionCount: questions.length,
+                      currentQuestionIndex: currentQuestionIndex,
+                      questionsMarkedForReview: questionsMarkedForReview,
+                      selectedAnswers: selectedAnswers,
+                      onSelectQuestion: (index) {
+                        setState(() {
+                          currentQuestionIndex = index;
+                        });
+                      },
+                    ),
                   ),
                 ),
+
               ],
             ),
+          )
+              : null,
+          body: Row(
+
+            children: [
+              Expanded(
+                flex: 2,
+                child: Column(
+                  children: [
+                    // HeaderSection(remainingTime: _remainingTime),
+                    Container(
+                      color: Colors.white, // Set the background color of the question section to white
+                      child: QuestionSection(
+                        question: questions[currentQuestionIndex]['Question'],
+                        options: [
+                          questions[currentQuestionIndex]['A'],
+                          questions[currentQuestionIndex]['B'],
+                          questions[currentQuestionIndex]['C'],
+                          questions[currentQuestionIndex]['D'],
+                        ],
+                        selectedAnswer: selectedAnswers[currentQuestionIndex],
+                        onAnswerSelected: selectAnswer,
+                      ),
+                    ),
+                    NavigationButtons(
+                      onNextPressed: goToNextQuestion,
+                      onPreviousPressed: goToPreviousQuestion,
+                      onMarkForReviewPressed: toggleMarkForReview,
+                      onClearSelectionPressed: clearSelection,
+                    ),
+
+                  ],
+                ),
+              ),
+              if (!isMobile)
+                Container(
+                  width: 400,
+                  // Adjust the width as needed
+                  color: Colors.white,
+                  // Background color for the side panel
+                  child: Column(
+                    children: [
+                      InstructionPanel(
+                        notVisited: selectedAnswers
+                            .where((a) => a == null)
+                            .length,
+                        notAnswered: selectedAnswers
+                            .where((a) => a == null)
+                            .length,
+                        answered: selectedAnswers
+                            .where((a) => a != null)
+                            .length,
+                        markedForReview: questionsMarkedForReview
+                            .where((r) => r)
+                            .length,
+
+                      ),
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black, width: 1.0), // Border styling
+                            borderRadius: BorderRadius.circular(0.0), // Optional: rounded corners
+                          ),
+                          child: QuestionNavigationPanel(
+                            questionCount: questions.length,
+                            currentQuestionIndex: currentQuestionIndex,
+                            questionsMarkedForReview: questionsMarkedForReview,
+                            selectedAnswers: selectedAnswers,
+                            onSelectQuestion: (index) {
+                              setState(() {
+                                currentQuestionIndex = index;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
-
-class Neetpg {
+  class Neetpg {
   final String question;
   final String optionA;
   final String optionB;
@@ -339,6 +559,7 @@ class QuestionSection extends StatelessWidget {
     required this.onAnswerSelected,
   });
 
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -368,33 +589,126 @@ class QuestionSection extends StatelessWidget {
     );
   }
 }
-
 class NavigationButtons extends StatelessWidget {
   final VoidCallback? onNextPressed;
   final VoidCallback? onPreviousPressed;
   final VoidCallback? onMarkForReviewPressed;
+  final VoidCallback? onClearSelectionPressed;
 
-  NavigationButtons(
-      {this.onNextPressed, this.onPreviousPressed, this.onMarkForReviewPressed});
+  NavigationButtons({
+    this.onNextPressed,
+    this.onPreviousPressed,
+    this.onMarkForReviewPressed,
+    this.onClearSelectionPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        ElevatedButton(
-          onPressed: onNextPressed,
-          child: Text('Next'),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isMobile = constraints.maxWidth < 600;
+
+        return isMobile
+            ? Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: _customButton(
+                    onPressed: onMarkForReviewPressed,
+                    label: 'Mark for Review',
+                  ),
+                ),
+                Expanded(
+                  child: _customButton(
+                    onPressed: onClearSelectionPressed,
+                    label: 'Clear Selection',
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16), // Adjust spacing between the two rows of buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: _customButton(
+                    onPressed: onPreviousPressed,
+                    label: 'Previous',
+                  ),
+                ),
+                Expanded(
+                  child: _customButton(
+                    onPressed: onNextPressed,
+                    label: 'Next',
+                  ),
+                ),
+              ],
+            ),
+          ],
+        )
+            : Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            SizedBox(width: 10),
+
+            _customButton(
+                onPressed: onMarkForReviewPressed,
+                label: 'Mark for Review',
+              ),
+               _customButton(
+                onPressed: onClearSelectionPressed,
+                label: 'Clear Selection',
+              ),
+
+              SizedBox(width: 200), // Adjust spacing between the two sets of buttons
+
+              _customButton(
+                onPressed: onPreviousPressed,
+                label: 'Previous',
+              ),
+
+
+               _customButton(
+                onPressed: onNextPressed,
+                label: 'Next',
+
+
+            ),
+            SizedBox(width: 10),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _customButton({VoidCallback? onPressed, required String label}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
-        ElevatedButton(
-          onPressed: onPreviousPressed,
-          child: Text('Previous'),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+            ),
+          ),
         ),
-        ElevatedButton(
-          onPressed: onMarkForReviewPressed,
-          child: Text('Mark for Review'),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -404,48 +718,47 @@ class InstructionPanel extends StatelessWidget {
   final int notAnswered;
   final int answered;
   final int markedForReview;
-  final int answeredAndMarkedForReview;
 
   InstructionPanel({
     required this.notVisited,
     required this.notAnswered,
     required this.answered,
     required this.markedForReview,
-    required this.answeredAndMarkedForReview,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InstructionTile(
-          color: Colors.grey,
-          label: 'Not Visited',
-          count: notVisited,
-        ),
-        InstructionTile(
-          color: Colors.red,
-          label: 'Not Answered',
-          count: notAnswered,
-        ),
-        InstructionTile(
-          color: Colors.green,
-          label: 'Answered',
-          count: answered,
-        ),
-        InstructionTile(
-          color: Colors.purple,
-          label: 'Marked for Review',
-          count: markedForReview,
-        ),
-        InstructionTile(
-          color: Colors.blue,
-          label:
-          'Answered & Marked for Review (will be considered for evaluation)',
-          count: answeredAndMarkedForReview,
-        ),
-      ],
+    return Container(
+      padding: EdgeInsets.only(left: 8.0), // Add left padding
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black, width: 1.0),
+        borderRadius: BorderRadius.circular(4.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InstructionTile(
+            color: Colors.grey,
+            label: 'Not Visited',
+            count: notVisited,
+          ),
+          InstructionTile(
+            color: Colors.red,
+            label: 'Not Answered',
+            count: notAnswered,
+          ),
+          InstructionTile(
+            color: Colors.green,
+            label: 'Answered',
+            count: answered,
+          ),
+          InstructionTile(
+            color: Colors.purple,
+            label: 'Marked for Review',
+            count: markedForReview,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -474,18 +787,28 @@ class InstructionTile extends StatelessWidget {
             Container(
               width: 50,
               height: 50,
-              color: color,
+              decoration: BoxDecoration(
+                color: Colors.white, // Inside color
+                border: Border.all(color: color, width: 2),
+                borderRadius: BorderRadius.circular(10), // Slightly rounded corners
+              ),
               child: Center(
                 child: Text(
                   '$count',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: color, // Text color same as border color
+                  ),
                 ),
               ),
             ),
             SizedBox(width: 8),
             Text(
               label,
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: color, // Label color same as border color
+              ),
             ),
             Spacer(),
           ],
@@ -513,36 +836,61 @@ class QuestionNavigationPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 5,
-          crossAxisSpacing: 4.0,
-          mainAxisSpacing: 4.0,
-        ),
-        itemCount: questionCount,
-        itemBuilder: (context, index) {
-          bool markedForReview = questionsMarkedForReview[index];
-          bool hasSelectedAnswer = selectedAnswers[index] != null;
+      padding: const EdgeInsets.all(4.0),
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            GridView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(), // Disable internal scrolling
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 6,
+                crossAxisSpacing: 4.0,
+                mainAxisSpacing: 4.0,
+              ),
+              itemCount: questionCount,
+              itemBuilder: (context, index) {
+                bool markedForReview = questionsMarkedForReview[index];
+                bool hasSelectedAnswer = selectedAnswers[index] != null;
 
-          return GestureDetector(
-            onTap: () => onSelectQuestion(index),
-            child: Container(
-              color: markedForReview
-                  ? Colors.orange // Marked for review
-                  : hasSelectedAnswer
-                  ? Colors.green // Has selected answer
-                  : currentQuestionIndex == index
-                  ? Colors.blue // Current question
-                  : Colors.grey, // Default color
-              child: Center(child: Text((index + 1).toString())),
+                Color borderColor = Colors.grey; // Default color
+                if (markedForReview) {
+                  borderColor = Colors.purple;
+                } else if (hasSelectedAnswer) {
+                  borderColor = Colors.green;
+                } else if (currentQuestionIndex == index) {
+                  borderColor = Colors.blue;
+                }
+
+                return GestureDetector(
+                  onTap: () => onSelectQuestion(index),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white, // Inside color
+                      border: Border.all(color: borderColor, width: 2),
+                      borderRadius: BorderRadius.circular(10), // Slightly rounded corners
+                    ),
+                    child: Center(
+                      child: Text(
+                        (index + 1).toString(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: borderColor, // Text color same as border color
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }
 }
+
+
 
 class QuizResultUploader {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

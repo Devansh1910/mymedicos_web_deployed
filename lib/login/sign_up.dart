@@ -3,9 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+// // Alias the carousel_slider package to avoid conflicts
+// import 'package:carousel_slider/carousel_slider.dart' as cs;
 import 'package:mymedicosweb/login/login_screen.dart';
-
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({Key? key}) : super(key: key);
@@ -176,13 +176,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(
-                    flex: 1,
-                    child: CarouselWithCustomText(
-                      messages: welcomeMessages,
-                      currentIndex: _currentMessageIndex,
-                    ),
-                  ),
+                  // Expanded(
+                  //   flex: 1,
+                  //   child: CarouselWithCustomText(
+                  //     messages: welcomeMessages,
+                  //     currentIndex: _currentMessageIndex,
+                  //   ),
+                  // ),
                   const SizedBox(width: 200),
                   Expanded(
                     flex: 1,
@@ -197,10 +197,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    CarouselWithCustomText(
-                      messages: welcomeMessages,
-                      currentIndex: _currentMessageIndex,
-                    ),
+                    // CarouselWithCustomText(
+                    //   messages: welcomeMessages,
+                    //   currentIndex: _currentMessageIndex,
+                    // ),
                     const SizedBox(height: 20),
                     _buildSignUpForm(screenSize, isLargeScreen),
                   ],
@@ -315,45 +315,39 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: Text(value),
                 );
               }).toList(),
-              decoration: const InputDecoration(
-                labelText: 'Designation',
-                border: OutlineInputBorder(),
-                filled: true,
-                fillColor: Colors.white,
+              decoration: InputDecoration(
+                labelText: 'Prefix',
+                prefixIcon: const Icon(Icons.person),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               validator: (value) =>
-              value == null ? 'Please select a Designation' : null,
+              value == null ? 'Please select a prefix' : null,
+              onSaved: (value) => prefix = value,
             ),
             const SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: _submitForm,
-                child: const Text(
-                  'Sign Up',
-                  style: TextStyle(color: Colors.black, fontFamily: 'Inter'),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  elevation: 0,
-                  padding: EdgeInsets.symmetric(
-                    vertical: 20,
-                    horizontal: screenSize.width > 800 ? 80 : 50,
-                  ),
-                  textStyle: const TextStyle(fontSize: 16),
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  _formKey.currentState!.save();
+                  // Process data or navigate to another screen
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF68B1D0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Center(
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.pushReplacementNamed(context, '/login');
-                },
-                child: const Text(
-                  'Already have an account? Login',
+              child: const Padding(
+                padding: EdgeInsets.all(12.0),
+                child: Text(
+                  'Sign Up',
                   style: TextStyle(
-                    color: Colors.blue,
-                    decoration: TextDecoration.underline,
+                    fontSize: 16,
+                    fontFamily: 'Inter',
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -371,14 +365,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
     required FormFieldSetter<String> onSaved,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: TextFormField(
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon),
-          border: const OutlineInputBorder(),
-          filled: true,
-          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
         validator: validator,
         onSaved: onSaved,
@@ -393,16 +387,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
     required FormFieldSetter<String> onSaved,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: TextFormField(
         keyboardType: TextInputType.phone,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon),
-          prefixText: '+91 ',
-          border: const OutlineInputBorder(),
-          filled: true,
-          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
         validator: validator,
         onSaved: onSaved,
@@ -417,9 +410,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
     required ValueChanged<String?> onChanged,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: DropdownButtonFormField<String>(
-        value: value.isNotEmpty ? value : null,
+        value: value,
         onChanged: onChanged,
         items: items.map<DropdownMenuItem<String>>((String item) {
           return DropdownMenuItem<String>(
@@ -429,125 +422,53 @@ class _SignUpScreenState extends State<SignUpScreen> {
         }).toList(),
         decoration: InputDecoration(
           labelText: label,
-          border: const OutlineInputBorder(),
-          filled: true,
-          fillColor: Colors.white,
-        ),
-        validator: (value) => value == null ? 'Please select an option' : null,
-      ),
-    );
-  }
-
-  Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      // Handle the form submission logic here, e.g., send data to an API or a server
-      print('Form submitted with following details:');
-      print('Email: $email');
-      print('Name: $name');
-      print('Phone Number: $phoneNumber');
-      print('Location: $location');
-      print('Interest: $interest');
-      print('Interest2: $interest2');
-      print('Prefix: $prefix');
-      print('MCN Verified: $isMCNVerified');
-      print('FCM Token: $fcmToken');
-    }
-    try {
-      final CollectionReference users = FirebaseFirestore.instance.collection('users');
-      final FirebaseAuth auth = FirebaseAuth.instance;
-
-      final Map<String, dynamic> userData = {
-        'Email ID': email,
-        'Name': name,
-        'Prefix': prefix,
-        'Phone Number': "+91"+phoneNumber,
-        'Location': location,
-        'Interest': interest,
-        'Interest2': interest2,
-        'QuizToday':0,
-        'MedCoins': 0,
-        'Streak': 0,
-        'FCM Token': 0,
-        'MCN verified': false,
-      };
-
-      final DocumentReference documentReference = await users.add(userData);
-
-      final String documentId = documentReference.id;
-
-      await documentReference.update({'DocID': documentId});
-
-      final User? currentUser = auth.currentUser;
-
-      if (currentUser != null) {
-        await currentUser.sendEmailVerification();
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginScreen()));
-      }
-    } catch (e) {
-      // Handle error
-      print('Error creating user: $e');
-    }
-  }
-}
-
-class CarouselWithCustomText extends StatefulWidget {
-  final List<String> messages;
-  final int currentIndex;
-
-  const CarouselWithCustomText({
-    Key? key,
-    required this.messages,
-    this.currentIndex = 0,
-  }) : super(key: key);
-
-  @override
-  _CarouselWithCustomTextState createState() => _CarouselWithCustomTextState();
-}
-
-class _CarouselWithCustomTextState extends State<CarouselWithCustomText> {
-  late int _currentMessageIndex;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentMessageIndex = widget.currentIndex;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return CarouselSlider(
-      options: CarouselOptions(
-        height: 150,
-        autoPlay: true,
-        enlargeCenterPage: true,
-        onPageChanged: (index, reason) {
-          setState(() {
-            _currentMessageIndex = index;
-          });
-        },
-      ),
-      items: widget.messages.map((message) {
-        return Container(
-          margin: const EdgeInsets.all(8.0),
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.7),
+          prefixIcon: const Icon(Icons.list),
+          border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Center(
-            child: Text(
-              message,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        );
-      }).toList(),
+        ),
+      ),
     );
   }
 }
+//
+// class CarouselWithCustomText extends StatelessWidget {
+//   final List<String> messages;
+//   final int currentIndex;
+//
+//   const CarouselWithCustomText({
+//     Key? key,
+//     required this.messages,
+//     required this.currentIndex,
+//   }) : super(key: key);
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return cs.CarouselSlider(
+//       options: cs.CarouselOptions(
+//         autoPlay: true,
+//         autoPlayInterval: const Duration(seconds: 3),
+//         aspectRatio: 1.0,
+//         viewportFraction: 1.0,
+//       ),
+//       items: messages.map((message) {
+//         return Container(
+//           width: MediaQuery.of(context).size.width,
+//           margin: const EdgeInsets.symmetric(horizontal: 5.0),
+//           child: Center(
+//             child: Text(
+//               message,
+//               style: const TextStyle(
+//                 fontSize: 24,
+//                 fontFamily: 'Inter',
+//                 fontWeight: FontWeight.bold,
+//                 color: Colors.black,
+//               ),
+//               textAlign: TextAlign.center,
+//             ),
+//           ),
+//         );
+//       }).toList(),
+//     );
+//   }
+// }

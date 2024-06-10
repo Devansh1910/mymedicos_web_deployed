@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-
-
 class AlternatingImageTextList extends StatelessWidget {
   final List<String> imagePaths;
   final List<String> titles;

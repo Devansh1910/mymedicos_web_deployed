@@ -1,17 +1,16 @@
 import 'dart:io';
 
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';  // Import flutter_svg
 import 'package:mymedicosweb/Landing/Alternate_image_text.dart';
 import 'package:mymedicosweb/Landing/Footer.dart';
-import 'package:mymedicosweb/Landing/home_screen.dart';
+
 import 'package:mymedicosweb/footer2.dart';
 
 import 'package:mymedicosweb/pg_neet/proven_effective_content.dart';
 import 'package:mymedicosweb/pg_neet/top_image.dart';
 import '../settings_screen.dart';
-import '../login/login_screen.dart';
+
 import '../login/sign_up.dart';  // Import SignUpScreen
 
 class HomeScreen extends StatefulWidget {

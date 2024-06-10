@@ -1,3 +1,4 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mymedicosweb/login/login_check.dart';
@@ -192,8 +193,10 @@ class MainContent extends StatelessWidget {
     required this.dueDate,
   });
 
+
   @override
   Widget build(BuildContext context) {
+    late DatabaseReference databaseReference;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: isLargeScreen ? 32 : 16),
       child: Column(
@@ -482,11 +485,34 @@ class MainContent extends StatelessWidget {
                     onPressed: hasReadInstructions
                         ? () {
                       if (qid != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => QuizPage(quizId: qid , title:title),
-                          ),
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('Confirmation'),
+                              content: Text('50 med coins will be deducted. Do you want to proceed?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop(); // Close the dialog
+                                  },
+                                  child: Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop(); // Close the dialog
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => QuizPage(quizId: qid, title: title,duedate:dueDate),
+                                      ),
+                                    );
+                                  },
+                                  child: Text('Proceed'),
+                                ),
+                              ],
+                            );
+                          },
                         );
                       } else {
                         // Handle the case where 'qid' is null
@@ -518,6 +544,12 @@ class MainContent extends StatelessWidget {
       ),
     );
   }
+
+
+
+    // Update phone number
+
+
 }
 
 class InstructionContainer extends StatelessWidget {

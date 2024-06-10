@@ -30,6 +30,7 @@ class UserDetailsFetcher {
               final String userInterest = dataMap["Interest"];
               final String userPrefix = dataMap["Prefix"];
               final bool? mcnVerified = dataMap["MCN verified"];
+              final String? phone=dataMap["Phone Number"];
 
               final String? userProfileImageUrl = await fetchUserProfileImageUrl(savedPhoneNumber);
 
@@ -41,6 +42,7 @@ class UserDetailsFetcher {
                 "userPrefix": userPrefix,
                 "mcnVerified": mcnVerified,
                 "userProfileImageUrl": userProfileImageUrl,
+                "Phone Number":phone
               };
             }
           } else {
@@ -60,7 +62,7 @@ class UserDetailsFetcher {
     throw Exception("User details not found");
   }
 
-   Future<String?> fetchUserProfileImageUrl(String phoneNumber) async {
+  Future<String?> fetchUserProfileImageUrl(String phoneNumber) async {
     try {
       final ref = FirebaseStorage.instance.ref().child("users").child(phoneNumber).child("profile_image.jpg");
       final url = await ref.getDownloadURL();
