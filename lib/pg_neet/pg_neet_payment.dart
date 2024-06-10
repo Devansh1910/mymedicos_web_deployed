@@ -138,7 +138,7 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
           ],
         ),
       ),
-      drawer: MediaQuery.of(context).size.width <= 600 ? AppDrawer() : null,
+      drawer: MediaQuery.of(context).size.width <= 600 ?   AppDrawer(initialIndex: 0) : null,
       body: Column(
         children: [
           OrangeStrip(
@@ -607,46 +607,6 @@ class InstructionContainer extends StatelessWidget {
   }
 }
 
-class AppDrawer extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          DrawerHeader(
-            decoration: BoxDecoration(
-              color: Colors.blue,
-            ),
-            child: Text(
-              'Drawer Header',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-              ),
-            ),
-          ),
-          ListTile(
-            leading: Icon(Icons.home),
-            title: Text('Home'),
-          ),
-          ListTile(
-            leading: Icon(Icons.school),
-            title: Text('PG Neet'),
-          ),
-          ListTile(
-            leading: Icon(Icons.book),
-            title: Text('FMGE'),
-          ),
-          ListTile(
-            leading: Icon(Icons.person),
-            title: Text('Profile'),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 
 class OrangeStrip extends StatelessWidget {

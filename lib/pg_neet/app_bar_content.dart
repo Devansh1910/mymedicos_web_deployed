@@ -1,7 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mymedicosweb/Usersdetails.dart';
-// Import UserDetailsFetcher class
 
 class AppBarContent extends StatelessWidget {
   @override
@@ -10,9 +10,9 @@ class AppBarContent extends StatelessWidget {
       future: UserDetailsFetcher().fetchUserDetails(), // Call UserDetailsFetcher to fetch user details
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+          return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Text("Error: ${snapshot.error}");
+          return Center(child: Text("Error: ${snapshot.error}"));
         } else if (snapshot.hasData) {
           final userName = snapshot.data!['userName'];
           final userProfileImageUrl = snapshot.data!['userProfileImageUrl'];
@@ -21,15 +21,33 @@ class AppBarContent extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    backgroundImage: userProfileImageUrl != null
-                        ? NetworkImage(
-                      userProfileImageUrl,
-                      scale: 2.0, // Adjust the scale if needed
-                    )
-                        : AssetImage('assets/image/default_profile.png'), // Placeholder image
-                    radius: 20.0, // Adjust the size of the CircleAvatar
-                    child: userProfileImageUrl == null ? Icon(Icons.person) : null,
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Material(
+                        elevation: 4.0, // Adjust the elevation as needed
+                        shape: CircleBorder(),
+                        child: CircleAvatar(
+                          radius: 20.0, // Adjust the size of the CircleAvatar
+                          backgroundColor: Colors.transparent, // Make the CircleAvatar's background transparent
+                        ),
+                      ),
+                      CircleAvatar(
+                        radius: 20.0, // Adjust the size of the CircleAvatar
+                        backgroundColor: Colors.grey.shade200, // Placeholder background color
+                        child: ClipOval(
+                          child: CachedNetworkImage(
+                            imageUrl: userProfileImageUrl ?? '',
+                            placeholder: (context, url) => CircularProgressIndicator(),
+                            errorWidget: (context, url, error) => Image.asset(
+                              'assets/image/default_profile.png',
+                              fit: BoxFit.cover,
+                            ),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(width: 8.0),
                   Column(
@@ -66,9 +84,10 @@ class AppBarContent extends StatelessWidget {
             ],
           );
         } else {
-          return Text("No user data found.");
+          return Center(child: Text("No user data found."));
         }
       },
+
     );
   }
 }

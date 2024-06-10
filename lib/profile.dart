@@ -152,7 +152,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
-      drawer: MediaQuery.of(context).size.width <= 600 ? AppDrawer() : null,
+      drawer: MediaQuery.of(context).size.width <= 600 ?   AppDrawer(initialIndex: 0) : null,
       body: Column(
         children: [
           OrangeStrip(

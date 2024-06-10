@@ -1,17 +1,16 @@
   import 'package:firebase_auth/firebase_auth.dart';
   import 'package:flutter/foundation.dart';
   import 'package:flutter/material.dart';
-  import 'package:flutter_svg/flutter_svg.dart';
-  import 'package:firebase_core/firebase_core.dart';
   import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
   import 'package:mymedicosweb/footer2.dart';
   import 'package:mymedicosweb/login/login_check.dart';
 
   import 'package:mymedicosweb/pg_neet/app_bar_content.dart';
-  import 'package:mymedicosweb/pg_neet/app_drawer.dart';
+import 'package:mymedicosweb/pg_neet/app_drawer.dart';
+
   import 'package:mymedicosweb/pg_neet/credit.dart';
-  import 'package:mymedicosweb/pg_neet/pg_neet.dart';
+
   import 'package:mymedicosweb/pg_neet/pg_neet_payment.dart';
   import 'package:mymedicosweb/pg_neet/proven_effective_content.dart';
   import 'package:mymedicosweb/pg_neet/sideDrawer.dart';
@@ -59,26 +58,29 @@ import 'package:fluttertoast/fluttertoast.dart';
         );
       }
 
-      // If the user is not logged in, return an empty container
-      if (!_isLoggedIn) {
-        return Container();
-      }
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return Scaffold(appBar: AppBar(
+            automaticallyImplyLeading: !kIsWeb,
+            title: AppBarContent(),
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: isLargeScreen ? null : IconButton(
+              icon: Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context).openDrawer(); // Open the drawer when the menu icon is pressed
+              },
+            ),
+          ),
+            drawer: isLargeScreen ? null : AppDrawer(initialIndex: 0),
 
 
-      return Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: !kIsWeb,
-          title: AppBarContent(),
-          backgroundColor: Colors.white,
-          elevation: 0,
-        ),
-        // drawer: isLargeScreen ? null : AppDrawer(),
-        body: MainContent(isLargeScreen: isLargeScreen),
+            body: MainContent(isLargeScreen: isLargeScreen),
+          );
+        },
       );
     }
   }
-
-
   class MainContent extends StatelessWidget {
     final bool isLargeScreen;
 
@@ -477,7 +479,7 @@ import 'package:fluttertoast/fluttertoast.dart';
       User? user = auth.currentUser;
       if (user != null) {
         String userId = user.phoneNumber ?? '';
-        CollectionReference quizResultsCollection = db.collection('QuizResults').doc(userId).collection('Quiz');
+        CollectionReference quizResultsCollection = db.collection('QuizResults').doc(userId).collection('Exam');
         QuerySnapshot subcollectionSnapshot = await quizResultsCollection.get();
         for (var subdocument in subcollectionSnapshot.docs) {
           subcollectionIds.add(subdocument.id);

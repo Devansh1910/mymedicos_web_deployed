@@ -908,8 +908,10 @@ class QuizResultUploader {
       String? userId = FirebaseAuth.instance.currentUser?.phoneNumber;
       if (userId != null) {
         // Reference to the user's quiz results collection
-        CollectionReference<Map<String, dynamic>> userResultsRef =
-        _firestore.collection('QuizResults').doc(userId).collection('Exam');
+        CollectionReference<Map<String, dynamic>> userResultsRef = _firestore
+            .collection('QuizResults')
+            .doc(userId)
+            .collection('Exam');
 
         // Create a map with the quiz result data
         Map<String, dynamic> resultData = {
@@ -922,9 +924,11 @@ class QuizResultUploader {
           'timestamp': Timestamp.now(),
         };
 
-        // Upload the quiz result data to Firestore
-        await userResultsRef.add(resultData);
-        print('Quiz result uploaded successfully.');
+        // Upload the quiz result data to Firestore with the specified ID
+        await userResultsRef.doc(id).set(resultData);
+
+
+      print('Quiz result uploaded successfully.');
       } else {
         print('User not logged in.');
       }

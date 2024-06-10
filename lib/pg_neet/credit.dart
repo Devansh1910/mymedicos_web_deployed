@@ -67,9 +67,6 @@ class _CreditStripState extends State<CreditStrip> {
   void fetchCoinsFromDatabase(String phoneNumber) {
     databaseReference = FirebaseDatabase.instance.reference();
 
-    // Set coins value to 100 if it doesn't exist
-
-
     // Retrieve coins
     databaseReference.child('profiles').child(phoneNumber).child('coins').onValue.listen((event) {
       DataSnapshot snapshot = event.snapshot;
@@ -87,6 +84,7 @@ class _CreditStripState extends State<CreditStrip> {
       print('Error updating phone number: $error');
     });
   }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -123,35 +121,39 @@ class _CreditStripState extends State<CreditStrip> {
                   ],
                 ),
               ),
-              Container(
-                padding: EdgeInsets.symmetric(
-                    vertical: screenWidth < 600 ? 5 : 10,
-                    horizontal: screenWidth < 600 ? 20 : 40),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(7),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 8,
-                      offset: Offset(0, 5),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, '/profile'); // Navigate to the profile page
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                      vertical: screenWidth < 600 ? 5 : 10,
+                      horizontal: screenWidth < 600 ? 20 : 40),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(7),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 8,
+                        offset: Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: _isLoading
+                      ? Center(child: CircularProgressIndicator())
+                      : Text(
+                    '$currentCoins',
+                    style: TextStyle(
+                      fontSize: screenWidth < 600 ? 12 : 18,
+                      color: Colors.grey,
+                      fontFamily: 'Inter',
                     ),
-                  ],
-                ),
-                child: _isLoading
-                    ? Center(child: CircularProgressIndicator())
-                    : Text(
-                  '$currentCoins',
-                  style: TextStyle(
-                    fontSize: screenWidth < 600 ? 12 : 18,
-                    color: Colors.grey,
-                    fontFamily: 'Inter',
                   ),
                 ),
               ),
             ],
           ),
-
         ],
       ),
     );

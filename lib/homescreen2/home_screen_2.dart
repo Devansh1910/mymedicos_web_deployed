@@ -44,7 +44,7 @@ class _HomeScreen2State extends State<HomeScreen2> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final bool isLargeScreen = screenWidth > 600;
+
 
     // If the initialization is not completed yet, show a loading indicator
     if (!_isInitialized) {
@@ -59,69 +59,60 @@ class _HomeScreen2State extends State<HomeScreen2> {
     if (!_isLoggedIn) {
       return Container();
     }
-    // UserNotifier userNotifier=UserNotifier();
-    // bool isLoggedIn = userNotifier.isLoggedIn;
-    //
-    // // If the user is not logged in, navigate to the login screen
-    // if (!isLoggedIn) {
-    //   // You can replace '/login' with the route name of your login screen
-    //   Navigator.of(context).pushReplacementNamed('/login');
-    //   return Container(); // Return an empty container while navigating
-    // }
 
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: !kIsWeb,
-        title: AppBarContent(),
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isLargeScreen = constraints.maxWidth > 600;
 
-      drawer: isLargeScreen ? null : AppDrawer(),
-      body: Column(
-        children: [
-          OrangeStrip(
-            text: 'Give your learning an extra edge with our premium content, curated exclusively for you!',
+        return Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: !isLargeScreen,
+            title: AppBarContent(),
+            backgroundColor: Colors.white,
+            elevation: 0,
           ),
-          Expanded(
-            child:Row(
-            children: <Widget>[
-              if (isLargeScreen) sideDrawer(initialIndex: 0),
+          drawer: isLargeScreen ? null :  AppDrawer(initialIndex: 0),
+          body: Column(
+            children: [
+              OrangeStrip(
+                text: 'Give your learning an extra edge with our premium content, curated exclusively for you!',
+              ),
               Expanded(
-                child: SingleChildScrollView(
-
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-
-                      // Big image at the top
-                      Container(
-
-                        height: 300,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black),
-                        ),
-                        width: double.infinity,
-                        child: Image.asset(
-                          'assets/image/Frame 160.png',
-                          fit: BoxFit.cover,
+                child: Row(
+                  children: <Widget>[
+                    if (isLargeScreen) sideDrawer(initialIndex: 0),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            // Big image at the top
+                            Container(
+                              height: 300,
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.black),
+                              ),
+                              width: double.infinity,
+                              child: Image.asset(
+                                'assets/image/Frame 160.png',
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            RecommendedGrandTest(screenWidth: screenWidth),
+                            ProvenEffectiveContent(screenWidth: screenWidth),
+                            CreditStrip(),
+                            Footer2(),
+                          ],
                         ),
                       ),
-                      RecommendedGrandTest(screenWidth: screenWidth),
-                      ProvenEffectiveContent(screenWidth: screenWidth),
-                      CreditStrip(),
-
-                        Footer2(),
-
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ],
-          ), ),
-
-        ],
-      ),
+          ),
+        );
+      },
     );
   }
 }
