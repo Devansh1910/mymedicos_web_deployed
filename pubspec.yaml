@@ -1,7 +1,7 @@
 name: mymedicosweb
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
+# pub.dev using flutter pub publish. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
@@ -23,10 +23,10 @@ environment:
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
+# consider running flutter pub upgrade --major-versions. Alternatively,
 # dependencies can be manually updated by changing the version numbers below to
 # the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
+# versions available, run flutter pub outdated.
 dependencies:
   flutter:
     sdk: flutter
@@ -55,11 +55,14 @@ dev_dependencies:
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
+  # activated in the analysis_options.yaml file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
   flutter_svg: ^2.0.10+1
+  video_player: ^2.4.5
+  cupertino_icons: ^1.0.2
+  google_fonts: ^4.0.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -83,8 +86,24 @@ flutter:
     - assets/image/logo.svg
     - assets/image/frame 160.svg
     - assets/image/background.svg
-    - assets/image/Frame 160.png
-    - assets/image/Frame 168.png
+    - assets/landing/top.png
+    - assets/landing/mid.png
+    - assets/landing/mid2.png
+    - assets/landing/last.png
+    - assets/landing/hometop.png
+    - assets/landing/logoperfect.svg
+    - assets/landing/bkhero.png
+    - assets/landing/CRACK.png
+    - assets/landing/CrackBack.png
+    - assets/landing/Feature/3.png
+    - assets/landing/Feature/2.png
+    - assets/landing/Feature/1.png
+    - assets/landing/indiaflag.svg
+    - assets/login/google.svg
+    - assets/login/github.svg
+    - assets/login/facebook.svg
+    - assets/login/indiaflag.svg
+
 
 
 

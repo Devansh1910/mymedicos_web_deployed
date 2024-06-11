@@ -1,19 +1,21 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:mymedicosweb/footer2.dart';
+import 'package:mymedicosweb/components/Footer.dart';
 import 'package:mymedicosweb/homescreen2/Recommended.dart';
 import 'package:mymedicosweb/login/login_check.dart';
 import 'package:mymedicosweb/pg_neet/app_bar_content.dart';
 
 import 'package:mymedicosweb/pg_neet/app_drawer.dart';
-import 'package:mymedicosweb/pg_neet/proven_effective_content.dart';
+import 'package:mymedicosweb/Landing/components/proven_effective_content.dart';
 import 'package:mymedicosweb/pg_neet/sideDrawer.dart';
 import 'package:mymedicosweb/pg_neet/credit.dart';
 
 
 class HomeScreen2 extends StatefulWidget {
+  const HomeScreen2({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _HomeScreen2State createState() => _HomeScreen2State();
 }
 
@@ -29,6 +31,7 @@ class _HomeScreen2State extends State<HomeScreen2> {
 
   void _initializeUser() async {
     UserNotifier userNotifier = UserNotifier();
+    // ignore: await_only_futures
     await userNotifier.isInitialized;
     setState(() {
       _isLoggedIn = userNotifier.isLoggedIn;
@@ -37,6 +40,7 @@ class _HomeScreen2State extends State<HomeScreen2> {
     // If the user is not logged in, navigate to the login screen
     if (!_isLoggedIn) {
       // You can replace '/login' with the route name of your login screen
+      // ignore: use_build_context_synchronously
       Navigator.of(context).pushReplacementNamed('/login');
     }
   }
@@ -48,7 +52,7 @@ class _HomeScreen2State extends State<HomeScreen2> {
 
     // If the initialization is not completed yet, show a loading indicator
     if (!_isInitialized) {
-      return Scaffold(
+      return const Scaffold(
         body: Center(
           child: CircularProgressIndicator(),
         ),
@@ -80,7 +84,7 @@ class _HomeScreen2State extends State<HomeScreen2> {
       drawer: isLargeScreen ? null : AppDrawer(),
       body: Column(
         children: [
-          OrangeStrip(
+          const OrangeStrip(
             text: 'Give your learning an extra edge with our premium content, curated exclusively for you!',
           ),
           Expanded(
@@ -111,7 +115,7 @@ class _HomeScreen2State extends State<HomeScreen2> {
                       ProvenEffectiveContent(screenWidth: screenWidth),
                       CreditStrip(),
 
-                        Footer2(),
+                        const Footer(),
 
                     ],
                   ),
@@ -129,28 +133,28 @@ class _HomeScreen2State extends State<HomeScreen2> {
 class OrangeStrip extends StatelessWidget {
   final String text;
 
-  const OrangeStrip({
+  const OrangeStrip({super.key, 
     required this.text,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Color(0xFFFFF6E5),
-      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+      color: const Color(0xFFFFF6E5),
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
       child: Row(
         children: [
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: TextStyle(
+                style: const TextStyle(
                     color: Colors.white,
                     fontFamily: 'Inter'
                 ),
                 children: [
                   TextSpan(
                     text: text,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.black,
                     ),
                   ),
@@ -170,11 +174,11 @@ class FeatureCard extends StatelessWidget {
   final String description;
 
   const FeatureCard({
-    Key? key,
+    super.key,
     required this.imagePath,
     required this.title,
     required this.description,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -206,7 +210,7 @@ class FeatureCard extends StatelessWidget {
               child: Image.asset(
                 imagePath,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Icon(Icons.error),
+                errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
               ),
             ),
           ),
@@ -238,9 +242,9 @@ class FeatureCardList extends StatelessWidget {
   final List<FeatureCard> cards;
 
   const FeatureCardList({
-    Key? key,
+    super.key,
     required this.cards,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
