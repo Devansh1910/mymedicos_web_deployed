@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -394,7 +395,9 @@ class _QuizPageState extends State<QuizPage> {
                     Container(
                       color: Colors.white, // Set the background color of the question section to white
                       child: QuestionSection(
+
                         question: questions[currentQuestionIndex]['Question'],
+                        image: questions[currentQuestionIndex]['Image'],
                         options: [
                           questions[currentQuestionIndex]['A'],
                           questions[currentQuestionIndex]['B'],
@@ -403,6 +406,7 @@ class _QuizPageState extends State<QuizPage> {
                         ],
                         selectedAnswer: selectedAnswers[currentQuestionIndex],
                         onAnswerSelected: selectAnswer,
+                        remainingTime: _remainingTime,
                       ),
                     ),
                     NavigationButtons(
@@ -545,32 +549,65 @@ class HeaderSection extends StatelessWidget {
     );
   }
 }
-
 class QuestionSection extends StatelessWidget {
   final String question;
   final List<String> options;
   final int? selectedAnswer;
+  final String image;
   final ValueChanged<int?> onAnswerSelected;
+  final int remainingTime;
 
   QuestionSection({
     required this.question,
     required this.options,
     required this.selectedAnswer,
     required this.onAnswerSelected,
+    required this.image,
+    required this.remainingTime,
   });
-
 
   @override
   Widget build(BuildContext context) {
+    int hours = remainingTime ~/ 3600;
+    int minutes = (remainingTime % 3600) ~/ 60;
+    int seconds = remainingTime % 60;
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Question:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Question:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+      Container(
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        child: Text(
+          'Remaining Time: $hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+          ),
+        ),
+      ),
+            ],
+          ),
           SizedBox(height: 10),
           Text(question, style: TextStyle(fontSize: 16)),
+          if (image.isNotEmpty)
+            CachedNetworkImage(
+              imageUrl: image,
+              fit: BoxFit.cover,
+              placeholder: (context, url) => CircularProgressIndicator(),
+              errorWidget: (context, url, error) => Icon(Icons.error),
+            ),
           SizedBox(height: 20),
           ...options.asMap().entries.map((entry) {
             int idx = entry.key;

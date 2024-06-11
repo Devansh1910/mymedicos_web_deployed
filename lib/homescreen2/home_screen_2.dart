@@ -1,13 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:mymedicosweb/footer2.dart';
+import 'package:mymedicosweb/Landing/components/proven_effective_content.dart';
+import 'package:mymedicosweb/components/Footer.dart';
+
 import 'package:mymedicosweb/homescreen2/Recommended.dart';
 import 'package:mymedicosweb/login/login_check.dart';
 import 'package:mymedicosweb/pg_neet/app_bar_content.dart';
 
 import 'package:mymedicosweb/pg_neet/app_drawer.dart';
-import 'package:mymedicosweb/pg_neet/proven_effective_content.dart';
+
 import 'package:mymedicosweb/pg_neet/sideDrawer.dart';
 import 'package:mymedicosweb/pg_neet/credit.dart';
 
@@ -101,7 +103,7 @@ class _HomeScreen2State extends State<HomeScreen2> {
                             RecommendedGrandTest(screenWidth: screenWidth),
                             ProvenEffectiveContent(screenWidth: screenWidth),
                             CreditStrip(),
-                            Footer2(),
+                            Footer(),
                           ],
                         ),
                       ),

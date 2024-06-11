@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-// // Alias the carousel_slider package to avoid conflicts
-// import 'package:carousel_slider/carousel_slider.dart' as cs;
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mymedicosweb/login/login_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -20,11 +20,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String name = '';
   String phoneNumber = '';
   String location = '';
-  String interest = '';
-  String interest2 = '';
+  String? interest;
+  String? interest2;
   String? prefix; // Allow prefix to be null initially
   String fcmToken = '';
   bool isMCNVerified = false;
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   final List<String> welcomeMessages = [
     "Welcome! Ready to join us?",
@@ -64,6 +68,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   ];
 
   final List<String> subspecialities = [
+    "Select SubSpeciality",
     "Cardiology",
     "Gastroenterology (M)",
     "Nephrology",
@@ -110,6 +115,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     // Add other subspecialities here
   ];
 
+
   int _currentMessageIndex = 0;
   Timer? _timer;
 
@@ -132,6 +138,78 @@ class _SignUpScreenState extends State<SignUpScreen> {
             (_currentMessageIndex + 1) % welcomeMessages.length;
       });
     });
+  }
+  bool isValidEmail(String email) {
+    String pattern = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
+    RegExp regex = RegExp(pattern);
+    return regex.hasMatch(email);
+  }
+
+  bool isValidPhoneNumber(String phoneNumber) {
+    String pattern = r'^[0-9]{10}$';
+    RegExp regex = RegExp(pattern);
+    return regex.hasMatch(phoneNumber);
+  }
+
+
+  void _showToast(String message) {
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
+  }
+  void _register() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      if (!isValidEmail(email)) {
+        _showToast('Please enter a valid email address.');
+        return;
+      }
+      if (!isValidPhoneNumber(phoneNumber)) {
+        _showToast('Please enter a valid phone number.');
+        return;
+      }
+      try {
+        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: "user_password", // You should get this from a TextFormField
+        );
+
+        User? user = userCredential.user;
+        if (user != null) {
+          user.sendEmailVerification();
+
+          await _firestore.collection('users').add({
+            'Email ID': email,
+            'Name': name,
+            'Phone Number': phoneNumber,
+            'Location': location,
+            'Interest': interest,
+            'Interest2': interest2,
+            'Prefix': prefix,
+            'MCN verified': false,
+            'FCM Token': fcmToken,
+            'QuizToday': "",
+            'MedCoins': 0,
+            'Streak': 0,
+          }).then((docRef) async {
+            await _firestore.collection('users').doc(docRef.id).update({'DocID': docRef.id});
+          });
+
+          Fluttertoast.showToast(msg: "Registration successful! Please verify your email.");
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => LoginScreen()),
+          );
+        }
+      } catch (e) {
+        Fluttertoast.showToast(msg: e.toString());
+      }
+    }
   }
 
   @override
@@ -176,13 +254,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Expanded(
-                  //   flex: 1,
-                  //   child: CarouselWithCustomText(
-                  //     messages: welcomeMessages,
-                  //     currentIndex: _currentMessageIndex,
-                  //   ),
-                  // ),
                   const SizedBox(width: 200),
                   Expanded(
                     flex: 1,
@@ -197,10 +268,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // CarouselWithCustomText(
-                    //   messages: welcomeMessages,
-                    //   currentIndex: _currentMessageIndex,
-                    // ),
                     const SizedBox(height: 20),
                     _buildSignUpForm(screenSize, isLargeScreen),
                   ],
@@ -287,7 +354,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               items: specialities,
               onChanged: (value) {
                 setState(() {
-                  interest = value!;
+                  interest = value;
                 });
               },
             ),
@@ -297,41 +364,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
               items: subspecialities,
               onChanged: (value) {
                 setState(() {
-                  interest2 = value!;
+                  interest2 = value;
                 });
               },
             ),
-            DropdownButtonFormField<String>(
+            _buildDropdownField(
+              label: 'Prefix',
               value: prefix,
+              items: ['Hr.', 'Nr.', 'Dr.'],
               onChanged: (newValue) {
                 setState(() {
-                  prefix = newValue!;
+                  prefix = newValue;
                 });
               },
-              items: <String>['Hr.', 'Nr.', 'Dr.']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              decoration: InputDecoration(
-                labelText: 'Prefix',
-                prefixIcon: const Icon(Icons.person),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              validator: (value) =>
-              value == null ? 'Please select a prefix' : null,
-              onSaved: (value) => prefix = value,
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                   _formKey.currentState!.save();
+                  _register();
+
                   // Process data or navigate to another screen
+                } else {
+                  _showToast('Please fill in all required fields.');
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -405,7 +461,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   Widget _buildDropdownField({
     required String label,
-    required String value,
+    required String? value,
     required List<String> items,
     required ValueChanged<String?> onChanged,
   }) {
@@ -427,48 +483,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
             borderRadius: BorderRadius.circular(8),
           ),
         ),
+        validator: (value) =>
+        value == null ? 'Please select an option' : null,
+        onSaved: (value) {
+          if (label == 'Speciality') {
+            interest = value;
+          } else if (label == 'SubSpeciality') {
+            interest2 = value;
+          } else if (label == 'Prefix') {
+            prefix = value;
+          }
+        },
       ),
     );
   }
 }
-//
-// class CarouselWithCustomText extends StatelessWidget {
-//   final List<String> messages;
-//   final int currentIndex;
-//
-//   const CarouselWithCustomText({
-//     Key? key,
-//     required this.messages,
-//     required this.currentIndex,
-//   }) : super(key: key);
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return cs.CarouselSlider(
-//       options: cs.CarouselOptions(
-//         autoPlay: true,
-//         autoPlayInterval: const Duration(seconds: 3),
-//         aspectRatio: 1.0,
-//         viewportFraction: 1.0,
-//       ),
-//       items: messages.map((message) {
-//         return Container(
-//           width: MediaQuery.of(context).size.width,
-//           margin: const EdgeInsets.symmetric(horizontal: 5.0),
-//           child: Center(
-//             child: Text(
-//               message,
-//               style: const TextStyle(
-//                 fontSize: 24,
-//                 fontFamily: 'Inter',
-//                 fontWeight: FontWeight.bold,
-//                 color: Colors.black,
-//               ),
-//               textAlign: TextAlign.center,
-//             ),
-//           ),
-//         );
-//       }).toList(),
-//     );
-//   }
-// }
