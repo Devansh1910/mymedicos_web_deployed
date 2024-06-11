@@ -3,7 +3,7 @@
   import 'package:flutter/material.dart';
   import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-  import 'package:mymedicosweb/footer2.dart';
+  import 'package:mymedicosweb/components/Footer.dart';
   import 'package:mymedicosweb/login/login_check.dart';
 
   import 'package:mymedicosweb/pg_neet/app_bar_content.dart';
@@ -12,9 +12,9 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
   import 'package:mymedicosweb/pg_neet/credit.dart';
 
   import 'package:mymedicosweb/pg_neet/pg_neet_payment.dart';
-  import 'package:mymedicosweb/pg_neet/proven_effective_content.dart';
+  import 'package:mymedicosweb/Landing/components/proven_effective_content.dart';
   import 'package:mymedicosweb/pg_neet/sideDrawer.dart';
-  import 'package:mymedicosweb/pg_neet/top_image.dart';
+  import 'package:mymedicosweb/Landing/components/HeroImage.dart';
 
 
 
@@ -51,7 +51,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
       final screenWidth = MediaQuery.of(context).size.width;
       final bool isLargeScreen = screenWidth > 600;
       if (!_isInitialized) {
-        return Scaffold(
+        return const Scaffold(
           body: Center(
             child: CircularProgressIndicator(),
           ),
@@ -92,7 +92,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
 
       return Column(
         children: [
-          OrangeStrip(
+          const OrangeStrip(
             text: 'Give your learning an extra edge with our premium content, curated exclusively for you!',
           ),
           Expanded(
@@ -105,11 +105,11 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
                       future: fetchAndCategorizeQuizzes(),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator());
+                          return const Center(child: CircularProgressIndicator());
                         } else if (snapshot.hasError) {
                           return Center(child: Text('Error: ${snapshot.error}'));
                         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Center(child: Text('No quizzes available.'));
+                          return const Center(child: Text('No quizzes available.'));
                         }
 
                         Map<String, List<QuizPG>> categorizedQuizzes = snapshot.data!;
@@ -117,7 +117,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            TopImage(),
+                            const TopImage(),
                             QuizSection(
                               title: 'OnGoing Grand Test',
                               description: 'Go through these examinations for better preparation & get ready for the final buzz!',
@@ -138,7 +138,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
                             ),
                             ProvenEffectiveContent(screenWidth: screenWidth),
                             CreditStrip(),
-                            Footer2(),
+                            const Footer(),
                           ],
                         );
                       },
@@ -223,7 +223,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
                 fontFamily: 'Inter',
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             SizedBox(
               height: 300,
               width:double.infinity,
@@ -244,7 +244,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      SizedBox(width: 16), // Add initial padding
+                      const SizedBox(width: 16), // Add initial padding
                       ...quizzes.map((quiz) {
                         return Padding(
                           padding: const EdgeInsets.only(right: 16.0),
@@ -319,7 +319,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
                 fontFamily: 'Inter',
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             SizedBox(
               height: 300,
               width:double.infinity,
@@ -340,7 +340,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      SizedBox(width: 16), // Add initial padding
+                      const SizedBox(width: 16), // Add initial padding
                       ...quizzes.map((quiz) {
                         return Padding(
                           padding: const EdgeInsets.only(right: 16.0),
@@ -402,7 +402,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
                 fontFamily: 'Inter',
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             SizedBox(
               height: 300,
               width:double.infinity,
@@ -423,7 +423,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      SizedBox(width: 16), // Add initial padding
+                      const SizedBox(width: 16), // Add initial padding
                       ...quizzes.map((quiz) {
                         return Padding(
                           padding: const EdgeInsets.only(right: 16.0),
@@ -539,7 +539,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
                   fit: BoxFit.cover,
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -591,21 +591,21 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
     @override
     Widget build(BuildContext context) {
       return Container(
-        color: Color(0xFFFFF6E5),
-        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+        color: const Color(0xFFFFF6E5),
+        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
         child: Row(
           children: [
             Expanded(
               child: RichText(
                 text: TextSpan(
-                  style: TextStyle(
+                  style: const TextStyle(
                       color: Colors.white,
                       fontFamily: 'Inter'
                   ),
                   children: [
                     TextSpan(
                       text: text,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.black,
                       ),
                     ),

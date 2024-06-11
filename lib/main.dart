@@ -3,25 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:mymedicosweb/homescreen2/home_screen_2.dart';
 import 'package:mymedicosweb/login/login_check.dart';
 import 'package:mymedicosweb/login/sign_up.dart';
-
-import 'package:mymedicosweb/pg_neet/QuizScreen.dart';
-
 import 'package:mymedicosweb/pg_neet/pg_neet.dart';
-import 'package:mymedicosweb/pg_neet/pg_neet_payment.dart';
 import 'package:mymedicosweb/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart'; // Import the generated file
+// Import the generated file
 import 'theme_notifier.dart';
 import 'locale_notifier.dart';
-import 'Landing/home_screen.dart';
+import 'Landing/screen/home_screen.dart';
 import 'settings_screen.dart';
 import 'login/login_screen.dart'; // Ensure the correct path
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    options: FirebaseOptions(
+    options: const FirebaseOptions(
         apiKey: "AIzaSyCE7_gYf1UZ-KgfRS45xPKYkAy0S5GxYbk",
         authDomain: "mymedicosupdated.firebaseapp.com",
         databaseURL: "https://mymedicosupdated-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -67,8 +63,8 @@ class MyApp extends StatelessWidget {
             '/': (context) => const HomeScreen(title: 'Mymedicos'),
             '/settings': (context) => const SettingsScreen(),
             '/login': (context) => const LoginScreen(),
-            '/register': (context) => SignUpScreen(),
-            '/homescreen': (context) => HomeScreen2(),
+            '/register': (context) => const SignUpScreen(),
+            '/homescreen': (context) => const HomeScreen2(),
             '/pgneet': (context) => PgNeet(),
             '/profile': (context) => ProfileScreen(),
             // '/quiz': (context) => QuizPage(),
@@ -81,7 +77,7 @@ class MyApp extends StatelessWidget {
 class LoadingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Center(
         child: CircularProgressIndicator(),
       ),

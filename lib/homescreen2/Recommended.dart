@@ -7,9 +7,9 @@ class RecommendedGrandTest extends StatelessWidget {
   final QuizService quizService = QuizService(); // Instantiate the QuizService
 
   RecommendedGrandTest({
-    Key? key,
+    super.key,
     required this.screenWidth,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,20 +33,20 @@ class RecommendedGrandTest extends StatelessWidget {
               fontFamily: 'Inter',
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           FutureBuilder(
             future: quizService.fetchQuizzes(2), // Fetch only 2 quizzes
             builder: (context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return CircularProgressIndicator(); // Show loading indicator while fetching data
+                return const CircularProgressIndicator(); // Show loading indicator while fetching data
               }
               if (snapshot.hasError || !snapshot.hasData) {
-                return Text('Error fetching quizzes');
+                return const Text('Error fetching quizzes');
               }
               List<Map<String, dynamic>> quizzes = snapshot.data!;
               return GridView.builder(
                 shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: screenWidth < 600 ? 1 : 2,
                   crossAxisSpacing: 32.0,
@@ -83,7 +83,7 @@ class RecommendedGrandTest extends StatelessWidget {
                               fit: BoxFit.cover,
                             ),
                           ),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           Container(
                             width: double.infinity,
                             decoration: BoxDecoration(
@@ -159,18 +159,17 @@ class QuizDetailScreen extends StatelessWidget {
   final String dueDate;
 
   QuizDetailScreen({
-    Key? key,
+    super.key,
     required this.title,
     required this.quizId,
     required Timestamp dueDate,
-  }) : dueDate = dueDate.toDate().toString(),
-        super(key: key);
+  }) : dueDate = dueDate.toDate().toString();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Quiz Details'),
+        title: const Text('Quiz Details'),
       ),
       body: Center(
         child: Column(
