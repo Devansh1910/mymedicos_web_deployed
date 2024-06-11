@@ -3,28 +3,28 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mymedicosweb/Usersdetails.dart';
-import 'package:mymedicosweb/footer2.dart';
+import 'package:mymedicosweb/components/Footer.dart';
 import 'package:mymedicosweb/login/login_check.dart';
 import 'package:mymedicosweb/pg_neet/app_bar_content.dart';
 import 'package:mymedicosweb/pg_neet/app_drawer.dart';
-import 'package:mymedicosweb/pg_neet/proven_effective_content.dart';
+import 'package:mymedicosweb/Landing/components/proven_effective_content.dart';
 import 'package:mymedicosweb/pg_neet/sideDrawer.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:mymedicosweb/footer2.dart';
+import 'package:mymedicosweb/components/Footer.dart';
 import 'package:mymedicosweb/login/login_check.dart';
 import 'package:mymedicosweb/pg_neet/app_bar_content.dart';
 import 'package:mymedicosweb/pg_neet/app_drawer.dart';
-import 'package:mymedicosweb/pg_neet/proven_effective_content.dart';
+import 'package:mymedicosweb/Landing/components/proven_effective_content.dart';
 import 'package:mymedicosweb/pg_neet/sideDrawer.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mymedicosweb/footer2.dart';
+import 'package:mymedicosweb/components/Footer.dart';
 import 'package:mymedicosweb/login/login_check.dart';
 import 'package:mymedicosweb/pg_neet/app_bar_content.dart';
 import 'package:mymedicosweb/pg_neet/app_drawer.dart';
@@ -35,11 +35,11 @@ import 'package:flutter_svg/svg.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mymedicosweb/footer2.dart';
+import 'package:mymedicosweb/components/Footer.dart';
 import 'package:mymedicosweb/login/login_check.dart';
 import 'package:mymedicosweb/pg_neet/app_bar_content.dart';
 import 'package:mymedicosweb/pg_neet/app_drawer.dart';
-import 'package:mymedicosweb/pg_neet/proven_effective_content.dart';
+import 'package:mymedicosweb/Landing/components/proven_effective_content.dart';
 import 'package:mymedicosweb/pg_neet/sideDrawer.dart';
 import 'package:flutter_svg/svg.dart';
 // Import your UserDetailsFetcher class
@@ -85,7 +85,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final bool isLargeScreen = screenWidth > 600;
 
     if (!_isInitialized) {
-      return Scaffold(
+      return const Scaffold(
         body: Center(
           child: CircularProgressIndicator(),
         ),
@@ -117,11 +117,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ),
-                SizedBox(width: 8.0),
+                const SizedBox(width: 8.0),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Good Morning!',
                       style: TextStyle(
                         fontFamily: 'Inter',
@@ -131,7 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     Text(
                       _userDetails["userName"] ?? 'Unknown User',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 14.0,
                         color: Colors.grey,
@@ -155,7 +155,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       drawer: MediaQuery.of(context).size.width <= 600 ? AppDrawer() : null,
       body: Column(
         children: [
-          OrangeStrip(
+          const OrangeStrip(
             text: 'Give your learning an extra edge with our premium content, curated exclusively for you!',
           ),
           Expanded(
@@ -194,13 +194,13 @@ class MainContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          SizedBox(height: 16),
-          Text('Details', style: TextStyle(
+          const SizedBox(height: 16),
+          const Text('Details', style: TextStyle(
               fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'Inter')),
-          SizedBox(height: 10),
-          Text('Go through the details.', style: TextStyle(
+          const SizedBox(height: 10),
+          const Text('Go through the details.', style: TextStyle(
               fontSize: 20, color: Colors.grey, fontFamily: 'Inter')),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Center(
             child: Column(
               children: [
@@ -209,8 +209,8 @@ class MainContent extends StatelessWidget {
                   backgroundImage: NetworkImage(
                       userDetails["userProfileImageUrl"] ?? 'https://via.placeholder.com/150'), // Replace with the actual image URL
                 ),
-                SizedBox(height: 10),
-                Text('Your profile is up to date',
+                const SizedBox(height: 10),
+                const Text('Your profile is up to date',
                     style: TextStyle(color: Colors.blue)),
               ],
             ),
@@ -218,21 +218,21 @@ class MainContent extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text("Name"),
+              const Text("Name"),
               _buildStyledTextField('Name', userDetails["userName"]),
-              Text("Email ID"),
+              const Text("Email ID"),
               _buildStyledTextField('Email ID', userDetails["userEmail"]),
-              Text("Contact Number"),
+              const Text("Contact Number"),
               _buildStyledTextField('Contact Number', userDetails["Phone Number"]),
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 20.0),
+                padding: const EdgeInsets.symmetric(vertical: 20.0),
                 child: Row(
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("Interest"),
+                          const Text("Interest"),
                           _buildStyledTextField('Interest', userDetails["userInterest"]),
                         ],
                       ),
@@ -242,7 +242,7 @@ class MainContent extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("Location"),
+                          const Text("Location"),
                           _buildStyledTextField('Location', userDetails["userLocation"]),
                         ],
                       ),
@@ -253,17 +253,17 @@ class MainContent extends StatelessWidget {
             ],
           ),
 
-          SizedBox(height: 30),
-          Text(
+          const SizedBox(height: 30),
+          const Text(
             'Med Wallet',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-          Text(
+          const Text(
             'Get the coins in your wallet to explore all features of our application with ease.',
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Container(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(0),
@@ -272,23 +272,23 @@ class MainContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Row(
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Text('Get Credits', style: TextStyle(fontSize: 16)),
                     Text('5634', style: TextStyle(fontSize: 16)),
                   ],
                 ),
-                Text(
+                const Text(
                     'MedCoin – These Credits could be used for purchasing Premium Exam Sets, Test Cases and Preparation Sets.'),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 AdWatchButton(coinValue: 10),
                 AdWatchButton(coinValue: 20),
               ],
             ),
           ),
           ProvenEffectiveContent(screenWidth: screenWidth),
-          Footer2(),
+          const Footer(),
         ],
       ),
     );
@@ -304,10 +304,10 @@ class MainContent extends StatelessWidget {
         borderRadius: BorderRadius.circular(10.0),
       ),
       child: Padding(
-        padding: EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(8.0),
         child: Text(
           valueText ?? 'No data available',
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 16.0,
           ),
         ),
@@ -322,7 +322,7 @@ class AdManager {
   static void loadAd() {
     RewardedAd.load(
       adUnitId: "ca-app-pub-1452770494559845/3094113721",
-      request: AdRequest(),
+      request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdFailedToLoad: (LoadAdError error) {
           _rewardedAd = null;
@@ -397,9 +397,9 @@ class AdWatchButton extends StatelessWidget {
         ),
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFF9F1E7), // Background color
-              padding: EdgeInsets.all(15),
-              textStyle: TextStyle(fontSize: 16),
+              backgroundColor: const Color(0xFFF9F1E7), // Background color
+              padding: const EdgeInsets.all(15),
+              textStyle: const TextStyle(fontSize: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(9.0), // Button radius
               ),
@@ -418,15 +418,15 @@ class AdWatchButton extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Text('Get $coinValue Coins in your MedWallet',style: TextStyle(color:Colors.grey,fontSize:17,fontFamily: 'Inter'),),
-                  SizedBox(height: 4),
+                  Text('Get $coinValue Coins in your MedWallet',style: const TextStyle(color:Colors.grey,fontSize:17,fontFamily: 'Inter'),),
+                  const SizedBox(height: 4),
                   Text(
                     'Watch an Ad and get $coinValue coins instantly in your account.',
-                    style: TextStyle(fontSize: 17, color: Colors.grey,fontFamily: 'Inter'),
+                    style: const TextStyle(fontSize: 17, color: Colors.grey,fontFamily: 'Inter'),
                   ),
                 ],
               ),
-              Text('Watch',style: TextStyle(fontFamily: 'Inter'),),
+              const Text('Watch',style: TextStyle(fontFamily: 'Inter'),),
             ],
           ),
         ),
@@ -631,12 +631,12 @@ Future<void> processCreditsOrderPackage1(BuildContext context) async {
     context: context,
     barrierDismissible: false,
     builder: (BuildContext context) {
-      return Dialog(
+      return const Dialog(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(16.0),
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            children: const [
+            children: [
               CircularProgressIndicator(),
               SizedBox(width: 20),
               Text("Processing order..."),
@@ -736,12 +736,12 @@ Future<void> processCreditsOrderPackage2(BuildContext context) async {
     context: context,
     barrierDismissible: false,
     builder: (BuildContext context) {
-      return Dialog(
+      return const Dialog(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(16.0),
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            children: const [
+            children: [
               CircularProgressIndicator(),
               SizedBox(width: 20),
               Text("Processing order..."),
@@ -841,12 +841,12 @@ Future<void> processCreditsOrderPackage3(BuildContext context) async {
     context: context,
     barrierDismissible: false,
     builder: (BuildContext context) {
-      return Dialog(
+      return const Dialog(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(16.0),
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            children: const [
+            children: [
               CircularProgressIndicator(),
               SizedBox(width: 20),
               Text("Processing order..."),
@@ -1004,7 +1004,7 @@ class FeatureCard extends StatelessWidget {
                 child: Image.asset(
                   imagePath,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Icon(Icons.error),
+                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
                 ),
               ),
             ),
@@ -1068,7 +1068,7 @@ class ProfilePictureSection extends StatelessWidget {
         Stack(
           alignment: Alignment.center,
           children: [
-            CircleAvatar(
+            const CircleAvatar(
               radius: 50,
               backgroundImage: NetworkImage('https://via.placeholder.com/150'), // Replace with actual image URL
             ),
@@ -1080,13 +1080,13 @@ class ProfilePictureSection extends StatelessWidget {
                 onPressed: () {
                   // Handle profile image update
                 },
-                child: Icon(Icons.camera_alt),
+                child: const Icon(Icons.camera_alt),
               ),
             ),
           ],
         ),
-        SizedBox(height: 8),
-        Text(
+        const SizedBox(height: 8),
+        const Text(
           'Your profile is up-to-date',
           style: TextStyle(color: Colors.blue),
         ),
@@ -1107,7 +1107,7 @@ class CreditCard extends StatelessWidget {
     return Card(
       elevation: 3,
       child: Padding(
-        padding: EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(8.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -1116,17 +1116,17 @@ class CreditCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: 12),
+                  style: const TextStyle(fontSize: 12),
                 ),
               ],
             ),
             ElevatedButton(
               onPressed: () {},
-              child: Text('Watch'),
+              child: const Text('Watch'),
             ),
           ],
         ),
@@ -1145,21 +1145,21 @@ class OrangeStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Color(0xFFFFF6E5),
-      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+      color: const Color(0xFFFFF6E5),
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
       child: Row(
         children: [
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: TextStyle(
+                style: const TextStyle(
                     color: Colors.white,
                     fontFamily: 'Inter'
                 ),
                 children: [
                   TextSpan(
                     text: text,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.black,
                     ),
                   ),
