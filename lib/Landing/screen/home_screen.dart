@@ -6,6 +6,7 @@ import 'package:mymedicosweb/components/Newsletter.dart';
 import 'package:mymedicosweb/components/Footer.dart';
 import 'package:mymedicosweb/Landing/components/proven_effective_content.dart';
 import 'package:mymedicosweb/Landing/components/HeroImage.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../settings_screen.dart';
 import '../../login/sign_up.dart';
 
@@ -153,65 +154,79 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+
 class OrangeStrip extends StatelessWidget {
   final String imagePath;
   final String text;
+
 
   const OrangeStrip({
     super.key,
     required this.imagePath,
     required this.text,
+
   });
+  Future<void> _launchURL() async {
+    final Uri uri = Uri.parse("https://play.google.com/store/search?q=mymedicos&c=apps&hl=en");
+    if (!await launchUrl(uri)) {
+      throw 'Could not launch ';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final List<String> parts = text.split('*');
 
-    return Container(
-      color: const Color(0xFFFFF6E5),
-      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-      child: Row(
-        children: [
-          Expanded(
-            child: RichText(
-              text: TextSpan(
-                style:
-                    const TextStyle(color: Colors.white, fontFamily: 'Inter'),
-                children: [
-                  TextSpan(
-                    text: parts[0],
-                    style: const TextStyle(
-                      color: Colors.black,
-                    ),
+    return GestureDetector(
+      onTap: _launchURL,
+      child: Container(
+        color: const Color(0xFFFFF6E5),
+        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+        child: Row(
+          children: [
+            Expanded(
+              child: RichText(
+                text: TextSpan(
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Inter',
                   ),
-                  TextSpan(
-                    text: parts[1],
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  TextSpan(
-                    text: parts[2],
-                    style: const TextStyle(
-                      color: Colors.black,
-                    ),
-                  ),
-                  WidgetSpan(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 5),
-                      child: Image.asset(
-                        imagePath,
-                        height: 20,
-                        width: 20,
+                  children: [
+                    TextSpan(
+                      text: parts[0],
+                      style: const TextStyle(
+                        color: Colors.black,
                       ),
                     ),
-                  ),
-                ],
+                    TextSpan(
+                      text: parts[1],
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    TextSpan(
+                      text: parts[2],
+                      style: const TextStyle(
+                        color: Colors.black,
+                      ),
+                    ),
+                    WidgetSpan(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        child: Image.asset(
+                          imagePath,
+                          height: 20,
+                          width: 20,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

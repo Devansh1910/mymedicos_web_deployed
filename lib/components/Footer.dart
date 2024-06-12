@@ -21,7 +21,7 @@ class Footer extends StatelessWidget {
           const SizedBox(height: 16),
           const Divider(color: Colors.grey),
           const SizedBox(height: 16),
-          const Text('@2024 Broverg Corporation Pvt. Ltd.'),
+          const Text('@2024 Broverg Corporation Pvt Ltd.'),
         ],
       ),
     );

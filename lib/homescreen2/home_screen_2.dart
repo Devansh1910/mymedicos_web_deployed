@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:mymedicosweb/Landing/components/HeroImage.dart';
 import 'package:mymedicosweb/Landing/components/proven_effective_content.dart';
 import 'package:mymedicosweb/components/Footer.dart';
 
@@ -89,17 +90,7 @@ class _HomeScreen2State extends State<HomeScreen2> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             // Big image at the top
-                            Container(
-                              height: 300,
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.black),
-                              ),
-                              width: double.infinity,
-                              child: Image.asset(
-                                'assets/image/Frame 160.png',
-                                fit: BoxFit.cover,
-                              ),
-                            ),
+                            const TopImage(),
                             RecommendedGrandTest(screenWidth: screenWidth),
                             ProvenEffectiveContent(screenWidth: screenWidth),
                             CreditStrip(),

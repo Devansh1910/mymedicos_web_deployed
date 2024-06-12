@@ -22,9 +22,19 @@ class _SideDrawerState extends State<sideDrawer> {
     _selectedIndex = widget.initialIndex;
   }
 
-
-
   void _onItemTapped(int index, String routeName) {
+    if (index == 2) { // Check if FMGE is tapped
+      Fluttertoast.showToast(
+        msg: "This feature is currently not available",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.black,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      return; // Don't change the selected index or navigate
+    }
+
     if (_selectedIndex == index) {
       Fluttertoast.showToast(
         msg: "You are already on this page",
@@ -103,7 +113,7 @@ class _SideDrawerState extends State<sideDrawer> {
             title: Text('FMGE'),
             selected: _selectedIndex == 2,
             selectedTileColor: Colors.green,
-            onTap: () => _onItemTapped(2, '/fmge'),
+            onTap: () => _onItemTapped(2, ''), // Pass an empty string for routeName
           ),
           ListTile(
             leading: Icon(Icons.person),

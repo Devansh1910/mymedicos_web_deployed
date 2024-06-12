@@ -188,6 +188,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
       };
     }
   }
+
   class QuizSection2 extends StatelessWidget {
     final String title;
     final String description;
@@ -203,6 +204,8 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
 
     @override
     Widget build(BuildContext context) {
+      bool isMobile = screenWidth < 600;
+
       return Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -211,14 +214,14 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
             Text(
               title,
               style: TextStyle(
-                fontSize: screenWidth * 0.015,
+                fontSize: isMobile ? screenWidth * 0.05 : screenWidth * 0.015,
                 fontFamily: 'Inter',
               ),
             ),
             Text(
               description,
               style: TextStyle(
-                fontSize: screenWidth * 0.012,
+                fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
                 color: Colors.grey,
                 fontFamily: 'Inter',
               ),
@@ -226,13 +229,13 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
             const SizedBox(height: 20),
             SizedBox(
               height: 300,
-              width:double.infinity,
+              width: double.infinity,
               child: quizzes.isEmpty
                   ? Center(
                 child: Text(
                   'No content available',
                   style: TextStyle(
-                    fontSize: screenWidth * 0.012,
+                    fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
                     color: Colors.grey,
                     fontFamily: 'Inter',
                   ),
@@ -248,29 +251,23 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
                       ...quizzes.map((quiz) {
                         return Padding(
                           padding: const EdgeInsets.only(right: 16.0),
-                          child: QuizCard(quiz: quiz, screenWidth: screenWidth,onTap: (questionId) {
-                            Fluttertoast.showToast(
+                          child: QuizCard(
+                            quiz: quiz,
+                            screenWidth: screenWidth,
+                            path: "assets/image/past.png",
+                            onTap: (questionId) {
+                              Fluttertoast.showToast(
                                 msg: "These tests are terminated",
                                 toastLength: Toast.LENGTH_SHORT,
                                 gravity: ToastGravity.BOTTOM,
                                 timeInSecForIosWeb: 1,
                                 backgroundColor: Colors.red,
                                 textColor: Colors.white,
-                                fontSize: 16.0
-                            );
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(builder: (context) => PgNeetPayment(title:quiz.title,quizId:questionId,dueDate: quiz.to.toString())),
-                            // );
-                            // Handle the tap event here
-                            // Navigator.pushNamed(context, '/pgneetpayment',arguments: {
-                            //   'questionId': quiz.qid,
-                            //   'title': quiz.title,
-                            //   'dueDate': quiz.to,
-                            // },);
-                            print('Tapped on question with ID: $questionId');
-                            // Navigate to the question details screen or perform any other action
-                          },),
+                                fontSize: 16.0,
+                              );
+                              print('Tapped on question with ID: $questionId');
+                            },
+                          ),
                         );
                       }).toList(),
                     ],
@@ -283,7 +280,6 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
       );
     }
   }
-
   class QuizSection1 extends StatelessWidget {
     final String title;
     final String description;
@@ -299,6 +295,8 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
 
     @override
     Widget build(BuildContext context) {
+      bool isMobile = screenWidth < 600;
+
       return Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -307,14 +305,14 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
             Text(
               title,
               style: TextStyle(
-                fontSize: screenWidth * 0.015,
+                fontSize: isMobile ? screenWidth * 0.05 : screenWidth * 0.015,
                 fontFamily: 'Inter',
               ),
             ),
             Text(
               description,
               style: TextStyle(
-                fontSize: screenWidth * 0.012,
+                fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
                 color: Colors.grey,
                 fontFamily: 'Inter',
               ),
@@ -322,13 +320,13 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
             const SizedBox(height: 20),
             SizedBox(
               height: 300,
-              width:double.infinity,
+              width: double.infinity,
               child: quizzes.isEmpty
                   ? Center(
                 child: Text(
                   'No content available',
                   style: TextStyle(
-                    fontSize: screenWidth * 0.012,
+                    fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
                     color: Colors.grey,
                     fontFamily: 'Inter',
                   ),
@@ -344,15 +342,24 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
                       ...quizzes.map((quiz) {
                         return Padding(
                           padding: const EdgeInsets.only(right: 16.0),
-                          child: QuizCard(quiz: quiz, screenWidth: screenWidth,onTap: (questionId) {
-                            // Handle the tap event here
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => PgNeetPayment(title:quiz.title,quizId:questionId,dueDate: quiz.to.toString())),
-                            );
-                            print('Tapped on question with ID: $questionId');
-                            // Navigate to the question details screen or perform any other action
-                          },),
+                          child: QuizCard(
+                            quiz: quiz,
+                            screenWidth: screenWidth,
+                            path: "assets/image/liveadapter.png",
+                            onTap: (questionId) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PgNeetPayment(
+                                    title: quiz.title,
+                                    quizId: questionId,
+                                    dueDate: quiz.to.toString(),
+                                  ),
+                                ),
+                              );
+                              print('Tapped on question with ID: $questionId');
+                            },
+                          ),
                         );
                       }).toList(),
                     ],
@@ -365,7 +372,6 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
       );
     }
   }
-
 
   class QuizSection extends StatelessWidget {
     final String title;
@@ -382,6 +388,8 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
 
     @override
     Widget build(BuildContext context) {
+      bool isMobile = screenWidth < 600;
+
       return Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -390,14 +398,14 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
             Text(
               title,
               style: TextStyle(
-                fontSize: screenWidth * 0.015,
+                fontSize: isMobile ? screenWidth * 0.05 : screenWidth * 0.015,
                 fontFamily: 'Inter',
               ),
             ),
             Text(
               description,
               style: TextStyle(
-                fontSize: screenWidth * 0.012,
+                fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
                 color: Colors.grey,
                 fontFamily: 'Inter',
               ),
@@ -405,13 +413,13 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
             const SizedBox(height: 20),
             SizedBox(
               height: 300,
-              width:double.infinity,
+              width: double.infinity,
               child: quizzes.isEmpty
                   ? Center(
                 child: Text(
                   'No content available',
                   style: TextStyle(
-                    fontSize: screenWidth * 0.012,
+                    fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
                     color: Colors.grey,
                     fontFamily: 'Inter',
                   ),
@@ -427,15 +435,24 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
                       ...quizzes.map((quiz) {
                         return Padding(
                           padding: const EdgeInsets.only(right: 16.0),
-                          child: QuizCard(quiz: quiz, screenWidth: screenWidth,onTap: (questionId) {
-                            // Handle the tap event here
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => PgNeetPayment(title:quiz.title,quizId:questionId,dueDate: quiz.to.toString())),
-                            );
-                            print('Tapped on question with ID: $questionId');
-                            // Navigate to the question details screen or perform any other action
-                          },),
+                          child: QuizCard(
+                            quiz: quiz,
+                            screenWidth: screenWidth,
+                            path: "assets/image/liveadapter.png",
+                            onTap: (questionId) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PgNeetPayment(
+                                    title: quiz.title,
+                                    quizId: questionId,
+                                    dueDate: quiz.to.toString(),
+                                  ),
+                                ),
+                              );
+                              print('Tapped on question with ID: $questionId');
+                            },
+                          ),
                         );
                       }).toList(),
                     ],
@@ -448,7 +465,6 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
       );
     }
   }
-
   class QuizPG {
     final String title;
     final String speciality;
@@ -516,15 +532,19 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
     final QuizPG quiz;
     final double screenWidth;
     final Function(String) onTap;
+    final String path;
 
-    QuizCard({required this.quiz, required this.screenWidth, required this.onTap});
+    QuizCard({required this.quiz, required this.screenWidth, required this.onTap, required this.path});
 
     @override
     Widget build(BuildContext context) {
+      bool isMobile = screenWidth < 600;
+
       return GestureDetector(
         onTap: () => onTap(quiz.qid), // Pass the ID of the question when tapped
         child: Container(
-          width: 500, // Adjust the width as needed
+          height: isMobile ? 250 : 300,
+          width: isMobile ? screenWidth - 32 : 500, // Adjust the width as needed
           margin: const EdgeInsets.only(right: 16.0),
           decoration: BoxDecoration(
             border: Border.all(color: Colors.black),
@@ -533,10 +553,14 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Image.asset(
-                  'assets/image/Frame 168.png', // Replace with actual image path
-                  width: double.infinity,
-                  fit: BoxFit.cover,
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0), // Adjust the padding as needed
+                  child: Image.asset(
+                    path, // Replace with actual image path
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: isMobile ? 120 : double.infinity, // Adjust the height for mobile
+                  ),
                 ),
               ),
               const SizedBox(height: 10),
@@ -553,14 +577,14 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
                       Text(
                         quiz.title,
                         style: TextStyle(
-                          fontSize: screenWidth * 0.012,
+                          fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
                           fontFamily: 'Inter',
                         ),
                       ),
                       Text(
                         'Due Date: ${quiz.to}',
                         style: TextStyle(
-                          fontSize: screenWidth * 0.012,
+                          fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
                           color: Colors.grey,
                           fontFamily: 'Inter',
                         ),
@@ -575,10 +599,6 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
       );
     }
   }
-
-
-
-
 
 
   class OrangeStrip extends StatelessWidget {

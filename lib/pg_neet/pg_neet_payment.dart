@@ -1,6 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mymedicosweb/login/login_check.dart';
 import 'package:mymedicosweb/login/login_screen.dart';
 import 'package:mymedicosweb/pg_neet/QuizScreen.dart';
@@ -9,6 +10,7 @@ import 'package:mymedicosweb/pg_neet/app_bar_content.dart';
 import 'package:mymedicosweb/pg_neet/app_drawer.dart';
 import 'package:mymedicosweb/pg_neet/pg_neet.dart';
 import 'package:mymedicosweb/pg_neet/credit.dart';
+import 'package:mymedicosweb/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/svg.dart';
 class PgNeetPayment extends StatefulWidget {
@@ -30,6 +32,7 @@ class PgNeetPayment extends StatefulWidget {
 class _PgNeetPaymentState extends State<PgNeetPayment> {
   bool hasReadInstructions = false;
   bool _isLoggedIn = false;
+  bool _isLoading = false;
   bool _isInitialized = false;
 
   @override
@@ -50,6 +53,93 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
       // You can replace '/login' with the route name of your login screen
       Navigator.of(context).pushReplacementNamed('/login');
     }
+  }
+  Future<void> deductCoinsAndNavigate(String phoneNumber) async {
+    setState(() {
+      _isLoading = true;
+    });
+    DatabaseReference databaseReference = FirebaseDatabase.instance.reference();
+    DataSnapshot snapshot =
+    await databaseReference.child('profiles').child(phoneNumber).child('coins').get();
+    int currentCoins = snapshot.value as int;
+
+    if (currentCoins >= 50) {
+      currentCoins -= 50;
+      await databaseReference.child('profiles').child(phoneNumber).child('coins').set(currentCoins);
+      if (widget.quizId != null) {
+
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Confirmation'),
+              content: Text('50 med coins will be deducted. Do you want to proceed?'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => QuizPage(
+                          quizId: widget.quizId,
+                          title: widget.title,
+                          duedate: widget.dueDate,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text('Proceed'),
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        // Handle the case where 'qid' is null
+        print('Error: quizId is null');
+      }
+
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Not enough coins'),
+            content: Text('You do not have enough coins to proceed.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ProfileScreen(),
+                    ),
+                  );
+                },
+                child: Text('Credit'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+    setState(() {
+      _isLoading = false;
+    });
   }
 
 
@@ -86,56 +176,16 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
     }
 
     return Scaffold(
-      appBar:AppBar(
-        automaticallyImplyLeading: false, // Set to true to show the back button
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (MediaQuery.of(context).size.width <= 600) {
-                      Scaffold.of(context).openDrawer();
-                    }
-                  },
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage('url_to_user_profile_image'),
-                  ),
-                ),
-                SizedBox(width: 8.0),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Good Morning!', // Replace with the actual title
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16.0, // Adjust the font size as needed
-                        fontWeight: FontWeight.bold, // Adjust the font weight as needed
-                      ),
-                    ),
-                    Text(
-                      'UserName', // Replace with the actual subtitle
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 14.0, // Adjust the font size as needed
-                        color: Colors.grey, // Adjust the color as needed
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            SvgPicture.asset(
-              'assets/image/logo.svg',
-              height: 40,
-              placeholderBuilder: (BuildContext context) => Container(
-                padding: const EdgeInsets.all(30.0),
-                child: const CircularProgressIndicator(),
-              ),
-            ),
-          ],
+      appBar: AppBar(
+        automaticallyImplyLeading: !kIsWeb,
+        title: AppBarContent(),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: isLargeScreen ? null : IconButton(
+          icon: Icon(Icons.menu),
+          onPressed: () {
+            Scaffold.of(context).openDrawer(); // Open the drawer when the menu icon is pressed
+          },
         ),
       ),
       drawer: MediaQuery.of(context).size.width <= 600 ?   AppDrawer(initialIndex: 0) : null,
@@ -161,6 +211,7 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
                       title: widget.title,
                       qid:widget.quizId,
                       dueDate: widget.dueDate,
+                      onTakeTest: (String phoneNumber) => deductCoinsAndNavigate(phoneNumber),
 
 
                     ),
@@ -183,6 +234,7 @@ class MainContent extends StatelessWidget {
   final String title;
   final String qid;
   final String dueDate;
+  final Future<void> Function(String) onTakeTest;
 
   MainContent({
     required this.isLargeScreen,
@@ -191,7 +243,10 @@ class MainContent extends StatelessWidget {
     required this.title,
     required this.qid,
     required this.dueDate,
+    required this.onTakeTest,
   });
+
+
 
 
   @override
@@ -482,44 +537,38 @@ class MainContent extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   child: ElevatedButton(
-                    onPressed: hasReadInstructions
-                        ? () {
-                      if (qid != null) {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text('Confirmation'),
-                              content: Text('50 med coins will be deducted. Do you want to proceed?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop(); // Close the dialog
-                                  },
-                                  child: Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop(); // Close the dialog
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => QuizPage(quizId: qid, title: title,duedate:dueDate),
-                                      ),
-                                    );
-                                  },
-                                  child: Text('Proceed'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      } else {
-                        // Handle the case where 'qid' is null
-                        print('Error: quizId is null');
+                    onPressed:
+                      hasReadInstructions
+                          ? () async {
+                        SharedPreferences prefs = await SharedPreferences.getInstance();
+                        String? phoneNumber = prefs.getString('phoneNumber');
+                        if (phoneNumber != null) {
+                          await onTakeTest(phoneNumber);
+
+                        } else {
+                          Fluttertoast.showToast(
+                            msg: "Phone number not found. Please login again.",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                            timeInSecForIosWeb: 1,
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
+                            fontSize: 16.0,
+                          );
+                        }
                       }
-                    }
-                        : null,
+
+
+                        : () {
+                          Fluttertoast.showToast(
+                          msg: "Please click on the checkbox to proceed",
+                           toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.BOTTOM,
+                            backgroundColor: Colors.black,
+                          textColor: Colors.white,
+                          fontSize: 16.0,
+                          );
+                      },
                     style: ButtonStyle(
                       backgroundColor: MaterialStateProperty.all(Colors.white),
                       shape: MaterialStateProperty.all(

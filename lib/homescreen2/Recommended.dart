@@ -80,8 +80,8 @@ class RecommendedGrandTest extends StatelessWidget {
                         children: <Widget>[
                           Expanded(
                             child: Image.asset(
-                              'assets/image/Frame 168.png',
-                              fit: BoxFit.cover,
+                              'assets/image/liveadapter.png',
+
                             ),
                           ),
                           const SizedBox(height: 10),

@@ -68,7 +68,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   ];
 
   final List<String> subspecialities = [
-    "Select SubSpeciality",
+    "Speciality2",
     "Cardiology",
     "Gastroenterology (M)",
     "Nephrology",
@@ -359,7 +359,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               },
             ),
             _buildDropdownField(
-              label: 'SubSpeciality',
+              label: 'Speciality2',
               value: interest2,
               items: subspecialities,
               onChanged: (value) {
@@ -488,7 +488,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         onSaved: (value) {
           if (label == 'Speciality') {
             interest = value;
-          } else if (label == 'SubSpeciality') {
+          } else if (label == 'Speciality2') {
             interest2 = value;
           } else if (label == 'Prefix') {
             prefix = value;

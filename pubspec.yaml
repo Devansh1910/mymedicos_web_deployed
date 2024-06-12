@@ -41,10 +41,16 @@ dependencies:
   firebase_storage: ^11.7.7
   google_mobile_ads: ^5.1.0
   http: ^1.2.1
+  html: ^0.15.4
+  url_launcher: ^6.3.0
+  universal_html: ^2.2.4
   flutter_html: 3.0.0-beta.2
   firebase_messaging: ^14.9.4
   flutter_svg: ^2.0.9
   fl_chart: ^0.68.0
+  image_picker: ^1.1.2
+  path_provider: ^2.1.3
+  path: ^1.9.0
 
 
   cached_network_image: ^3.3.1
@@ -91,7 +97,11 @@ flutter:
     - assets/image/logo.svg
     - assets/image/frame 160.svg
     - assets/image/background.svg
+    - assets/image/liveadapter.png
+    - assets/image/past.png
+    - assets/image/upcoming.png
     - assets/landing/top.png
+    - assets/landing/playstore1.png
     - assets/landing/mid.png
     - assets/landing/mid2.png
     - assets/landing/last.png

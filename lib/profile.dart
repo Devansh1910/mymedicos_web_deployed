@@ -1,7 +1,13 @@
+import 'dart:io';
+import 'dart:html' as html;
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mymedicosweb/Usersdetails.dart';
 import 'package:mymedicosweb/components/Footer.dart';
 import 'package:mymedicosweb/login/login_check.dart';
@@ -12,6 +18,7 @@ import 'package:mymedicosweb/pg_neet/sideDrawer.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mymedicosweb/components/Footer.dart';
 import 'package:mymedicosweb/login/login_check.dart';
@@ -42,6 +49,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
 import 'package:mymedicosweb/Landing/components/proven_effective_content.dart';
 import 'package:mymedicosweb/pg_neet/sideDrawer.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // Import your UserDetailsFetcher class
 
 class ProfileScreen extends StatefulWidget {
@@ -99,57 +107,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (MediaQuery.of(context).size.width <= 600) {
-                      Scaffold.of(context).openDrawer();
-                    }
-                  },
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage(
-                      _userDetails["userProfileImageUrl"] ?? 'https://via.placeholder.com/150',
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8.0),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Good Morning!',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      _userDetails["userName"] ?? 'Unknown User',
-                      style: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 14.0,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            SvgPicture.asset(
-              'assets/image/logo.svg',
-              height: 40,
-              placeholderBuilder: (BuildContext context) => Container(
-                padding: const EdgeInsets.all(30.0),
-                child: const CircularProgressIndicator(),
-              ),
-            ),
-          ],
+        automaticallyImplyLeading: !kIsWeb,
+        title: AppBarContent(),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: isLargeScreen ? null : IconButton(
+          icon: Icon(Icons.menu),
+          onPressed: () {
+            Scaffold.of(context).openDrawer(); // Open the drawer when the menu icon is pressed
+          },
         ),
       ),
       drawer: MediaQuery.of(context).size.width <= 600 ?   AppDrawer(initialIndex: 0) : null,
@@ -166,10 +132,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: SingleChildScrollView(
                     child: MainContent(
                       isLargeScreen: isLargeScreen,
-                      userDetails: _userDetails,
+                      userDetails: _userDetails ?? {}, // Add a null check here
                     ),
                   ),
                 ),
+
               ],
             ),
           ),
@@ -179,18 +146,119 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-class MainContent extends StatelessWidget {
+
+class MainContent extends StatefulWidget {
   final bool isLargeScreen;
   final Map<String, dynamic> userDetails;
+
 
   MainContent({required this.isLargeScreen, required this.userDetails});
 
   @override
+  _MainContentState createState() => _MainContentState();
+}
+
+class _MainContentState extends State<MainContent> {
+
+  late String userId;
+  String? userProfileImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+
+
+
+      fetchUserProfileImageVerified();
+
+  }
+
+  Future<void> fetchUserProfileImageVerified( ) async {
+    SharedPreferences prefs =  await SharedPreferences.getInstance();
+   userId = prefs.getString('phoneNumber')!;
+    FirebaseStorage storage = FirebaseStorage.instance;
+    Reference storageRef = storage.ref().child("users").child(userId).child("profile_image.jpg");
+    try {
+      String downloadUrl = await storageRef.getDownloadURL();
+      setState(() {
+        userProfileImageUrl = downloadUrl;
+      });
+    } catch (exception) {
+      print("Error fetching profile image: ${exception.toString()}");
+    }
+  }
+
+  Future<void> uploadProfileImage(bool isLargeScreen) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String userId = prefs.getString('phoneNumber') ?? '';
+    print("userid 0" + userId);
+
+    try {
+      File? pickedFile;
+
+      if (isLargeScreen) {
+        // Web specific code
+        final input = html.FileUploadInputElement();
+        input.accept = 'image/*';
+        input.click();
+        await input.onChange.first;
+        final files = input.files;
+        if (files != null && files.isNotEmpty) {
+          final file = files[0];
+          final reader = html.FileReader();
+          reader.readAsArrayBuffer(file);
+          await reader.onLoad.first;
+          final buffer = reader.result as Uint8List;
+          final blob = html.Blob([buffer]);
+          pickedFile = File(html.Url.createObjectUrlFromBlob(blob));
+        }
+      } else {
+        // Mobile specific code
+        final picker = ImagePicker();
+        final xFile = await picker.pickImage(source: ImageSource.gallery);
+        pickedFile = xFile != null ? File(xFile.path) : null;
+      }
+
+      if (pickedFile != null) {
+        FirebaseStorage storage = FirebaseStorage.instance;
+        Reference storageRef = storage.ref().child("users").child(userId).child("profile_image.jpg");
+        await storageRef.putFile(pickedFile);
+        await fetchUserProfileImageVerified();
+
+        // Show a toast message for successful upload
+        Fluttertoast.showToast(
+          msg: "Profile image uploaded successfully",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+      }
+    } catch (error) {
+      print("Error uploading profile image: $error");
+      Fluttertoast.showToast(
+        msg: "Error uploading profile image",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
+  }
+
+
+
+
+
+
+
+  @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenSize = MediaQuery.of(context).size;
+    final isMobileView = screenWidth < 600; // Example breakpoint for mobile view
+
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: isLargeScreen ? 0 : 16),
+      padding: EdgeInsets.symmetric(horizontal: widget.isLargeScreen ? 0 : 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -201,58 +269,71 @@ class MainContent extends StatelessWidget {
           const Text('Go through the details.', style: TextStyle(
               fontSize: 20, color: Colors.grey, fontFamily: 'Inter')),
           const SizedBox(height: 20),
-          Center(
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundImage: NetworkImage(
-                      userDetails["userProfileImageUrl"] ?? 'https://via.placeholder.com/150'), // Replace with the actual image URL
-                ),
-                const SizedBox(height: 10),
-                const Text('Your profile is up to date',
-                    style: TextStyle(color: Colors.blue)),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          isMobileView
+              ? Column(
             children: [
-              const Text("Name"),
-              _buildStyledTextField('Name', userDetails["userName"]),
-              const Text("Email ID"),
-              _buildStyledTextField('Email ID', userDetails["userEmail"]),
-              const Text("Contact Number"),
-              _buildStyledTextField('Contact Number', userDetails["Phone Number"]),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20.0),
-                child: Row(
+              _buildProfileImage(),
+              const SizedBox(height: 20),
+              _buildStyledTextField('Name', widget.userDetails["userName"] ?? 'Default Name'),
+              const SizedBox(height: 10),
+              _buildStyledTextField('Email ID', widget.userDetails["userEmail"] ?? 'example@example.com'),
+              const SizedBox(height: 10),
+              _buildStyledTextField('Contact Number', widget.userDetails["Phone Number"] ?? '000-000-0000'),
+              const SizedBox(height: 10),
+            ],
+          )
+              : Row(
+            children: [
+              const SizedBox(width: 15),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text("Interest"),
-                          _buildStyledTextField('Interest', userDetails["userInterest"]),
-                        ],
-                      ),
-                    ),
-                    // Add some space between the columns
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text("Location"),
-                          _buildStyledTextField('Location', userDetails["userLocation"]),
-                        ],
-                      ),
-                    ),
+                    const Text("Name"),
+                    const SizedBox(height: 10),
+                    _buildStyledTextField('Name', widget.userDetails["userName"] ?? 'Default Name'),
+                    const SizedBox(height: 10),
+                    const Text("Email ID"),
+                    const SizedBox(height: 10),
+                    _buildStyledTextField('Email ID', widget.userDetails["userEmail"] ?? 'example@example.com'),
+                    const SizedBox(height: 10),
+                    const Text("Contact Number"),
+                    const SizedBox(height: 10),
+                    _buildStyledTextField('Contact Number', widget.userDetails["Phone Number"] ?? '000-000-0000'),
                   ],
                 ),
               ),
+              const SizedBox(width: 200),
+              _buildProfileImage(),
+              const SizedBox(width: 200),
             ],
           ),
-
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              const SizedBox(width: 15),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Interest"),
+                    _buildStyledTextField('Interest', widget.userDetails["userInterest"] ?? 'Default Interest'),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Location"),
+                    _buildStyledTextField('Location', widget.userDetails["userLocation"] ?? 'Default Location'),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 15),
+            ],
+          ),
           const SizedBox(height: 30),
           const Text(
             'Med Wallet',
@@ -294,9 +375,63 @@ class MainContent extends StatelessWidget {
     );
   }
 
+  Widget _buildProfileImage() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 600;
+    return Column(
+      children: [
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            Material(
+              elevation: 4.0, // Adjust the elevation as needed
+              shape: CircleBorder(),
+              child: CircleAvatar(
+                radius: 20.0, // Adjust the size of the CircleAvatar
+                backgroundColor: Colors.transparent, // Make the CircleAvatar's background transparent
+              ),
+            ),
+            CircleAvatar(
+              radius: 80.0, // Adjust the size of the CircleAvatar
+              backgroundColor: Colors.grey.shade200, // Placeholder background color
+              child: ClipOval(
+                child: CachedNetworkImage(
+                  imageUrl: userProfileImageUrl ?? 'https://via.placeholder.com/150',
+                  placeholder: (context, url) => CircularProgressIndicator(),
+                  errorWidget: (context, url, error) => Image.asset(
+                    'assets/image/default_profile.png',
+                    fit: BoxFit.cover,
+                  ),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        ElevatedButton(
+          onPressed: () async{
+            print("upload image");
+            await uploadProfileImage(isLargeScreen);
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Icon(Icons.camera_alt),
+              SizedBox(width: 5),
+              Text("Upload Avatar"),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+
+
   Widget _buildStyledTextField(String labelText, String? valueText) {
     return Container(
-      width: 600,
+      width: double.infinity, // Make it full-width
       decoration: BoxDecoration(
         border: Border.all(
           color: Colors.grey,
