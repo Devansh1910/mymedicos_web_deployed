@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
-import 'package:mymedicosweb/QuizResult.dart';
+import 'package:mymedicosweb/pg_neet/ResultScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_html/html.dart' as html;
 
@@ -15,7 +15,12 @@ class QuizPage extends StatefulWidget {
   final String title;
   final String duedate;
 
-  QuizPage({Key? key, required this.quizId,required this.title,required this.duedate}) : super(key: key);
+  QuizPage(
+      {Key? key,
+      required this.quizId,
+      required this.title,
+      required this.duedate})
+      : super(key: key);
 
   @override
   _QuizPageState createState() => _QuizPageState();
@@ -54,7 +59,7 @@ class _QuizPageState extends State<QuizPage> {
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         if (_remainingTime > 0) {
           _remainingTime--;
@@ -83,23 +88,27 @@ class _QuizPageState extends State<QuizPage> {
       _isLoading = true;
     });
     DatabaseReference databaseReference = FirebaseDatabase.instance.reference();
-    DataSnapshot snapshot = await databaseReference.child('profiles').child(
-        phoneNumber).child('coins').get();
+    DataSnapshot snapshot = await databaseReference
+        .child('profiles')
+        .child(phoneNumber)
+        .child('coins')
+        .get();
     int currentCoins = snapshot.value as int;
 
     if (currentCoins >= 50) {
       // Deduct 50 coins
       currentCoins -= 50;
-      await databaseReference.child('profiles').child(phoneNumber).child(
-          'coins').set(currentCoins);
-
+      await databaseReference
+          .child('profiles')
+          .child(phoneNumber)
+          .child('coins')
+          .set(currentCoins);
 
       // Navigate to QuizPage
-
     } else {
       // Show error message if not enough coins
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Not enough coins to proceed.'),
         ),
       );
@@ -165,11 +174,10 @@ class _QuizPageState extends State<QuizPage> {
     });
   }
 
-
   void toggleMarkForReview() {
     setState(() {
       questionsMarkedForReview[currentQuestionIndex] =
-      !questionsMarkedForReview[currentQuestionIndex];
+          !questionsMarkedForReview[currentQuestionIndex];
     });
   }
 
@@ -202,8 +210,8 @@ class _QuizPageState extends State<QuizPage> {
     }
 
     int totalQuestions = questions.length;
-    int score = (correctAnswers * 100) ~/
-        totalQuestions; // Example scoring formula
+    int score =
+        (correctAnswers * 100) ~/ totalQuestions; // Example scoring formula
 
     // Upload the quiz result
     QuizResultUploader uploader = QuizResultUploader();
@@ -219,33 +227,32 @@ class _QuizPageState extends State<QuizPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            QuizResultScreen(
-              quizId: widget.quizId,
-              quizTitle: widget.title,
-              questions: questions,
-              selectedAnswers: selectedAnswers,
-              remainingTime: _remainingTime,
-              dueDate:widget.duedate,
-
-            ),
+        builder: (context) => QuizResultScreen(
+          quizId: widget.quizId,
+          quizTitle: widget.title,
+          questions: questions,
+          selectedAnswers: selectedAnswers,
+          remainingTime: _remainingTime,
+          dueDate: widget.duedate,
+        ),
       ),
     ).then((_) {
       // Exit fullscreen after navigating
       exitFullscreenAfterDelay();
     });
   }
+
   void clearSelection() {
     setState(() {
       selectedAnswers[currentQuestionIndex] = null;
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
 
 
+    html.document.documentElement?.requestFullscreen();
 
 
 
@@ -256,14 +263,13 @@ class _QuizPageState extends State<QuizPage> {
         appBar: AppBar(
           automaticallyImplyLeading: !kIsWeb,
           backgroundColor: Colors.white,
-
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(widget.title), // Grandtest heading
               Text(
-               widget.duedate, // Replace with actual due date
-                style: TextStyle(fontSize: 12),
+                widget.duedate, // Replace with actual due date
+                style: const TextStyle(fontSize: 12),
               ),
             ],
           ),
@@ -271,19 +277,23 @@ class _QuizPageState extends State<QuizPage> {
             Container(
               decoration: BoxDecoration(
                 color: Colors.red,
-                borderRadius: BorderRadius.circular(8), // Adjust the border radius as needed
+                borderRadius: BorderRadius.circular(
+                    8), // Adjust the border radius as needed
               ),
               child: ElevatedButton(
                 onPressed: _submitQuiz,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent, // Make the button transparent to show the container's background color
+                  backgroundColor: Colors
+                      .transparent, // Make the button transparent to show the container's background color
                   elevation: 0, // Remove elevation
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8), // Adjust the border radius to match the container
+                    borderRadius: BorderRadius.circular(
+                        8), // Adjust the border radius to match the container
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16), // Adjust padding as needed
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(
+                      vertical: 10, horizontal: 16), // Adjust padding as needed
                   child: Text(
                     'End Quiz',
                     style: TextStyle(
@@ -296,8 +306,7 @@ class _QuizPageState extends State<QuizPage> {
             ),
           ],
         ),
-        body: Center(
-
+        body: const Center(
           child: CircularProgressIndicator(),
         ),
       );
@@ -308,13 +317,15 @@ class _QuizPageState extends State<QuizPage> {
         bool isMobile = constraints.maxWidth < 600;
 
         return Scaffold(
-
-          appBar:PreferredSize(
-            preferredSize: Size.fromHeight(kToolbarHeight + 1), // Adjust the height as needed
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(
+                kToolbarHeight + 1), // Adjust the height as needed
             child: Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Colors.black, width: 2.0), // Border styling for the bottom side
+              decoration: const BoxDecoration(
+                border: const Border(
+                  bottom: BorderSide(
+                      color: Colors.black,
+                      width: 2.0), // Border styling for the bottom side
                 ),
               ),
               child: AppBar(
@@ -325,7 +336,7 @@ class _QuizPageState extends State<QuizPage> {
                     Text(widget.title), // Grandtest heading
                     Text(
                       widget.duedate, // Replace with actual due date
-                      style: TextStyle(fontSize: 12),
+                      style: const TextStyle(fontSize: 12),
                     ),
                   ],
                 ),
@@ -333,19 +344,24 @@ class _QuizPageState extends State<QuizPage> {
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.red,
-                      borderRadius: BorderRadius.circular(8), // Adjust the border radius as needed
+                      borderRadius: BorderRadius.circular(
+                          8), // Adjust the border radius as needed
                     ),
                     child: ElevatedButton(
                       onPressed: _submitQuiz,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent, // Make the button transparent to show the container's background color
+                        backgroundColor: Colors
+                            .transparent, // Make the button transparent to show the container's background color
                         elevation: 0, // Remove elevation
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8), // Adjust the border radius to match the container
+                          borderRadius: BorderRadius.circular(
+                              8), // Adjust the border radius to match the container
                         ),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16), // Adjust padding as needed
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(
+                            vertical: 10,
+                            horizontal: 16), // Adjust padding as needed
                         child: Text(
                           'End Quiz',
                           style: TextStyle(
@@ -362,56 +378,52 @@ class _QuizPageState extends State<QuizPage> {
           ),
           drawer: isMobile
               ? Drawer(
-            child: Column(
-              children: [
-                InstructionPanel(
-                  notVisited: selectedAnswers
-                      .where((a) => a == null)
-                      .length,
-                  notAnswered: selectedAnswers
-                      .where((a) => a == null)
-                      .length,
-                  answered: selectedAnswers
-                      .where((a) => a != null)
-                      .length,
-                  markedForReview: questionsMarkedForReview
-                      .where((r) => r)
-                      .length,
-                  // answeredAndMarkedForReview: selectedAnswers
-                  //     .asMap()
-                  //     .entries
-                  //     .where((entry) =>
-                  // entry.value != null &&
-                  //     questionsMarkedForReview[entry.key])
-                  //     .length,
-                ),
-                Expanded(
-                  child: Container(
-
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.black, width: 2.0), // Border styling
-                      borderRadius: BorderRadius.circular(0.0), // Optional: rounded corners
-                    ),
-                    child: QuestionNavigationPanel(
-                      questionCount: questions.length,
-                      currentQuestionIndex: currentQuestionIndex,
-                      questionsMarkedForReview: questionsMarkedForReview,
-                      selectedAnswers: selectedAnswers,
-                      onSelectQuestion: (index) {
-                        setState(() {
-                          currentQuestionIndex = index;
-                        });
-                      },
-                    ),
+                  child: Column(
+                    children: [
+                      InstructionPanel(
+                        notVisited:
+                            selectedAnswers.where((a) => a == null).length,
+                        notAnswered:
+                            selectedAnswers.where((a) => a == null).length,
+                        answered:
+                            selectedAnswers.where((a) => a != null).length,
+                        markedForReview:
+                            questionsMarkedForReview.where((r) => r).length,
+                        // answeredAndMarkedForReview: selectedAnswers
+                        //     .asMap()
+                        //     .entries
+                        //     .where((entry) =>
+                        // entry.value != null &&
+                        //     questionsMarkedForReview[entry.key])
+                        //     .length,
+                      ),
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                                color: Colors.black,
+                                width: 2.0), // Border styling
+                            borderRadius: BorderRadius.circular(
+                                0.0), // Optional: rounded corners
+                          ),
+                          child: QuestionNavigationPanel(
+                            questionCount: questions.length,
+                            currentQuestionIndex: currentQuestionIndex,
+                            questionsMarkedForReview: questionsMarkedForReview,
+                            selectedAnswers: selectedAnswers,
+                            onSelectQuestion: (index) {
+                              setState(() {
+                                currentQuestionIndex = index;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-
-              ],
-            ),
-          )
+                )
               : null,
           body: Row(
-
             children: [
               Expanded(
                 flex: 2,
@@ -419,9 +431,9 @@ class _QuizPageState extends State<QuizPage> {
                   children: [
                     // HeaderSection(remainingTime: _remainingTime),
                     Container(
-                      color: Colors.white, // Set the background color of the question section to white
+                      color: Colors
+                          .white, // Set the background color of the question section to white
                       child: QuestionSection(
-
                         question: questions[currentQuestionIndex]['Question'],
                         image: questions[currentQuestionIndex]['Image'],
                         options: [
@@ -439,10 +451,9 @@ class _QuizPageState extends State<QuizPage> {
                       onNextPressed: goToNextQuestion,
                       onPreviousPressed: goToPreviousQuestion,
                       onMarkForReviewPressed: toggleMarkForReview,
-                      isMarkedForReview: questionsMarkedForReview[currentQuestionIndex], // Assuming questionsMarkedForReview is a list of booleans
+                      isMarkedForReview: questionsMarkedForReview[
+                          currentQuestionIndex], // Assuming questionsMarkedForReview is a list of booleans
                     ),
-
-
                   ],
                 ),
               ),
@@ -454,27 +465,24 @@ class _QuizPageState extends State<QuizPage> {
                   // Background color for the side panel
                   child: Column(
                     children: [
-
                       InstructionPanel(
-                        notVisited: selectedAnswers
-                            .where((a) => a == null)
-                            .length,
-                        notAnswered: selectedAnswers
-                            .where((a) => a == null)
-                            .length,
-                        answered: selectedAnswers
-                            .where((a) => a != null)
-                            .length,
-                        markedForReview: questionsMarkedForReview
-                            .where((r) => r)
-                            .length,
-
+                        notVisited:
+                            selectedAnswers.where((a) => a == null).length,
+                        notAnswered:
+                            selectedAnswers.where((a) => a == null).length,
+                        answered:
+                            selectedAnswers.where((a) => a != null).length,
+                        markedForReview:
+                            questionsMarkedForReview.where((r) => r).length,
                       ),
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.black, width: 2.0), // Border styling
-                            borderRadius: BorderRadius.circular(0.0), // Optional: rounded corners
+                            border: Border.all(
+                                color: Colors.black,
+                                width: 2.0), // Border styling
+                            borderRadius: BorderRadius.circular(
+                                0.0), // Optional: rounded corners
                           ),
                           child: QuestionNavigationPanel(
                             questionCount: questions.length,
@@ -499,7 +507,8 @@ class _QuizPageState extends State<QuizPage> {
     );
   }
 }
-  class Neetpg {
+
+class Neetpg {
   final String question;
   final String optionA;
   final String optionB;
@@ -562,24 +571,21 @@ class HeaderSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Candidate Name: [Your Name]',
+          const Text('Candidate Name: [Your Name]',
               style: TextStyle(fontSize: 16, fontFamily: 'Inter')),
-          Text('Exam Name: NEET PG',
+          const Text('Exam Name: NEET PG',
               style: TextStyle(fontSize: 16, fontFamily: 'Inter')),
-          Text('Subject Name: English-Paper 2-Dec-2019',
+          const Text('Subject Name: English-Paper 2-Dec-2019',
               style: TextStyle(fontSize: 16, fontFamily: 'Inter')),
           Text(
             'Remaining Time: $hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16),
           ),
         ],
       ),
     );
   }
 }
-
-
-
 
 class QuestionSection extends StatelessWidget {
   final String question;
@@ -611,7 +617,7 @@ class QuestionSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              const Text(
                 'Question:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
@@ -620,10 +626,11 @@ class QuestionSection extends StatelessWidget {
                   color: Colors.black,
                   borderRadius: BorderRadius.circular(0),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                 child: Text(
                   'Remaining Time: $hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontFamily: 'Inter',
                     fontSize: 16,
@@ -632,44 +639,50 @@ class QuestionSection extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: Text(
               question,
-              style: TextStyle(fontSize: 16, fontFamily: 'Inter'),
+              style: const TextStyle(fontSize: 16, fontFamily: 'Inter'),
             ),
           ),
-          SizedBox(height: 10),
-          if (image.isNotEmpty && image != "noimage") // Check if image is not empty and not equal to "noimage"
+          const SizedBox(height: 10),
+          if (image.isNotEmpty &&
+              image !=
+                  "noimage") // Check if image is not empty and not equal to "noimage"
             Center(
               child: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.8, // Adjust the width as needed
+                width: MediaQuery.of(context).size.width *
+                    0.8, // Adjust the width as needed
                 height: 200, // Adjust the height as needed
                 child: CachedNetworkImage(
                   imageUrl: image,
                   fit: BoxFit.cover,
-                  placeholder: (context, url) => CircularProgressIndicator(),
-                  errorWidget: (context, url, error) => Icon(Icons.error),
+                  placeholder: (context, url) =>
+                      const CircularProgressIndicator(),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
                 ),
               ),
             ),
-
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           ...options.asMap().entries.map((entry) {
             int idx = entry.key;
             String option = entry.value;
-            String letter = String.fromCharCode(65 + idx); // Convert index to letter (A, B, C, ...)
+            String letter = String.fromCharCode(
+                65 + idx); // Convert index to letter (A, B, C, ...)
             return InkWell(
               onTap: () {
                 onAnswerSelected(idx);
               },
               child: Container(
                 width: double.infinity,
-                padding: EdgeInsets.all(12),
-                margin: EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.symmetric(vertical: 4),
                 decoration: BoxDecoration(
-                  color: selectedAnswer == idx ?Color(0xFF5BFC8B): Colors.white,
+                  color: selectedAnswer == idx
+                      ? const Color(0xFF5BFC8B)
+                      : Colors.white,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.grey, width: 2),
                 ),
@@ -679,25 +692,26 @@ class QuestionSection extends StatelessWidget {
                       width: 24, // Adjust the width as needed
                       height: 24, // Adjust the height as needed
                       alignment: Alignment.center,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Color(0xFF5BFC8B),
                         shape: BoxShape.circle,
                       ),
                       child: Text(
                         letter,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          fontFamily: 'Inter'
-                        ),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            fontFamily: 'Inter'),
                       ),
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         option,
                         style: TextStyle(
-                          color: selectedAnswer == idx ? Colors.white : Colors.black,
+                          color: selectedAnswer == idx
+                              ? Colors.white
+                              : Colors.black,
                         ),
                       ),
                     ),
@@ -718,7 +732,7 @@ class NavigationButtons extends StatelessWidget {
   final VoidCallback? onMarkForReviewPressed;
   final bool isMarkedForReview;
 
-  NavigationButtons({
+  const NavigationButtons({
     this.onNextPressed,
     this.onPreviousPressed,
     this.onMarkForReviewPressed,
@@ -733,63 +747,66 @@ class NavigationButtons extends StatelessWidget {
 
         return isMobile
             ? Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: _checkbox(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: _checkbox(
+                          onPressed: onMarkForReviewPressed,
+                          label: 'Mark for Review',
+                          isChecked: isMarkedForReview,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                      height:
+                          16), // Adjust spacing between the two rows of buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: _customButton(
+                          onPressed: onPreviousPressed,
+                          label: 'Previous',
+                        ),
+                      ),
+                      Expanded(
+                        child: _customButton(
+                          onPressed: onNextPressed,
+                          label: 'Next',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SizedBox(width: 5),
+                  _checkbox(
                     onPressed: onMarkForReviewPressed,
                     label: 'Mark for Review',
                     isChecked: isMarkedForReview,
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: 16), // Adjust spacing between the two rows of buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: _customButton(
+                  const SizedBox(
+                      width:
+                          300), // Adjust spacing between the two sets of buttons
+                  _customButton(
                     onPressed: onPreviousPressed,
                     label: 'Previous',
+                    buttonColor: Colors.grey,
                   ),
-                ),
-                Expanded(
-                  child: _customButton(
+                  _customButton(
                     onPressed: onNextPressed,
                     label: 'Next',
+                    buttonColor: Colors.black,
                   ),
-                ),
-              ],
-            ),
-          ],
-        )
-            : Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            SizedBox(width: 5),
-            _checkbox(
-              onPressed: onMarkForReviewPressed,
-              label: 'Mark for Review',
-              isChecked: isMarkedForReview,
-            ),
-            SizedBox(width: 300), // Adjust spacing between the two sets of buttons
-            _customButton(
-              onPressed: onPreviousPressed,
-              label: 'Previous',
-              buttonColor: Colors.grey,
-            ),
-            _customButton(
-              onPressed: onNextPressed,
-              label: 'Next',
-              buttonColor: Colors.black,
-
-            ),
-            SizedBox(width: 10),
-          ],
-        );
+                  const SizedBox(width: 10),
+                ],
+              );
       },
     );
   }
@@ -804,7 +821,9 @@ class NavigationButtons extends StatelessWidget {
       height: 50, // Set the desired height
       child: Container(
         decoration: BoxDecoration(
-          color: buttonColor ?? Colors.black, // Use buttonColor if provided, otherwise fallback to Colors.black
+          color: buttonColor ??
+              Colors
+                  .black, // Use buttonColor if provided, otherwise fallback to Colors.black
           borderRadius: BorderRadius.circular(8),
         ),
         child: ElevatedButton(
@@ -820,7 +839,7 @@ class NavigationButtons extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
             child: Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 16,
               ),
@@ -830,8 +849,6 @@ class NavigationButtons extends StatelessWidget {
       ),
     );
   }
-
-
 
   Widget _checkbox({
     required VoidCallback? onPressed,
@@ -847,10 +864,10 @@ class NavigationButtons extends StatelessWidget {
             onChanged: (_) => onPressed?.call(),
             activeColor: Colors.green,
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
             ),
           ),
@@ -866,7 +883,8 @@ class InstructionPanel extends StatelessWidget {
   final int answered;
   final int markedForReview;
 
-  InstructionPanel({
+  const InstructionPanel({
+    super.key,
     required this.notVisited,
     required this.notAnswered,
     required this.answered,
@@ -876,8 +894,8 @@ class InstructionPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(left: 8.0), // Add left padding
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.only(left: 8.0), // Add left padding
+      decoration: const BoxDecoration(
         border: Border.symmetric(
           vertical: BorderSide(
             color: Colors.black,
@@ -888,7 +906,11 @@ class InstructionPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Questionnaire Summary :",style: TextStyle(fontFamily: 'Inter',fontWeight: FontWeight.bold,fontSize: 20),),
+          const Text(
+            "Questionnaire Summary :",
+            style: TextStyle(
+                fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 20),
+          ),
           InstructionTile(
             color: Colors.grey,
             label: 'Not Visited',
@@ -933,7 +955,7 @@ class InstructionTile extends StatelessWidget {
         // Perform any action on tile tap
       },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 8.0,horizontal: 10),
+        margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10),
         child: Row(
           children: [
             Container(
@@ -942,7 +964,8 @@ class InstructionTile extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white, // Inside color
                 border: Border.all(color: color, width: 2),
-                borderRadius: BorderRadius.circular(10), // Slightly rounded corners
+                borderRadius:
+                    BorderRadius.circular(10), // Slightly rounded corners
               ),
               child: Center(
                 child: Text(
@@ -954,7 +977,7 @@ class InstructionTile extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
@@ -962,13 +985,14 @@ class InstructionTile extends StatelessWidget {
                 color: color, // Label color same as border color
               ),
             ),
-            Spacer(),
+            const Spacer(),
           ],
         ),
       ),
     );
   }
 }
+
 class QuestionNavigationPanel extends StatelessWidget {
   // New property for heading
   final int questionCount;
@@ -988,32 +1012,29 @@ class QuestionNavigationPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String heading="Navigate and Review :";
+    String heading = "Navigate and Review :";
     return Padding(
       padding: const EdgeInsets.all(4.0),
-      child: Column( // Wrap the GridView.builder inside a Column
+      child: Column(
+        // Wrap the GridView.builder inside a Column
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.only(bottom: 2.0),
             child: Text(
               heading, // Display the heading
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Inter'
-              ),
+              style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Inter'),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
+          const Padding(
+            padding: EdgeInsets.only(bottom: 8.0),
             child: Text(
-             " Assure yourself navigate from anywhere", // Display the heading
+              " Assure yourself navigate from anywhere", // Display the heading
               style: TextStyle(
-                  fontSize: 14,
-                 color: Colors.grey,
-                  fontFamily: 'Inter'
-              ),
+                  fontSize: 14, color: Colors.grey, fontFamily: 'Inter'),
             ),
           ),
           SingleChildScrollView(
@@ -1021,8 +1042,8 @@ class QuestionNavigationPanel extends StatelessWidget {
               children: [
                 GridView.builder(
                   shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 6,
                     crossAxisSpacing: 4.0,
                     mainAxisSpacing: 4.0,
@@ -1071,8 +1092,6 @@ class QuestionNavigationPanel extends StatelessWidget {
   }
 }
 
-
-
 class QuizResultUploader {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -1089,10 +1108,8 @@ class QuizResultUploader {
       String? userId = FirebaseAuth.instance.currentUser?.phoneNumber;
       if (userId != null) {
         // Reference to the user's quiz results collection
-        CollectionReference<Map<String, dynamic>> userResultsRef = _firestore
-            .collection('QuizResults')
-            .doc(userId)
-            .collection('Exam');
+        CollectionReference<Map<String, dynamic>> userResultsRef =
+            _firestore.collection('QuizResults').doc(userId).collection('Exam');
 
         // Create a map with the quiz result data
         Map<String, dynamic> resultData = {
@@ -1108,8 +1125,7 @@ class QuizResultUploader {
         // Upload the quiz result data to Firestore with the specified ID
         await userResultsRef.doc(id).set(resultData);
 
-
-      print('Quiz result uploaded successfully.');
+        print('Quiz result uploaded successfully.');
       } else {
         print('User not logged in.');
       }

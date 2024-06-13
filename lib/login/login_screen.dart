@@ -5,7 +5,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:mymedicosweb/login/login_check.dart';
+import 'package:mymedicosweb/login/components/login_check.dart';
+
 import 'package:mymedicosweb/login/sign_up.dart';
 import 'package:provider/provider.dart';
 

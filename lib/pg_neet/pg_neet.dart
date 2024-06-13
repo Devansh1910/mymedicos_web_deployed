@@ -3,18 +3,18 @@
   import 'package:flutter/material.dart';
   import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:mymedicosweb/Profile/profile.dart';
+import 'package:mymedicosweb/components/Appbar.dart';
+import 'package:mymedicosweb/components/Credit.dart';
   import 'package:mymedicosweb/components/Footer.dart';
-  import 'package:mymedicosweb/login/login_check.dart';
 
-  import 'package:mymedicosweb/pg_neet/app_bar_content.dart';
-import 'package:mymedicosweb/pg_neet/app_drawer.dart';
 
-  import 'package:mymedicosweb/pg_neet/credit.dart';
 
-  import 'package:mymedicosweb/pg_neet/pg_neet_payment.dart';
-  import 'package:mymedicosweb/Landing/components/proven_effective_content.dart';
-  import 'package:mymedicosweb/pg_neet/sideDrawer.dart';
   import 'package:mymedicosweb/Landing/components/HeroImage.dart';
+import 'package:mymedicosweb/components/drawer/app_drawer.dart';
+import 'package:mymedicosweb/components/drawer/sideDrawer.dart';
+import 'package:mymedicosweb/login/components/login_check.dart';
+import 'package:mymedicosweb/pg_neet/ExamPaymentScreen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 
