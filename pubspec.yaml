@@ -46,6 +46,7 @@ dependencies:
   universal_html: ^2.2.4
   flutter_html: 3.0.0-beta.2
   firebase_messaging: ^14.9.4
+  flutter_cache_manager: ^3.3.2
   flutter_svg: ^2.0.9
   fl_chart: ^0.68.0
   image_picker: ^1.1.2

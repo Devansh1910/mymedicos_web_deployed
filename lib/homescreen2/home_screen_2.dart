@@ -78,7 +78,7 @@ class _HomeScreen2State extends State<HomeScreen2> {
           body: Column(
             children: [
               OrangeStrip(
-                text: 'Give your learning an extra edge with our premium content, curated exclusively for you!',
+                text: 'Enhance Your NEET PG Preparation with Our Exclusive Premium Content!',
               ),
               Expanded(
                 child: Row(

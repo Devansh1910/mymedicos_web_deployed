@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Footer extends StatelessWidget {
   const Footer({super.key});
+  Future<void> _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,18 +52,63 @@ class Footer extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        const Text('About us',
-            style: TextStyle(color: Color(0XFF6A6A6A), fontFamily: 'Inter')),
-        const SizedBox(height: 10),
-        const Text('Contact Us',
-            style: TextStyle(color: Color(0XFF6A6A6A), fontFamily: 'Inter')),
-        const SizedBox(height: 30),
-        const Text('Privacy Policy',
-            style: TextStyle(color: Color(0XFF6A6A6A), fontFamily: 'Inter')),
-        const SizedBox(height: 5),
-        const Text('Terms & Conditions',
-            style: TextStyle(color: Color(0XFF6A6A6A), fontFamily: 'Inter')),
+
+              GestureDetector(
+                onTap: () {
+                  _launchURL('https://yourwebsite.com/about'); // Replace with actual URL
+                },
+                child: const Text(
+                  'About us',
+                  style: TextStyle(
+                    color: Color(0xFF6A6A6A),
+                    fontFamily: 'Inter',
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              GestureDetector(
+                onTap: () {
+                  _launchURL('https://yourwebsite.com/contact'); // Replace with actual URL
+                },
+                child: const Text(
+                  'Contact Us',
+                  style: TextStyle(
+                    color: Color(0xFF6A6A6A),
+                    fontFamily: 'Inter',
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              SizedBox(height: 30),
+              GestureDetector(
+                onTap: () {
+                  _launchURL('https://yourwebsite.com/privacy-policy'); // Replace with actual URL
+                },
+                child: const Text(
+                  'Privacy Policy',
+                  style: TextStyle(
+                    color: Color(0xFF6A6A6A),
+                    fontFamily: 'Inter',
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              SizedBox(height: 5),
+              GestureDetector(
+                onTap: () {
+                  _launchURL('https://yourwebsite.com/terms-conditions'); // Replace with actual URL
+                },
+                child: const Text(
+                  'Terms & Conditions',
+                  style: TextStyle(
+                    color: Color(0xFF6A6A6A),
+                    fontFamily: 'Inter',
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+
         const SizedBox(height: 5),
         const Text('FAQ\'s',
             style: TextStyle(color: Color(0XFF6A6A6A), fontFamily: 'Inter')),
@@ -65,7 +118,7 @@ class Footer extends StatelessWidget {
 
   Widget _buildWebContent(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-    return Row(
+    return  Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(
@@ -79,7 +132,7 @@ class Footer extends StatelessWidget {
                   'mymedicos',
                   style: TextStyle(
                     fontSize: 24,
-                    color: Color(0XFF6A6A6A),
+                    color: Color(0xFF6A6A6A),
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.bold,
                   ),
@@ -87,32 +140,77 @@ class Footer extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            const Text('About us',
-                style:
-                    TextStyle(color: Color(0XFF6A6A6A), fontFamily: 'Inter')),
+            GestureDetector(
+              onTap: () {
+                _launchURL('https://mymedicos.in/about-us/'); // Replace with actual URL
+              },
+              child: const Text(
+                'About us',
+                style: TextStyle(
+                  color: Color(0xFF6A6A6A),
+                  fontFamily: 'Inter',
+                ),
+              ),
+            ),
             const SizedBox(height: 10),
-            const Text('Contact Us',
-                style:
-                    TextStyle(color: Color(0XFF6A6A6A), fontFamily: 'Inter')),
+            GestureDetector(
+              onTap: () {
+                _launchURL('https://mymedicos.in/contactus/'); // Replace with actual URL
+              },
+              child: const Text(
+                'Contact Us',
+                style: TextStyle(
+                  color: Color(0xFF6A6A6A),
+                  fontFamily: 'Inter',
+                ),
+              ),
+            ),
             const SizedBox(height: 30),
           ],
         ),
-        const Column(
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 60),
-            Text('Privacy Policy',
-                style:
-                    TextStyle(color: Color(0XFF6A6A6A), fontFamily: 'Inter')),
-            SizedBox(height: 5),
-            Text('Terms & Conditions',
-                style:
-                    TextStyle(color: Color(0XFF6A6A6A), fontFamily: 'Inter')),
-            SizedBox(height: 5),
-            Text('FAQ\'s',
-                style:
-                    TextStyle(color: Color(0XFF6A6A6A), fontFamily: 'Inter')),
-            SizedBox(height: 30),
+            const SizedBox(height: 60),
+            GestureDetector(
+              onTap: () {
+                _launchURL(''); // Replace with actual URL
+              },
+              child: const Text(
+                'Privacy Policy',
+                style: TextStyle(
+                  color: Color(0xFF6A6A6A),
+                  fontFamily: 'Inter',
+                ),
+              ),
+            ),
+            const SizedBox(height: 5),
+            GestureDetector(
+              onTap: () {
+                _launchURL(''); // Replace with actual URL
+              },
+              child: const Text(
+                'Terms & Conditions',
+                style: TextStyle(
+                  color: Color(0xFF6A6A6A),
+                  fontFamily: 'Inter',
+                ),
+              ),
+            ),
+            const SizedBox(height: 5),
+            GestureDetector(
+              onTap: () {
+                _launchURL(''); // Replace with actual URL
+              },
+              child: const Text(
+                'FAQ\'s',
+                style: TextStyle(
+                  color: Color(0xFF6A6A6A),
+                  fontFamily: 'Inter',
+                ),
+              ),
+            ),
+            const SizedBox(height: 30),
           ],
         ),
       ],

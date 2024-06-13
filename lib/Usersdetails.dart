@@ -30,9 +30,13 @@ class UserDetailsFetcher {
               final String userInterest = dataMap["Interest"];
               final String userPrefix = dataMap["Prefix"];
               final bool? mcnVerified = dataMap["MCN verified"];
-              final String? phone=dataMap["Phone Number"];
+              final String? phone = dataMap["Phone Number"];
 
               final String? userProfileImageUrl = await fetchUserProfileImageUrl(savedPhoneNumber);
+
+              // Save user details to SharedPreferences
+              prefs.setString('userName', userName);
+              prefs.setString('userProfileImageUrl', userProfileImageUrl ?? '');
 
               return {
                 "userName": userName,
@@ -42,7 +46,7 @@ class UserDetailsFetcher {
                 "userPrefix": userPrefix,
                 "mcnVerified": mcnVerified,
                 "userProfileImageUrl": userProfileImageUrl,
-                "Phone Number":phone
+                "Phone Number": phone
               };
             }
           } else {
@@ -66,7 +70,7 @@ class UserDetailsFetcher {
     try {
       final ref = FirebaseStorage.instance.ref().child("users").child(phoneNumber).child("profile_image.jpg");
       final url = await ref.getDownloadURL();
-      print("image url "+"$url");
+      print("image url " + "$url");
       return url;
     } catch (error) {
       print("Error fetching profile image URL: $error");

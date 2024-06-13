@@ -2,10 +2,13 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import 'package:mymedicosweb/QuizResult.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:universal_html/html.dart' as html;
 
 class QuizPage extends StatefulWidget {
   final String quizId;
@@ -229,9 +232,17 @@ class _QuizPageState extends State<QuizPage> {
 
   @override
   Widget build(BuildContext context) {
+
+      html.document.documentElement?.requestFullscreen();
+
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+
+
+
     if (questions.isEmpty) {
       return Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: !kIsWeb,
           backgroundColor: Colors.white,
 
           title: Column(
@@ -274,6 +285,7 @@ class _QuizPageState extends State<QuizPage> {
           ],
         ),
         body: Center(
+
           child: CircularProgressIndicator(),
         ),
       );
@@ -284,12 +296,13 @@ class _QuizPageState extends State<QuizPage> {
         bool isMobile = constraints.maxWidth < 600;
 
         return Scaffold(
+
           appBar:PreferredSize(
             preferredSize: Size.fromHeight(kToolbarHeight + 1), // Adjust the height as needed
             child: Container(
               decoration: BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(color: Colors.black, width: 1.0), // Border styling for the bottom side
+                  bottom: BorderSide(color: Colors.black, width: 2.0), // Border styling for the bottom side
                 ),
               ),
               child: AppBar(
@@ -362,9 +375,10 @@ class _QuizPageState extends State<QuizPage> {
                 ),
                 Expanded(
                   child: Container(
+
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.black, width: 1.0), // Border styling
-                      borderRadius: BorderRadius.circular(8.0), // Optional: rounded corners
+                      border: Border.all(color: Colors.black, width: 2.0), // Border styling
+                      borderRadius: BorderRadius.circular(0.0), // Optional: rounded corners
                     ),
                     child: QuestionNavigationPanel(
                       questionCount: questions.length,
@@ -413,8 +427,9 @@ class _QuizPageState extends State<QuizPage> {
                       onNextPressed: goToNextQuestion,
                       onPreviousPressed: goToPreviousQuestion,
                       onMarkForReviewPressed: toggleMarkForReview,
-                      onClearSelectionPressed: clearSelection,
+                      isMarkedForReview: questionsMarkedForReview[currentQuestionIndex], // Assuming questionsMarkedForReview is a list of booleans
                     ),
+
 
                   ],
                 ),
@@ -427,6 +442,7 @@ class _QuizPageState extends State<QuizPage> {
                   // Background color for the side panel
                   child: Column(
                     children: [
+
                       InstructionPanel(
                         notVisited: selectedAnswers
                             .where((a) => a == null)
@@ -445,7 +461,7 @@ class _QuizPageState extends State<QuizPage> {
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.black, width: 1.0), // Border styling
+                            border: Border.all(color: Colors.black, width: 2.0), // Border styling
                             borderRadius: BorderRadius.circular(0.0), // Optional: rounded corners
                           ),
                           child: QuestionNavigationPanel(
@@ -549,6 +565,10 @@ class HeaderSection extends StatelessWidget {
     );
   }
 }
+
+
+
+
 class QuestionSection extends StatelessWidget {
   final String question;
   final List<String> options;
@@ -583,41 +603,94 @@ class QuestionSection extends StatelessWidget {
                 'Question:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-      Container(
-        decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-        child: Text(
-          'Remaining Time: $hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-          ),
-        ),
-      ),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(0),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                child: Text(
+                  'Remaining Time: $hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Inter',
+                    fontSize: 16,
+                  ),
+                ),
+              ),
             ],
           ),
           SizedBox(height: 10),
-          Text(question, style: TextStyle(fontSize: 16)),
-          if (image.isNotEmpty)
-            CachedNetworkImage(
-              imageUrl: image,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => CircularProgressIndicator(),
-              errorWidget: (context, url, error) => Icon(Icons.error),
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              question,
+              style: TextStyle(fontSize: 16, fontFamily: 'Inter'),
             ),
+          ),
+          SizedBox(height: 10),
+          if (image.isNotEmpty && image != "noimage") // Check if image is not empty and not equal to "noimage"
+            Center(
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8, // Adjust the width as needed
+                height: 200, // Adjust the height as needed
+                child: CachedNetworkImage(
+                  imageUrl: image,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => CircularProgressIndicator(),
+                  errorWidget: (context, url, error) => Icon(Icons.error),
+                ),
+              ),
+            ),
+
           SizedBox(height: 20),
           ...options.asMap().entries.map((entry) {
             int idx = entry.key;
             String option = entry.value;
-            return ListTile(
-              title: Text(option),
-              leading: Radio<int?>(
-                value: idx,
-                groupValue: selectedAnswer,
-                onChanged: onAnswerSelected,
+            String letter = String.fromCharCode(65 + idx); // Convert index to letter (A, B, C, ...)
+            return InkWell(
+              onTap: () {
+                onAnswerSelected(idx);
+              },
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(12),
+                margin: EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                  color: selectedAnswer == idx ?Color(0xFF5BFC8B): Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey, width: 2),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 24, // Adjust the width as needed
+                      height: 24, // Adjust the height as needed
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Color(0xFF5BFC8B),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        letter,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontFamily: 'Inter'
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        option,
+                        style: TextStyle(
+                          color: selectedAnswer == idx ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }).toList(),
@@ -626,17 +699,18 @@ class QuestionSection extends StatelessWidget {
     );
   }
 }
+
 class NavigationButtons extends StatelessWidget {
   final VoidCallback? onNextPressed;
   final VoidCallback? onPreviousPressed;
   final VoidCallback? onMarkForReviewPressed;
-  final VoidCallback? onClearSelectionPressed;
+  final bool isMarkedForReview;
 
   NavigationButtons({
     this.onNextPressed,
     this.onPreviousPressed,
     this.onMarkForReviewPressed,
-    this.onClearSelectionPressed,
+    required this.isMarkedForReview,
   });
 
   @override
@@ -652,15 +726,10 @@ class NavigationButtons extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: _customButton(
+                  child: _checkbox(
                     onPressed: onMarkForReviewPressed,
                     label: 'Mark for Review',
-                  ),
-                ),
-                Expanded(
-                  child: _customButton(
-                    onPressed: onClearSelectionPressed,
-                    label: 'Clear Selection',
+                    isChecked: isMarkedForReview,
                   ),
                 ),
               ],
@@ -688,29 +757,22 @@ class NavigationButtons extends StatelessWidget {
             : Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            SizedBox(width: 10),
-
+            SizedBox(width: 5),
+            _checkbox(
+              onPressed: onMarkForReviewPressed,
+              label: 'Mark for Review',
+              isChecked: isMarkedForReview,
+            ),
+            SizedBox(width: 300), // Adjust spacing between the two sets of buttons
             _customButton(
-                onPressed: onMarkForReviewPressed,
-                label: 'Mark for Review',
-              ),
-               _customButton(
-                onPressed: onClearSelectionPressed,
-                label: 'Clear Selection',
-              ),
-
-              SizedBox(width: 200), // Adjust spacing between the two sets of buttons
-
-              _customButton(
-                onPressed: onPreviousPressed,
-                label: 'Previous',
-              ),
-
-
-               _customButton(
-                onPressed: onNextPressed,
-                label: 'Next',
-
+              onPressed: onPreviousPressed,
+              label: 'Previous',
+              buttonColor: Colors.grey,
+            ),
+            _customButton(
+              onPressed: onNextPressed,
+              label: 'Next',
+              buttonColor: Colors.black,
 
             ),
             SizedBox(width: 10),
@@ -720,31 +782,67 @@ class NavigationButtons extends StatelessWidget {
     );
   }
 
-  Widget _customButton({VoidCallback? onPressed, required String label}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+  Widget _customButton({
+    required VoidCallback? onPressed,
+    required String label,
+    Color? buttonColor, // Optional color parameter
+  }) {
+    return SizedBox(
+      width: 150, // Set the desired width
+      height: 50, // Set the desired height
+      child: Container(
+        decoration: BoxDecoration(
+          color: buttonColor ?? Colors.black, // Use buttonColor if provided, otherwise fallback to Colors.black
+          borderRadius: BorderRadius.circular(8),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+
+
+  Widget _checkbox({
+    required VoidCallback? onPressed,
+    required String label,
+    required bool isChecked,
+  }) {
+    return InkWell(
+      onTap: onPressed,
+      child: Row(
+        children: [
+          Checkbox(
+            value: isChecked,
+            onChanged: (_) => onPressed?.call(),
+            activeColor: Colors.green,
+          ),
+          SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 16,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -768,12 +866,17 @@ class InstructionPanel extends StatelessWidget {
     return Container(
       padding: EdgeInsets.only(left: 8.0), // Add left padding
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.black, width: 1.0),
-        borderRadius: BorderRadius.circular(4.0),
+        border: Border.symmetric(
+          vertical: BorderSide(
+            color: Colors.black,
+            width: 2.0,
+          ),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text("Questionnaire Summary :",style: TextStyle(fontFamily: 'Inter',fontWeight: FontWeight.bold,fontSize: 20),),
           InstructionTile(
             color: Colors.grey,
             label: 'Not Visited',
@@ -818,7 +921,7 @@ class InstructionTile extends StatelessWidget {
         // Perform any action on tile tap
       },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 8.0),
+        margin: EdgeInsets.symmetric(vertical: 8.0,horizontal: 10),
         child: Row(
           children: [
             Container(
@@ -854,8 +957,8 @@ class InstructionTile extends StatelessWidget {
     );
   }
 }
-
 class QuestionNavigationPanel extends StatelessWidget {
+  // New property for heading
   final int questionCount;
   final int currentQuestionIndex;
   final List<bool> questionsMarkedForReview;
@@ -863,6 +966,7 @@ class QuestionNavigationPanel extends StatelessWidget {
   final ValueChanged<int> onSelectQuestion;
 
   QuestionNavigationPanel({
+    // Initialize the heading
     required this.questionCount,
     required this.currentQuestionIndex,
     required this.questionsMarkedForReview,
@@ -872,56 +976,84 @@ class QuestionNavigationPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String heading="Navigate and Review :";
     return Padding(
       padding: const EdgeInsets.all(4.0),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            GridView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(), // Disable internal scrolling
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 6,
-                crossAxisSpacing: 4.0,
-                mainAxisSpacing: 4.0,
+      child: Column( // Wrap the GridView.builder inside a Column
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 2.0),
+            child: Text(
+              heading, // Display the heading
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Inter'
               ),
-              itemCount: questionCount,
-              itemBuilder: (context, index) {
-                bool markedForReview = questionsMarkedForReview[index];
-                bool hasSelectedAnswer = selectedAnswers[index] != null;
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Text(
+             " Assure yourself navigate from anywhere", // Display the heading
+              style: TextStyle(
+                  fontSize: 14,
+                 color: Colors.grey,
+                  fontFamily: 'Inter'
+              ),
+            ),
+          ),
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 6,
+                    crossAxisSpacing: 4.0,
+                    mainAxisSpacing: 4.0,
+                  ),
+                  itemCount: questionCount,
+                  itemBuilder: (context, index) {
+                    bool markedForReview = questionsMarkedForReview[index];
+                    bool hasSelectedAnswer = selectedAnswers[index] != null;
 
-                Color borderColor = Colors.grey; // Default color
-                if (markedForReview) {
-                  borderColor = Colors.purple;
-                } else if (hasSelectedAnswer) {
-                  borderColor = Colors.green;
-                } else if (currentQuestionIndex == index) {
-                  borderColor = Colors.blue;
-                }
+                    Color borderColor = Colors.grey;
+                    if (markedForReview) {
+                      borderColor = Colors.purple;
+                    } else if (hasSelectedAnswer) {
+                      borderColor = Colors.green;
+                    } else if (currentQuestionIndex == index) {
+                      borderColor = Colors.blue;
+                    }
 
-                return GestureDetector(
-                  onTap: () => onSelectQuestion(index),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white, // Inside color
-                      border: Border.all(color: borderColor, width: 2),
-                      borderRadius: BorderRadius.circular(10), // Slightly rounded corners
-                    ),
-                    child: Center(
-                      child: Text(
-                        (index + 1).toString(),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: borderColor, // Text color same as border color
+                    return GestureDetector(
+                      onTap: () => onSelectQuestion(index),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: borderColor, width: 2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: Text(
+                            (index + 1).toString(),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: borderColor,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                );
-              },
+                    );
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

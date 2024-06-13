@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:html' as html;
 import 'package:cached_network_image/cached_network_image.dart';
@@ -122,7 +123,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: Column(
         children: [
           const OrangeStrip(
-            text: 'Give your learning an extra edge with our premium content, curated exclusively for you!',
+            text: 'Supercharge Your NEET PG Prep with Exclusive, Curated Content',
           ),
           Expanded(
             child: Row(
@@ -172,32 +173,83 @@ class _MainContentState extends State<MainContent> {
       fetchUserProfileImageVerified();
 
   }
-
-  Future<void> fetchUserProfileImageVerified( ) async {
-    SharedPreferences prefs =  await SharedPreferences.getInstance();
-   userId = prefs.getString('phoneNumber')!;
-    FirebaseStorage storage = FirebaseStorage.instance;
-    Reference storageRef = storage.ref().child("users").child(userId).child("profile_image.jpg");
+  Future<String?> fetchUserProfileImageVerified() async {
     try {
-      String downloadUrl = await storageRef.getDownloadURL();
-      setState(() {
-        userProfileImageUrl = downloadUrl;
-      });
-    } catch (exception) {
-      print("Error fetching profile image: ${exception.toString()}");
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? userProfileImageUrl = prefs.getString('userProfileImageUrl');
+
+      if (userProfileImageUrl == null) {
+        // Create a completer to manage the future
+        final Completer<String?> completer = Completer<String?>();
+
+        // Check if the value is set periodically
+        final int checkIntervalMilliseconds = 100;
+        Timer? timer;
+
+        // Define a function to check if the value is set
+        void checkIfValueSet() {
+          final String? updatedUrl = prefs.getString('userProfileImageUrl');
+          if (updatedUrl != null) {
+            completer.complete(updatedUrl);
+            timer?.cancel(); // Cancel the timer once the value is set
+          }
+        }
+
+        // Start checking periodically
+        timer = Timer.periodic(Duration(milliseconds: checkIntervalMilliseconds), (_) {
+          checkIfValueSet();
+        });
+
+        // Return the future
+        return completer.future;
+      } else {
+        return userProfileImageUrl;
+      }
+    } catch (error) {
+      print("Error fetching profile image URL from SharedPreferences: $error");
+      return null;
     }
   }
 
-  Future<void> uploadProfileImage(bool isLargeScreen) async {
+
+
+
+  // Future<void> fetchUserProfileImageVerified( ) async {
+  //   SharedPreferences prefs =  await SharedPreferences.getInstance();
+  //  userId = prefs.getString('phoneNumber')!;
+  //   FirebaseStorage storage = FirebaseStorage.instance;
+  //   Reference storageRef = storage.ref().child("users").child(userId).child("profile_image.jpg");
+  //   try {
+  //     String downloadUrl = await storageRef.getDownloadURL();
+  //     setState(() {
+  //       userProfileImageUrl = downloadUrl;
+  //     });
+  //   } catch (exception) {
+  //     print("Error fetching profile image: ${exception.toString()}");
+  //   }
+  // }
+  Future<Uint8List> _loadImage(String imageUrl) async {
+    final response = await http.get(Uri.parse(imageUrl));
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    } else {
+      throw Exception('Failed to load image');
+    }
+  }
+
+
+  Future<void> uploadProfileImage(BuildContext context, bool isLargeScreen) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String userId = prefs.getString('phoneNumber') ?? '';
-    print("userid 0" + userId);
+    print("UserID: $userId");
 
     try {
+      Uint8List? pickedFileBytes;
       File? pickedFile;
 
       if (isLargeScreen) {
         // Web specific code
+        print("Running on large screen");
         final input = html.FileUploadInputElement();
         input.accept = 'image/*';
         input.click();
@@ -208,36 +260,96 @@ class _MainContentState extends State<MainContent> {
           final reader = html.FileReader();
           reader.readAsArrayBuffer(file);
           await reader.onLoad.first;
-          final buffer = reader.result as Uint8List;
-          final blob = html.Blob([buffer]);
-          pickedFile = File(html.Url.createObjectUrlFromBlob(blob));
+          pickedFileBytes = reader.result as Uint8List;
+          print("File selected on web: ${file.name}");
         }
       } else {
         // Mobile specific code
+        print("Running on mobile");
         final picker = ImagePicker();
         final xFile = await picker.pickImage(source: ImageSource.gallery);
-        pickedFile = xFile != null ? File(xFile.path) : null;
+        if (xFile != null) {
+          pickedFile = File(xFile.path);
+          print("File selected on mobile: ${xFile.name}");
+        }
       }
 
-      if (pickedFile != null) {
+      if (pickedFile != null || pickedFileBytes != null) {
         FirebaseStorage storage = FirebaseStorage.instance;
         Reference storageRef = storage.ref().child("users").child(userId).child("profile_image.jpg");
-        await storageRef.putFile(pickedFile);
-        await fetchUserProfileImageVerified();
 
-        // Show a toast message for successful upload
-        Fluttertoast.showToast(
-          msg: "Profile image uploaded successfully",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
+        UploadTask uploadTask;
+        if (pickedFile != null) {
+          // For mobile
+          uploadTask = storageRef.putFile(
+            pickedFile,
+            SettableMetadata(contentType: 'image/jpeg'), // Set content type to image/jpeg
+          );
+        } else {
+          // For web
+          uploadTask = storageRef.putData(
+            pickedFileBytes!,
+            SettableMetadata(contentType: 'image/jpeg'), // Set content type to image/jpeg
+          );
+        }
+
+        // Show a progress dialog
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              content: Row(
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(width: 20),
+                  Text("Uploading..."),
+                ],
+              ),
+            );
+          },
         );
+
+        uploadTask.whenComplete(() async {
+          Navigator.pop(context); // Close the progress dialog
+          String imageUrl = await storageRef.getDownloadURL();
+          // Save the image URL to the user's profile
+          // Assuming you have a user reference (e.g., FirebaseDatabase reference)
+          // userRef.child("profileImage").setValue(imageUrl);
+          await fetchUserProfileImageVerified();
+
+          // Show a toast message for successful upload
+          Fluttertoast.showToast(
+            msg: "Profile image uploaded successfully",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+          );
+
+          // Update the avatar image view (assuming you have a stateful widget to handle this)
+          // final bitmap = await _loadImage(imageUrl);
+          // setState(() {
+          //   avatarImageView = Image.memory(bitmap);
+          // });
+        }).catchError((error) {
+          Navigator.pop(context); // Close the progress dialog
+          print("Error uploading profile image: $error");
+          Fluttertoast.showToast(
+            msg: "Error uploading profile image: $error",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+          );
+        });
+      } else {
+        throw Exception("No file selected");
       }
     } catch (error) {
       print("Error uploading profile image: $error");
       Fluttertoast.showToast(
-        msg: "Error uploading profile image",
+        msg: "Error uploading profile image: $error",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         backgroundColor: Colors.red,
@@ -245,6 +357,7 @@ class _MainContentState extends State<MainContent> {
       );
     }
   }
+
 
 
 
@@ -262,13 +375,37 @@ class _MainContentState extends State<MainContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          const SizedBox(height: 16),
-          const Text('Details', style: TextStyle(
-              fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'Inter')),
-          const SizedBox(height: 10),
-          const Text('Go through the details.', style: TextStyle(
-              fontSize: 20, color: Colors.grey, fontFamily: 'Inter')),
-          const SizedBox(height: 20),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start, // Align children to the start (left) of the column
+            children: [
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.only(left: 16), // Add left padding
+                child: const Text(
+                  'Details',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Inter',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Padding(
+                padding: const EdgeInsets.only(left: 16), // Add left padding
+                child: const Text(
+                  'Go through the details.',
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.grey,
+                    fontFamily: 'Inter',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+
           isMobileView
               ? Column(
             children: [
@@ -378,6 +515,7 @@ class _MainContentState extends State<MainContent> {
   Widget _buildProfileImage() {
     final screenWidth = MediaQuery.of(context).size.width;
     final isLargeScreen = screenWidth > 600;
+
     return Column(
       children: [
         Stack(
@@ -391,41 +529,118 @@ class _MainContentState extends State<MainContent> {
                 backgroundColor: Colors.transparent, // Make the CircleAvatar's background transparent
               ),
             ),
-            CircleAvatar(
-              radius: 80.0, // Adjust the size of the CircleAvatar
-              backgroundColor: Colors.grey.shade200, // Placeholder background color
-              child: ClipOval(
-                child: CachedNetworkImage(
-                  imageUrl: userProfileImageUrl ?? 'https://via.placeholder.com/150',
-                  placeholder: (context, url) => CircularProgressIndicator(),
-                  errorWidget: (context, url, error) => Image.asset(
-                    'assets/image/default_profile.png',
-                    fit: BoxFit.cover,
-                  ),
-                  fit: BoxFit.cover,
-                ),
-              ),
+            FutureBuilder<String?>(
+              future: fetchUserProfileImageVerified(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                } else {
+                  print("image url 2:"+snapshot.data!);
+                  final imageUrl = snapshot.data!;
+                  return _buildCircleAvatar(
+                    imageUrl: imageUrl,
+                    radius: 80.0,
+                    onTap: () async {
+                      print("upload image");
+                      await uploadProfileImage(context, isLargeScreen);
+                    },
+                  );
+                }
+              },
             ),
           ],
         ),
         const SizedBox(height: 10),
-        ElevatedButton(
-          onPressed: () async{
-            print("upload image");
-            await uploadProfileImage(isLargeScreen);
-          },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              Icon(Icons.camera_alt),
-              SizedBox(width: 5),
-              Text("Upload Avatar"),
-            ],
-          ),
-        ),
       ],
     );
   }
+
+  Widget _buildCircleAvatar({required String imageUrl, required double radius, required Function() onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        children: [
+          CircleAvatar(
+            radius: radius,
+            backgroundColor: Colors.grey.shade200,
+            child: ClipOval(
+              child: CachedNetworkImage(
+                imageUrl: imageUrl,
+                placeholder: (context, url) => CircularProgressIndicator(),
+                errorWidget: (context, url, error) => Icon(
+                  Icons.person, // Use the error icon
+                  color: Colors.grey,
+                  size: 80,// Customize the color if needed
+                ),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              margin: EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+              ),
+              child: Icon(
+                Icons.upload_outlined,
+                color: Colors.blue,
+                size: 30,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
+  // Widget _buildCircleAvatar({required String imageUrl, required double radius, required Function() onTap}) {
+  //   return GestureDetector(
+  //     onTap: onTap,
+  //     child: Stack(
+  //       children: [
+  //         CircleAvatar(
+  //           radius: radius,
+  //           backgroundColor: Colors.grey.shade200,
+  //           child: ClipOval(
+  //             child: CachedNetworkImage(
+  //               imageUrl: imageUrl,
+  //               placeholder: (context, url) => CircularProgressIndicator(),
+  //               errorWidget: (context, url, error) => Icon(
+  //                 Icons.error, // Use the error icon
+  //                 color: Colors.red, // Customize the color if needed
+  //               ),
+  //               fit: BoxFit.cover,
+  //             ),
+  //           ),
+  //         ),
+  //         Align(
+  //           alignment: Alignment.bottomRight,
+  //           child: Container(
+  //             margin: EdgeInsets.all(4),
+  //             decoration: BoxDecoration(
+  //               shape: BoxShape.circle,
+  //               color: Colors.white,
+  //             ),
+  //             child: Icon(
+  //               Icons.upload_outlined,
+  //               color: Colors.blue,
+  //               size: 24,
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+
+
 
 
 

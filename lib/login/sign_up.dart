@@ -321,12 +321,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            _buildTextField(
-              label: 'Email ID',
-              icon: Icons.email,
-              validator: (value) =>
-              value!.isEmpty ? 'Please enter an email address' : null,
-              onSaved: (value) => email = value!,
+            _buildDropdownField(
+              label: 'Prefix',
+              value: prefix,
+              items: ['Hr.', 'Nr.', 'Dr.'],
+              onChanged: (newValue) {
+                setState(() {
+                  prefix = newValue;
+                });
+              },
             ),
             _buildTextField(
               label: 'Name',
@@ -335,6 +338,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
               value!.isEmpty ? 'Please enter your name' : null,
               onSaved: (value) => name = value!,
             ),
+            _buildTextField(
+              label: 'Email ID',
+              icon: Icons.email,
+              validator: (value) =>
+              value!.isEmpty ? 'Please enter an email address' : null,
+              onSaved: (value) => email = value!,
+            ),
+
             _buildPhoneNumberField(
               label: 'Phone Number',
               icon: Icons.phone,
@@ -342,12 +353,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               value!.isEmpty ? 'Please enter your phone number' : null,
               onSaved: (value) => phoneNumber = value!,
             ),
-            _buildTextField(
-              label: 'Location',
-              icon: Icons.location_on,
-              onSaved: (value) => location = value!,
-              validator: (value) => null,
-            ),
+
             _buildDropdownField(
               label: 'Speciality',
               value: interest,
@@ -368,16 +374,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 });
               },
             ),
-            _buildDropdownField(
-              label: 'Prefix',
-              value: prefix,
-              items: ['Hr.', 'Nr.', 'Dr.'],
-              onChanged: (newValue) {
-                setState(() {
-                  prefix = newValue;
-                });
-              },
+            _buildTextField(
+              label: 'Location',
+              icon: Icons.location_on,
+              onSaved: (value) => location = value!,
+              validator: (value) => null,
             ),
+
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {

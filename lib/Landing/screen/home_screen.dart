@@ -31,6 +31,13 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(builder: (context) => const SignUpScreen()),
     );
   }
+  Future<void> _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,10 +89,20 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     // Add margin to the right
                   ),
-                  child: const Text(
-                    'Contact us',
-                    style: TextStyle(
-                      fontFamily: 'Inter', // text style
+                  child:  Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        _launchURL("https://mymedicos.in/contactus/"); // Function to launch URL
+                      },
+                      child: Text(
+                        'Contact us',
+                        style: TextStyle(
+                          fontFamily: 'Inter', // text style
+                          fontSize: 18,
+                          decoration: TextDecoration.underline,
+                          color: Colors.blue,
+                        ),
+                      ),
                     ),
                   ),
                 ),

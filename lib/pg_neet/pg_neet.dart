@@ -72,7 +72,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
               },
             ),
           ),
-            drawer: isLargeScreen ? null : AppDrawer(initialIndex: 0),
+          drawer: isLargeScreen ? null : AppDrawer(initialIndex: 1),
 
 
             body: MainContent(isLargeScreen: isLargeScreen),

@@ -1,7 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:mymedicosweb/homescreen2/home_screen_2.dart';
+import 'package:universal_html/html.dart' as html;
 
 class QuizResultScreen extends StatefulWidget {
   final List<Map<String, dynamic>> questions;
@@ -102,6 +105,8 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    html.document.exitFullscreen();
+
     int hours = widget.remainingTime ~/ 3600;
     int minutes = (widget.remainingTime % 3600) ~/ 60;
     int seconds = widget.remainingTime % 60;
@@ -124,10 +129,12 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
     String correctAnswerText = widget
         .questions[currentQuestionIndex]['Correct'];
     bool isCorrect = selectedAnswerText == correctAnswerText;
-
-    return Scaffold(
+    return WillPopScope(
+        onWillPop: () async => false,
+    child:Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight + 1),
+
         // Adjust the height as needed
         child: Container(
           decoration: BoxDecoration(
@@ -137,6 +144,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
             ),
           ),
           child: AppBar(
+            automaticallyImplyLeading: !kIsWeb,
             backgroundColor: Colors.white,
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,10 +213,10 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 1.0),
+                  border: Border.all(color: Colors.black, width: 2.0),
                   // Border styling
                   borderRadius: BorderRadius.circular(
-                      8.0), // Optional: rounded corners
+                      0.0), // Optional: rounded corners
                 ),
                 child: QuestionNavigationPanel(
                   questionCount: widget.questions.length,
@@ -247,6 +255,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                       child: QuestionSection(
                         question: widget
                             .questions[currentQuestionIndex]['Question'],
+                        image: widget.questions[currentQuestionIndex]['Image'],
                         options: [
                           widget.questions[currentQuestionIndex]['A'],
                           widget.questions[currentQuestionIndex]['B'],
@@ -312,6 +321,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 }
@@ -370,7 +380,7 @@ class HeaderSection extends StatelessWidget {
     int seconds = remainingTime % 60;
 
   return Container(
-    height:250,
+    height:330,
       padding: EdgeInsets.symmetric(vertical: 16.0 ,horizontal: 8),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.black, width: 1.0),
@@ -381,22 +391,76 @@ class HeaderSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start, // Added crossAxisAlignment
         children: [
           Expanded(
-            flex: 1, // Give the first column some flexibility
+            // Give the first column some flexibility
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'Remaining Time: $hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
-                  style: TextStyle(fontSize: 16,fontFamily: 'Inter'),
+                SizedBox(width: 200,),
+                RichText(
+                  text: TextSpan(
+                    text: 'Remaining Time: ',
+                    style: TextStyle(fontSize: 25, fontFamily: 'Inter', color: Colors.black),
+                    children: [
+                      TextSpan(
+                        text: '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+                        style: TextStyle(fontSize: 25,color: Colors.grey),
+                      ),
+                    ],
+                  ),
                 ),
                 SizedBox(height: 10),
-                Text('Correct Answers: $correctAnswers', style: TextStyle(fontSize: 16,fontFamily: 'Inter')),
+                RichText(
+                  text: TextSpan(
+                    text: 'Correct Answers: ',
+                    style: TextStyle(fontSize: 25, fontFamily: 'Inter', color: Colors.black),
+                    children: [
+                      TextSpan(
+                        text: '$correctAnswers',
+                        style: TextStyle(fontSize: 25,color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
                 SizedBox(height: 5),
-                Text('Incorrect Answers: $incorrectAnswers', style: TextStyle(fontSize: 16,fontFamily: 'Inter')),
+                RichText(
+                  text: TextSpan(
+                    text: 'Incorrect Answers: ',
+                    style: TextStyle(fontSize: 25, fontFamily: 'Inter', color: Colors.black),
+                    children: [
+                      TextSpan(
+                        text: '$incorrectAnswers',
+                        style: TextStyle(fontSize: 25,color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
                 SizedBox(height: 5),
-                Text('Skipped Questions: $skippedQuestions', style: TextStyle(fontSize: 16,fontFamily: 'Inter')),
+                RichText(
+                  text: TextSpan(
+                    text: 'Skipped Questions: ',
+                    style: TextStyle(fontSize: 25, fontFamily: 'Inter', color: Colors.black),
+                    children: [
+                      TextSpan(
+                        text: '$skippedQuestions',
+                        style: TextStyle(fontSize: 25,color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
                 SizedBox(height: 5),
-                Text('Total Marks: $totalMarks', style: TextStyle(fontSize: 16,fontFamily: 'Inter')),
+                RichText(
+                  text: TextSpan(
+                    text: 'Total Marks: ',
+                    style: TextStyle(fontSize: 25, fontFamily: 'Inter', color: Colors.black),
+                    children: [
+                      TextSpan(
+                        text: '$totalMarks',
+                        style: TextStyle(fontSize: 25,color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -445,10 +509,12 @@ class QuestionSection extends StatelessWidget {
   final String question;
   final List<String> options;
   final int? selectedAnswer;
+  final String image;
 
   QuestionSection({
     required this.question,
     required this.options,
+    required this.image,
     required this.selectedAnswer,
   });
 
@@ -459,19 +525,86 @@ class QuestionSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Question:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,fontFamily: 'Inter')),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Question:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+
+            ],
+          ),
           SizedBox(height: 10),
-          Text(question, style: TextStyle(fontSize: 16,fontFamily: 'Inter')),
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              question,
+              style: TextStyle(fontSize: 16, fontFamily: 'Inter'),
+            ),
+          ),
+          SizedBox(height: 10),
+          if (image.isNotEmpty && image != "noimage") // Check if image is not empty and not equal to "noimage"
+            Center(
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8, // Adjust the width as needed
+                height: 200, // Adjust the height as needed
+                child: CachedNetworkImage(
+                  imageUrl: image,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => CircularProgressIndicator(),
+                  errorWidget: (context, url, error) => Icon(Icons.error),
+                ),
+              ),
+            ),
+
+
           SizedBox(height: 20),
           ...options.asMap().entries.map((entry) {
             int idx = entry.key;
             String option = entry.value;
-            return ListTile(
-              title: Text(option),
-              leading: Radio<int?>(
-                value: idx,
-                groupValue: selectedAnswer,
-                onChanged: null, // Disabled in result screen
+            String letter = String.fromCharCode(65 + idx); // Convert index to letter (A, B, C, ...)
+            return InkWell(
+
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(12),
+                margin: EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                  color: selectedAnswer == idx ?Color(0xFF5BFC8B): Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey, width: 2),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 24, // Adjust the width as needed
+                      height: 24, // Adjust the height as needed
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Color(0xFF5BFC8B),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        letter,
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            fontFamily: 'Inter'
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        option,
+                        style: TextStyle(
+                          color: selectedAnswer == idx ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }).toList(),
@@ -574,6 +707,7 @@ class NavigationButtons extends StatelessWidget {
     );
   }
 }
+
 class InstructionPanel extends StatelessWidget {
   final int notVisited;
   final int notAnswered;
@@ -590,14 +724,38 @@ class InstructionPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(left: 8.0), // Add left padding
+      padding: EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.black, width: 1.0),
-        borderRadius: BorderRadius.circular(4.0),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(0.0),
+        border: Border.symmetric(
+          vertical: BorderSide(
+            color: Colors.black,
+            width: 2.0,
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.white,
+            spreadRadius: 2,
+            blurRadius: 4,
+            offset: Offset(0, 0),
+            // changes position of shadow
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            'Instruction Summary',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Inter'
+            ),
+          ),
+          SizedBox(height: 8),
           InstructionTile(
             color: Colors.grey,
             label: 'Not Visited',
@@ -642,7 +800,7 @@ class InstructionTile extends StatelessWidget {
         // Perform any action on tile tap
       },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 8.0),
+        margin: EdgeInsets.symmetric(vertical: 8.0,horizontal: 10),
         child: Row(
           children: [
             Container(
@@ -653,6 +811,7 @@ class InstructionTile extends StatelessWidget {
                 border: Border.all(color: color, width: 2),
                 borderRadius: BorderRadius.circular(10), // Slightly rounded corners
               ),
+
               child: Center(
                 child: Text(
                   '$count',
@@ -696,9 +855,35 @@ class QuestionNavigationPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String heading="Navigate and Review :";
     return Padding(
       padding: const EdgeInsets.all(4.0),
-      child: SingleChildScrollView(
+      child: Column( // Wrap the GridView.builder inside a Column
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 2.0),
+            child: Text(
+              heading, // Display the heading
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Inter'
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Text(
+              " Assure yourself navigate from anywhere", // Display the heading
+              style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                  fontFamily: 'Inter'
+              ),
+            ),
+          ),
+          SingleChildScrollView(
         child: Column(
           children: [
             GridView.builder(
@@ -747,6 +932,8 @@ class QuestionNavigationPanel extends StatelessWidget {
           ],
         ),
       ),
+      ],
+    ),
     );
   }
 }

@@ -90,7 +90,7 @@ class _SideDrawerState extends State<sideDrawer> {
   Widget build(BuildContext context) {
     return Container(
       width: 200,
-      color: Colors.grey[200],
+      color: Colors.white,
       child: Column(
         children: [
           // UserHeader(),
@@ -103,7 +103,7 @@ class _SideDrawerState extends State<sideDrawer> {
           ),
           ListTile(
             leading: Icon(Icons.school),
-            title: Text('PG Neet'),
+            title: Text('NEET PG'),
             selected: _selectedIndex == 1,
             selectedTileColor: Colors.green,
             onTap: () => _onItemTapped(1, '/pgneet'),

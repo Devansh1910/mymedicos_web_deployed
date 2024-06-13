@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mymedicosweb/login/login_check.dart';
 import 'package:mymedicosweb/login/sign_up.dart';
 import 'package:provider/provider.dart';
@@ -49,33 +50,33 @@ class LoginScreen extends StatelessWidget {
                   maxWidth: isLargeScreen ? 1200 : screenSize.width * 0.95),
               child: isLargeScreen
                   ? Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Expanded(
-                          flex: 1,
-                          child: CarouselWithCustomText(),
-                        ),
-                        const SizedBox(width: 200),
-                        Expanded(
-                          flex: 1,
-                          child: LoginForm(
-                              screenSize: screenSize,
-                              isLargeScreen: isLargeScreen),
-                        ),
-                      ],
-                    )
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // const Expanded(
+                  //   flex: 1,
+                  //   child: CarouselWithCustomText(),
+                  // ),
+                  const SizedBox(width: 200),
+                  Expanded(
+                    flex: 1,
+                    child: LoginForm(
+                        screenSize: screenSize,
+                        isLargeScreen: isLargeScreen),
+                  ),
+                ],
+              )
                   : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const CarouselWithCustomText(),
-                        const SizedBox(height: 20),
-                        LoginForm(
-                            screenSize: screenSize,
-                            isLargeScreen: isLargeScreen),
-                      ],
-                    ),
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // const CarouselWithCustomText(),
+                  const SizedBox(height: 20),
+                  LoginForm(
+                      screenSize: screenSize,
+                      isLargeScreen: isLargeScreen),
+                ],
+              ),
             ),
           ),
         ],
@@ -83,114 +84,114 @@ class LoginScreen extends StatelessWidget {
     );
   }
 }
-
-class CarouselWithCustomText extends StatefulWidget {
-  const CarouselWithCustomText({super.key});
-
-  @override
-  // ignore: library_private_types_in_public_api
-  _CarouselWithCustomTextState createState() => _CarouselWithCustomTextState();
-}
-
-class _CarouselWithCustomTextState extends State<CarouselWithCustomText> {
-  int _current = 0;
-  final CarouselController _controller = CarouselController();
-
-  final List<Map<String, String>> data = [
-    {
-      'image': 'assets/landing/Feature/1.png',
-      'title': 'Welcome to mymedicos',
-      'text':
-          'Embarking on the PG NEET Journey Strategies, Tools, and Insights for Success with mymedicos',
-    },
-    {
-      "image": "assets/landing/Feature/2.png",
-      "title": "QBank & Test Series",
-      "text": "Authentic pattern with rich explanations."
-    },
-    {
-      'image': 'assets/landing/Feature/3.png',
-      'title': 'Master Every Topic, One Chapter at a Time',
-      'text':
-          'With focused and structured content, you can navigate through your studies efficiently and effectively, building a strong foundation of knowledge step by step.',
-    },
-  ];
-
-  @override
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        CarouselSlider(
-          items: data.map((item) {
-            return Column(
-              children: [
-                Expanded(
-                  child: Image.asset(item['image']!, fit: BoxFit.cover),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    item['title']!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontFamily: String.fromEnvironment('Poppins-Semibold'),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    item['text']!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontFamily: String.fromEnvironment('Poppins-Semibold'),
-                        fontWeight: FontWeight.normal,
-                        fontSize: 16),
-                  ),
-                ),
-              ],
-            );
-          }).toList(),
-          carouselController: _controller,
-          options: CarouselOptions(
-            autoPlay: true,
-            aspectRatio: 16 / 9,
-            enlargeCenterPage: true,
-            onPageChanged: (index, reason) {
-              setState(() {
-                _current = index;
-              });
-            },
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: data.asMap().entries.map((entry) {
-            return GestureDetector(
-              onTap: () => _controller.animateToPage(entry.key),
-              child: Container(
-                width: 20.0, // Increased width for a rectangle shape
-                height: 12.0, // Keep height as is or adjust to your preference
-                margin:
-                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-                decoration: BoxDecoration(
-                    color: _current == entry.key
-                        ? const Color.fromARGB(
-                            255, 43, 208, 191) // Active color
-                        : Colors.grey, // Inactive color
-                    borderRadius: BorderRadius.circular(4.0) // Rounded edges
-                    ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-}
+//
+// class CarouselWithCustomText extends StatefulWidget {
+//   const CarouselWithCustomText({super.key});
+//
+//   @override
+//   // ignore: library_private_types_in_public_api
+//   _CarouselWithCustomTextState createState() => _CarouselWithCustomTextState();
+// }
+//
+// class _CarouselWithCustomTextState extends State<CarouselWithCustomText> {
+//   int _current = 0;
+//   final CarouselController _controller = CarouselController();
+//
+//   final List<Map<String, String>> data = [
+//     {
+//       'image': 'assets/landing/Feature/1.png',
+//       'title': 'Welcome to mymedicos',
+//       'text':
+//       'Embarking on the PG NEET Journey Strategies, Tools, and Insights for Success with mymedicos',
+//     },
+//     {
+//       "image": "assets/landing/Feature/2.png",
+//       "title": "QBank & Test Series",
+//       "text": "Authentic pattern with rich explanations."
+//     },
+//     {
+//       'image': 'assets/landing/Feature/3.png',
+//       'title': 'Master Every Topic, One Chapter at a Time',
+//       'text':
+//       'With focused and structured content, you can navigate through your studies efficiently and effectively, building a strong foundation of knowledge step by step.',
+//     },
+//   ];
+//
+//   @override
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       mainAxisAlignment: MainAxisAlignment.center,
+//       children: [
+//         CarouselSlider(
+//           items: data.map((item) {
+//             return Column(
+//               children: [
+//                 Expanded(
+//                   child: Image.asset(item['image']!, fit: BoxFit.cover),
+//                 ),
+//                 Padding(
+//                   padding: const EdgeInsets.all(8.0),
+//                   child: Text(
+//                     item['title']!,
+//                     textAlign: TextAlign.center,
+//                     style: const TextStyle(
+//                         fontFamily: String.fromEnvironment('Poppins-Semibold'),
+//                         fontWeight: FontWeight.bold,
+//                         fontSize: 20),
+//                   ),
+//                 ),
+//                 Padding(
+//                   padding: const EdgeInsets.all(8.0),
+//                   child: Text(
+//                     item['text']!,
+//                     textAlign: TextAlign.center,
+//                     style: const TextStyle(
+//                         fontFamily: String.fromEnvironment('Poppins-Semibold'),
+//                         fontWeight: FontWeight.normal,
+//                         fontSize: 16),
+//                   ),
+//                 ),
+//               ],
+//             );
+//           }).toList(),
+//           carouselController: _controller,
+//           options: CarouselOptions(
+//             autoPlay: true,
+//             aspectRatio: 16 / 9,
+//             enlargeCenterPage: true,
+//             onPageChanged: (index, reason) {
+//               setState(() {
+//                 _current = index;
+//               });
+//             },
+//           ),
+//         ),
+//         Row(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: data.asMap().entries.map((entry) {
+//             return GestureDetector(
+//               onTap: () => _controller.animateToPage(entry.key),
+//               child: Container(
+//                 width: 20.0, // Increased width for a rectangle shape
+//                 height: 12.0, // Keep height as is or adjust to your preference
+//                 margin:
+//                 const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+//                 decoration: BoxDecoration(
+//                     color: _current == entry.key
+//                         ? const Color.fromARGB(
+//                         255, 43, 208, 191) // Active color
+//                         : Colors.grey, // Inactive color
+//                     borderRadius: BorderRadius.circular(4.0) // Rounded edges
+//                 ),
+//               ),
+//             );
+//           }).toList(),
+//         ),
+//       ],
+//     );
+//   }
+// }
 
 class LoginForm extends StatefulWidget {
   final Size screenSize;
@@ -211,7 +212,7 @@ class _LoginFormState extends State<LoginForm> {
   bool isOtpSent = false;
   final TextEditingController phoneController = TextEditingController();
   final List<TextEditingController> otpControllers =
-      List.generate(6, (_) => TextEditingController());
+  List.generate(6, (_) => TextEditingController());
   final List<FocusNode> otpFocusNodes = List.generate(6, (_) => FocusNode());
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String verificationId = '';
@@ -268,8 +269,25 @@ class _LoginFormState extends State<LoginForm> {
     }
   }
 
+
   void sendOtp() async {
-    String phoneNumber = "+91${phoneController.text}";
+    String phoneNumber = phoneController.text;
+
+    // Check if the phone number has exactly 10 digits
+    if (phoneNumber.length != 10) {
+      Fluttertoast.showToast(
+        msg: 'The phone number must be exactly 10 digits!',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+      return;
+    }
+
+    // Append country code
+    phoneNumber = "+91$phoneNumber";
+
     await _auth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
       verificationCompleted: (PhoneAuthCredential credential) async {
@@ -294,6 +312,7 @@ class _LoginFormState extends State<LoginForm> {
         });
       },
     );
+
   }
 
   void verifyOtp() async {
@@ -383,7 +402,7 @@ class _LoginFormState extends State<LoginForm> {
                   child: TextFormField(
                     controller: phoneController,
                     keyboardType:
-                        TextInputType.number, // Set keyboard type to number
+                    TextInputType.number, // Set keyboard type to number
                     inputFormatters: [
                       FilteringTextInputFormatter
                           .digitsOnly, // Only allow digits
@@ -394,7 +413,7 @@ class _LoginFormState extends State<LoginForm> {
                       border: OutlineInputBorder(),
                       hintText: 'Enter Phone Number',
                       counterText:
-                          '', // This hides the counter, which otherwise shows up due to maxLength
+                      '', // This hides the counter, which otherwise shows up due to maxLength
                     ),
                   ),
                 ),
@@ -419,6 +438,7 @@ class _LoginFormState extends State<LoginForm> {
                     controller: otpControllers[index],
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
+                      counterText: '',
                     ),
                     textAlign: TextAlign.center,
                     keyboardType: TextInputType.number,
