@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
-import 'package:mymedicosweb/homescreen2/home_screen_2.dart';
-import 'package:mymedicosweb/login/login_check.dart';
+import 'package:mymedicosweb/Home/home.dart';
+import 'package:mymedicosweb/login/components/login_check.dart';
 import 'package:mymedicosweb/login/sign_up.dart';
-import 'package:mymedicosweb/pg_neet/pg_neet.dart';
-import 'package:mymedicosweb/profile.dart';
+import 'package:mymedicosweb/pg_neet/NeetScree.dart';
+import 'package:mymedicosweb/profile/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 // Import the generated file
-import 'theme_notifier.dart';
-import 'locale_notifier.dart';
-import 'Landing/screen/home_screen.dart';
-import 'settings_screen.dart';
+import 'models/theme_notifier.dart';
+import 'models/locale_notifier.dart';
+import 'Landing/screen/landing.dart';
+import 'extras/settings_screen.dart';
 import 'login/login_screen.dart'; // Ensure the correct path
 
 void main() async {
