@@ -671,7 +671,7 @@ class AdManager {
 
   static void loadAd() {
     RewardedAd.load(
-      adUnitId: "ca-app-pub-1452770494559845/3094113721",
+      adUnitId: "ca-app-pub-1452770494559845/5321727710",
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdFailedToLoad: (LoadAdError error) {

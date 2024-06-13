@@ -118,7 +118,6 @@ class LoginScreen extends StatelessWidget {
 //   ];
 //
 //   @override
-//   @override
 //   Widget build(BuildContext context) {
 //     return Column(
 //       mainAxisAlignment: MainAxisAlignment.center,
@@ -136,7 +135,7 @@ class LoginScreen extends StatelessWidget {
 //                     item['title']!,
 //                     textAlign: TextAlign.center,
 //                     style: const TextStyle(
-//                         fontFamily: String.fromEnvironment('Poppins-Semibold'),
+//                         fontFamily: 'Poppins-Semibold',
 //                         fontWeight: FontWeight.bold,
 //                         fontSize: 20),
 //                   ),
@@ -147,7 +146,7 @@ class LoginScreen extends StatelessWidget {
 //                     item['text']!,
 //                     textAlign: TextAlign.center,
 //                     style: const TextStyle(
-//                         fontFamily: String.fromEnvironment('Poppins-Semibold'),
+//                         fontFamily: 'Poppins-Semibold',
 //                         fontWeight: FontWeight.normal,
 //                         fontSize: 16),
 //                   ),
@@ -175,12 +174,10 @@ class LoginScreen extends StatelessWidget {
 //               child: Container(
 //                 width: 20.0, // Increased width for a rectangle shape
 //                 height: 12.0, // Keep height as is or adjust to your preference
-//                 margin:
-//                 const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+//                 margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
 //                 decoration: BoxDecoration(
 //                     color: _current == entry.key
-//                         ? const Color.fromARGB(
-//                         255, 43, 208, 191) // Active color
+//                         ? const Color.fromARGB(255, 43, 208, 191) // Active color
 //                         : Colors.grey, // Inactive color
 //                     borderRadius: BorderRadius.circular(4.0) // Rounded edges
 //                 ),
@@ -210,9 +207,9 @@ class LoginForm extends StatefulWidget {
 
 class _LoginFormState extends State<LoginForm> {
   bool isOtpSent = false;
+  bool isLoading = false;
   final TextEditingController phoneController = TextEditingController();
-  final List<TextEditingController> otpControllers =
-  List.generate(6, (_) => TextEditingController());
+  final List<TextEditingController> otpControllers = List.generate(6, (_) => TextEditingController());
   final List<FocusNode> otpFocusNodes = List.generate(6, (_) => FocusNode());
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String verificationId = '';
@@ -222,8 +219,7 @@ class _LoginFormState extends State<LoginForm> {
     super.initState();
     for (int i = 0; i < otpControllers.length; i++) {
       otpControllers[i].addListener(() {
-        if (otpControllers[i].text.length == 1 &&
-            i < otpControllers.length - 1) {
+        if (otpControllers[i].text.length == 1 && i < otpControllers.length - 1) {
           FocusScope.of(context).requestFocus(otpFocusNodes[i + 1]);
         }
       });
@@ -243,9 +239,16 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   void registered() async {
+    setState(() {
+      isLoading = true;
+    });
+
     String phoneNumber = "+91${phoneController.text}";
     bool isUserRegistered = await checkIfUserRegistered(phoneNumber);
     if (!isUserRegistered) {
+      setState(() {
+        isLoading = false;
+      });
       Navigator.push(
         // ignore: use_build_context_synchronously
         context,
@@ -269,7 +272,6 @@ class _LoginFormState extends State<LoginForm> {
     }
   }
 
-
   void sendOtp() async {
     String phoneNumber = phoneController.text;
 
@@ -282,6 +284,9 @@ class _LoginFormState extends State<LoginForm> {
         backgroundColor: Colors.red,
         textColor: Colors.white,
       );
+      setState(() {
+        isLoading = false;
+      });
       return;
     }
 
@@ -292,8 +297,14 @@ class _LoginFormState extends State<LoginForm> {
       phoneNumber: phoneNumber,
       verificationCompleted: (PhoneAuthCredential credential) async {
         await _auth.signInWithCredential(credential);
+        setState(() {
+          isLoading = false;
+        });
       },
       verificationFailed: (FirebaseAuthException e) {
+        setState(() {
+          isLoading = false;
+        });
         if (e.code == 'invalid-phone-number') {
           showError('The phone number entered is invalid!');
         } else {
@@ -304,6 +315,7 @@ class _LoginFormState extends State<LoginForm> {
         setState(() {
           verificationId = verId;
           isOtpSent = true;
+          isLoading = false;
         });
       },
       codeAutoRetrievalTimeout: (String verId) {
@@ -312,10 +324,13 @@ class _LoginFormState extends State<LoginForm> {
         });
       },
     );
-
   }
 
   void verifyOtp() async {
+    setState(() {
+      isLoading = true;
+    });
+
     String otp = otpControllers.map((controller) => controller.text).join();
     PhoneAuthCredential credential = PhoneAuthProvider.credential(
       verificationId: verificationId,
@@ -331,6 +346,11 @@ class _LoginFormState extends State<LoginForm> {
       print('Phone number verified successfully!');
     } catch (e) {
       print('Failed to verify OTP: $e');
+      showError('Failed to verify OTP. Please try again.');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -342,152 +362,150 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.all(widget.isLargeScreen ? 20 : 10),
-      padding: EdgeInsets.symmetric(
-          vertical: widget.isLargeScreen ? 45 : 10,
-          horizontal: widget.isLargeScreen ? 20 : 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 5,
-            blurRadius: 7,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Let\'s get started',
-            style: TextStyle(
-              fontSize: 24,
-              fontFamily: String.fromEnvironment('Poppins-SemiBold'),
+    return RawKeyboardListener(
+      focusNode: FocusNode(),
+      onKey: (event) {
+        if (event is RawKeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
+          if (isOtpSent) {
+            verifyOtp();
+          } else {
+            registered();
+          }
+        }
+      },
+      child: Container(
+        margin: EdgeInsets.all(widget.isLargeScreen ? 20 : 10),
+        padding: EdgeInsets.symmetric(
+            vertical: widget.isLargeScreen ? 45 : 10,
+            horizontal: widget.isLargeScreen ? 20 : 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(4),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 5,
+              blurRadius: 7,
+              offset: const Offset(0, 3),
             ),
-          ),
-          const SizedBox(height: 5),
-          if (!isOtpSent) ...[
-            const Text(
-              'Enter your mobile number to Sign up/Sign in to your mymedicos account',
-              style: TextStyle(
-                fontSize: 16,
-                fontFamily: String.fromEnvironment('Poppins-Regular'),
-                color: Colors.black54,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Row(
+          ],
+        ),
+        child: Stack(
+          children: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  height: 40, // Adjust the height as needed
-                  width: 40, // Adjust the width as needed
-                  child: SvgPicture.asset(
-                      'assets/login/indiaflag.svg'), // Update with the correct path to your image
-                ),
-                const SizedBox(width: 10),
                 const Text(
-                  '+91', // Display the country code
+                  'Let\'s get started',
                   style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                    fontFamily: String.fromEnvironment('Poppins-SemiBold'),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextFormField(
-                    controller: phoneController,
-                    keyboardType:
-                    TextInputType.number, // Set keyboard type to number
-                    inputFormatters: [
-                      FilteringTextInputFormatter
-                          .digitsOnly, // Only allow digits
-                      LengthLimitingTextInputFormatter(
-                          10), // Limit to 10 digits
+                const SizedBox(height: 5),
+                if (!isOtpSent) ...[
+                  const Text(
+                    'Enter your mobile number to Sign up/Sign in to your mymedicos account',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontFamily: String.fromEnvironment('Poppins-Regular'),
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      SizedBox(
+                        height: 40, // Adjust the height as needed
+                        width: 40, // Adjust the width as needed
+                        child: SvgPicture.asset(
+                            'assets/login/indiaflag.svg'), // Update with the correct path to your image
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        '+91', // Display the country code
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextFormField(
+                          controller: phoneController,
+                          keyboardType: TextInputType.number, // Set keyboard type to number
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly, // Only allow digits
+                            LengthLimitingTextInputFormatter(10), // Limit to 10 digits
+                          ],
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            hintText: 'Enter Phone Number',
+                            counterText: '', // This hides the counter, which otherwise shows up due to maxLength
+                          ),
+                        ),
+                      ),
                     ],
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Enter Phone Number',
-                      counterText:
-                      '', // This hides the counter, which otherwise shows up due to maxLength
+                  ),
+                ] else ...[
+                  const Text(
+                    'Enter the 6-digit OTP sent to your phone',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: List.generate(6, (index) {
+                      return SizedBox(
+                        width: 40,
+                        child: TextField(
+                          focusNode: otpFocusNodes[index],
+                          controller: otpControllers[index],
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            counterText: '',
+                          ),
+                          textAlign: TextAlign.center,
+                          keyboardType: TextInputType.number,
+                          maxLength: 1,
+                        ),
+                      );
+                    }),
+                  ),
+                ],
+                const SizedBox(height: 20),
+                Center(
+                  child: OutlinedButton(
+                    onPressed: isOtpSent ? verifyOtp : registered,
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      minimumSize: const Size(double.infinity, 50), // Ensures the button takes the full width
+                      padding: const EdgeInsets.symmetric(vertical: 8), // Sets the vertical padding
+                    ),
+                    child: Text(
+                      isOtpSent ? 'Verify' : 'Continue',
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 0, 0, 0),
+                        fontFamily: 'Inter-SemiBold',
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
-          ] else ...[
-            const Text(
-              'Enter the 6-digit OTP sent to your phone',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black54,
+            if (isLoading)
+              const Center(
+                child: CircularProgressIndicator(),
               ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: List.generate(6, (index) {
-                return SizedBox(
-                  width: 40,
-                  child: TextField(
-                    focusNode: otpFocusNodes[index],
-                    controller: otpControllers[index],
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      counterText: '',
-                    ),
-                    textAlign: TextAlign.center,
-                    keyboardType: TextInputType.number,
-                    maxLength: 1,
-                  ),
-                );
-              }),
-            ),
           ],
-          const SizedBox(height: 20),
-          Center(
-            child: OutlinedButton(
-              onPressed: isOtpSent ? verifyOtp : registered,
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                minimumSize: const Size(double.infinity,
-                    50), // Ensures the button takes the full width
-                padding: const EdgeInsets.symmetric(
-                    vertical: 8), // Sets the vertical padding
-              ),
-              child: Text(
-                isOtpSent ? 'Verify' : 'Continue',
-                style: const TextStyle(
-                  color: Color.fromARGB(255, 0, 0, 0),
-                  fontFamily: 'Inter-SemiBold',
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Center(
-            child: GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, '/register');
-              },
-              child: const Text(
-                "Don't have an account? Register",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: String.fromEnvironment('Poppins-Regular'),
-                  color: Colors.black54,
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

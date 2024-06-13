@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:mymedicosweb/homescreen2/home_screen_2.dart';
 import 'package:universal_html/html.dart' as html;
@@ -41,6 +42,8 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
   void initState() {
     super.initState();
     _calculateResults();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    html.document.exitFullscreen();
   }
 
   void goToNextQuestion() {
@@ -105,7 +108,16 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
 
   @override
   Widget build(BuildContext context) {
-    html.document.exitFullscreen();
+    // if (MediaQuery.of(context).viewInsets.bottom == 0.0) {
+    //   setState(() {
+    //     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    //     html.document.exitFullscreen();
+    //   });
+    //   // Exit full-screen mode
+    //
+    //   // Optionally clear any other full-screen related cache/settings if needed
+    // }
+
 
     int hours = widget.remainingTime ~/ 3600;
     int minutes = (widget.remainingTime % 3600) ~/ 60;

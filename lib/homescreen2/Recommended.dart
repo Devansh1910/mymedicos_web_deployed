@@ -14,6 +14,7 @@ class RecommendedGrandTest extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isMobile = screenWidth < 600;
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -41,8 +42,24 @@ class RecommendedGrandTest extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const CircularProgressIndicator(); // Show loading indicator while fetching data
               }
-              if (snapshot.hasError || !snapshot.hasData) {
+              if (snapshot.hasError) {
                 return const Text('Error fetching quizzes');
+              }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return SizedBox(
+                  height: 300,
+                  width: double.infinity,
+                  child: Center(
+                    child: Text(
+                      'No content available',
+                      style: TextStyle(
+                        fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
+                        color: Colors.grey,
+                        fontFamily: 'Inter',
+                      ),
+                    ),
+                  ),
+                  );
               }
               List<Map<String, dynamic>> quizzes = snapshot.data!;
               return GridView.builder(
@@ -66,7 +83,7 @@ class RecommendedGrandTest extends StatelessWidget {
                           builder: (context) => PgNeetPayment(
                             title: quiz['title'],
                             quizId: quiz['qid'],
-                            dueDate:((quiz['to']as Timestamp).toDate()).toString(),
+                            dueDate: ((quiz['to'] as Timestamp).toDate()).toString(),
                           ),
                         ),
                       );
@@ -81,7 +98,6 @@ class RecommendedGrandTest extends StatelessWidget {
                           Expanded(
                             child: Image.asset(
                               'assets/image/liveadapter.png',
-
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -104,7 +120,7 @@ class RecommendedGrandTest extends StatelessWidget {
                                     textAlign: TextAlign.start,
                                   ),
                                   Text(
-                                    'Due Date: ${(quiz['to']as Timestamp).toDate()}',
+                                    'Due Date: ${((quiz['to'] as Timestamp).toDate()).toString()}',
                                     style: TextStyle(
                                       fontSize: screenWidth * 0.012,
                                       color: Colors.grey,

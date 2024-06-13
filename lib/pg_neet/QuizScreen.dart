@@ -34,6 +34,7 @@ class _QuizPageState extends State<QuizPage> {
   @override
   void initState() {
     super.initState();
+    html.document.documentElement?.requestFullscreen();
     fetchPhoneNumberFromLocalStorage();
     _fetchQuizData();
     _startTimer();
@@ -43,6 +44,13 @@ class _QuizPageState extends State<QuizPage> {
   void dispose() {
     _timer.cancel();
     super.dispose();
+  }
+  void exitFullscreenAfterDelay() {
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (html.document.fullscreenElement != null) {
+        html.document.exitFullscreen();
+      }
+    });
   }
 
   void _startTimer() {
@@ -181,6 +189,7 @@ class _QuizPageState extends State<QuizPage> {
   }
 
   Future<void> _submitQuiz() async {
+    html.document.exitFullscreen();
     int correctAnswers = 0;
     int skip = 0;
 
@@ -221,7 +230,10 @@ class _QuizPageState extends State<QuizPage> {
 
             ),
       ),
-    );
+    ).then((_) {
+      // Exit fullscreen after navigating
+      exitFullscreenAfterDelay();
+    });
   }
   void clearSelection() {
     setState(() {
@@ -233,9 +245,9 @@ class _QuizPageState extends State<QuizPage> {
   @override
   Widget build(BuildContext context) {
 
-      html.document.documentElement?.requestFullscreen();
 
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+
+
 
 
 

@@ -15,6 +15,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
   import 'package:mymedicosweb/Landing/components/proven_effective_content.dart';
   import 'package:mymedicosweb/pg_neet/sideDrawer.dart';
   import 'package:mymedicosweb/Landing/components/HeroImage.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 
 
@@ -31,6 +32,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
     void initState() {
       super.initState();
       _initializeUser();
+
     }
 
     void _initializeUser() async {
@@ -189,7 +191,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
     }
   }
 
-  class QuizSection2 extends StatelessWidget {
+  class QuizSection2 extends StatefulWidget {
     final String title;
     final String description;
     final List<QuizPG> quizzes;
@@ -203,8 +205,43 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
     });
 
     @override
+    _QuizSection2State createState() => _QuizSection2State();
+  }
+
+  class _QuizSection2State extends State<QuizSection2> {
+    late ScrollController _scrollController;
+
+    @override
+    void initState() {
+      super.initState();
+      _scrollController = ScrollController();
+    }
+
+    @override
+    void dispose() {
+      _scrollController.dispose();
+      super.dispose();
+    }
+
+    void scrollRight() {
+      _scrollController.animateTo(
+        _scrollController.offset + widget.screenWidth,
+        duration: Duration(milliseconds: 500),
+        curve: Curves.ease,
+      );
+    }
+
+    void scrollLeft() {
+      _scrollController.animateTo(
+        _scrollController.offset - widget.screenWidth,
+        duration: Duration(milliseconds: 500),
+        curve: Curves.ease,
+      );
+    }
+
+    @override
     Widget build(BuildContext context) {
-      bool isMobile = screenWidth < 600;
+      bool isMobile = widget.screenWidth < 600;
 
       return Padding(
         padding: const EdgeInsets.all(16.0),
@@ -212,16 +249,16 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              title,
+              widget.title,
               style: TextStyle(
-                fontSize: isMobile ? screenWidth * 0.05 : screenWidth * 0.015,
+                fontSize: isMobile ? widget.screenWidth * 0.05 : widget.screenWidth * 0.015,
                 fontFamily: 'Inter',
               ),
             ),
             Text(
-              description,
+              widget.description,
               style: TextStyle(
-                fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
+                fontSize: isMobile ? widget.screenWidth * 0.04 : widget.screenWidth * 0.012,
                 color: Colors.grey,
                 fontFamily: 'Inter',
               ),
@@ -230,49 +267,70 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
             SizedBox(
               height: 300,
               width: double.infinity,
-              child: quizzes.isEmpty
+              child: widget.quizzes.isEmpty
                   ? Center(
                 child: Text(
                   'No content available',
                   style: TextStyle(
-                    fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
+                    fontSize: isMobile ? widget.screenWidth * 0.04 : widget.screenWidth * 0.012,
                     color: Colors.grey,
                     fontFamily: 'Inter',
                   ),
                 ),
               )
-                  : Scrollbar(
-                thumbVisibility: true,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
+                  : Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const SizedBox(width: 16), // Add initial padding
-                      ...quizzes.map((quiz) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 16.0),
-                          child: QuizCard(
-                            quiz: quiz,
-                            screenWidth: screenWidth,
-                            path: "assets/image/past.png",
-                            onTap: (questionId) {
-                              Fluttertoast.showToast(
-                                msg: "These tests are terminated",
-                                toastLength: Toast.LENGTH_SHORT,
-                                gravity: ToastGravity.BOTTOM,
-                                timeInSecForIosWeb: 1,
-                                backgroundColor: Colors.red,
-                                textColor: Colors.white,
-                                fontSize: 16.0,
-                              );
-                              print('Tapped on question with ID: $questionId');
-                            },
+                      IconButton(
+                        icon: Icon(Icons.arrow_back_ios),
+                        onPressed: () {
+                          scrollLeft();
+                        },
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          controller: _scrollController,
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 16), // Add initial padding
+                              ...widget.quizzes.map((quiz) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 16.0),
+                                  child: QuizCard(
+                                    quiz: quiz,
+                                    screenWidth: widget.screenWidth,
+                                    path: "assets/image/past.png",
+                                    onTap: (questionId) {
+                                      Fluttertoast.showToast(
+                                        msg: "These tests are terminated",
+                                        toastLength: Toast.LENGTH_SHORT,
+                                        gravity: ToastGravity.BOTTOM,
+                                        timeInSecForIosWeb: 1,
+                                        backgroundColor: Colors.red,
+                                        textColor: Colors.white,
+                                        fontSize: 16.0,
+                                      );
+                                      print('Tapped on question with ID: $questionId');
+                                    },
+                                  ),
+                                );
+                              }).toList(),
+                            ],
                           ),
-                        );
-                      }).toList(),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.arrow_forward_ios),
+                        onPressed: () {
+                          scrollRight();
+                        },
+                      ),
                     ],
                   ),
-                ),
+                ],
               ),
             ),
           ],
@@ -280,7 +338,8 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
       );
     }
   }
-  class QuizSection1 extends StatelessWidget {
+
+  class QuizSection1 extends StatefulWidget {
     final String title;
     final String description;
     final List<QuizPG> quizzes;
@@ -294,8 +353,63 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
     });
 
     @override
+    _QuizSection1State createState() => _QuizSection1State();
+  }
+
+  class _QuizSection1State extends State<QuizSection1> {
+    late ScrollController _scrollController;
+
+    @override
+    void initState() {
+      super.initState();
+      _scrollController = ScrollController();
+    }
+
+    @override
+    void dispose() {
+      _scrollController.dispose();
+      super.dispose();
+    }
+
+    void scrollRight() {
+      _scrollController.animateTo(
+        _scrollController.offset + widget.screenWidth,
+        duration: Duration(milliseconds: 500),
+        curve: Curves.ease,
+      );
+    }
+
+    void scrollLeft() {
+      _scrollController.animateTo(
+        _scrollController.offset - widget.screenWidth,
+        duration: Duration(milliseconds: 500),
+        curve: Curves.ease,
+      );
+    }
+
+    void scheduleEventInCalendar(DateTime startTime) async {
+      // Format the data you want to pass to the calendar event
+      String title = 'Schedule your quiz';
+      String description = 'This is a scheduled quiz event';
+      String location = 'Online'; // Example location
+      DateTime endTime = startTime.add(Duration(hours: 1)); // Example: ends 1 hour after start
+
+      String startDate = '${startTime.year}${startTime.month.toString().padLeft(2, '0')}${startTime.day.toString().padLeft(2, '0')}T${startTime.hour.toString().padLeft(2, '0')}${startTime.minute.toString().padLeft(2, '0')}00';
+      String endDate = '${endTime.year}${endTime.month.toString().padLeft(2, '0')}${endTime.day.toString().padLeft(2, '0')}T${endTime.hour.toString().padLeft(2, '0')}${endTime.minute.toString().padLeft(2, '0')}00';
+
+      String url = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=$title&dates=$startDate/$endDate&details=$description&location=$location';
+
+      // Launch the URL in a browser or the default calendar app
+      if (await canLaunch(url)) {
+        await launch(url);
+      } else {
+        throw 'Could not launch $url';
+      }
+    }
+
+    @override
     Widget build(BuildContext context) {
-      bool isMobile = screenWidth < 600;
+      bool isMobile = widget.screenWidth < 600;
 
       return Padding(
         padding: const EdgeInsets.all(16.0),
@@ -303,16 +417,16 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              title,
+              widget.title,
               style: TextStyle(
-                fontSize: isMobile ? screenWidth * 0.05 : screenWidth * 0.015,
+                fontSize: isMobile ? widget.screenWidth * 0.05 : widget.screenWidth * 0.015,
                 fontFamily: 'Inter',
               ),
             ),
             Text(
-              description,
+              widget.description,
               style: TextStyle(
-                fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
+                fontSize: isMobile ? widget.screenWidth * 0.04 : widget.screenWidth * 0.012,
                 color: Colors.grey,
                 fontFamily: 'Inter',
               ),
@@ -321,50 +435,79 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
             SizedBox(
               height: 300,
               width: double.infinity,
-              child: quizzes.isEmpty
+              child: widget.quizzes.isEmpty
                   ? Center(
                 child: Text(
                   'No content available',
                   style: TextStyle(
-                    fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
+                    fontSize: isMobile ? widget.screenWidth * 0.04 : widget.screenWidth * 0.012,
                     color: Colors.grey,
                     fontFamily: 'Inter',
                   ),
                 ),
               )
-                  : Scrollbar(
-                thumbVisibility: true,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
+                  : Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const SizedBox(width: 16), // Add initial padding
-                      ...quizzes.map((quiz) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 16.0),
-                          child: QuizCard(
-                            quiz: quiz,
-                            screenWidth: screenWidth,
-                            path: "assets/image/liveadapter.png",
-                            onTap: (questionId) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PgNeetPayment(
-                                    title: quiz.title,
-                                    quizId: questionId,
-                                    dueDate: quiz.to.toString(),
+                      IconButton(
+                        icon: Icon(Icons.arrow_back_ios),
+                        onPressed: () {
+                          scrollLeft();
+                        },
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          controller: _scrollController,
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 16), // Add initial padding
+                              ...widget.quizzes.map((quiz) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 16.0),
+                                  child: QuizCard(
+                                    quiz: quiz,
+                                    screenWidth: widget.screenWidth,
+                                    path: "assets/image/liveadapter.png",
+                                    onTap: (questionId) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => PgNeetPayment(
+                                            title: quiz.title,
+                                            quizId: questionId,
+                                            dueDate: quiz.to.toString(),
+                                          ),
+                                        ),
+                                      );
+                                      print('Tapped on question with ID: $questionId');
+                                    },
                                   ),
-                                ),
-                              );
-                              print('Tapped on question with ID: $questionId');
-                            },
+                                );
+                              }).toList(),
+                            ],
                           ),
-                        );
-                      }).toList(),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.arrow_forward_ios),
+                        onPressed: () {
+                          scrollRight();
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.calendar_today),
+                        onPressed: () {
+                          if (widget.quizzes.isNotEmpty) {
+                            scheduleEventInCalendar(widget.quizzes.first.from);
+                          }
+                        },
+                      ),
                     ],
                   ),
-                ),
+                ],
               ),
             ),
           ],
@@ -373,7 +516,8 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
     }
   }
 
-  class QuizSection extends StatelessWidget {
+
+  class QuizSection extends StatefulWidget {
     final String title;
     final String description;
     final List<QuizPG> quizzes;
@@ -387,8 +531,43 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
     });
 
     @override
+    _QuizSectionState createState() => _QuizSectionState();
+  }
+
+  class _QuizSectionState extends State<QuizSection> {
+    late ScrollController _scrollController;
+
+    @override
+    void initState() {
+      super.initState();
+      _scrollController = ScrollController();
+    }
+
+    @override
+    void dispose() {
+      _scrollController.dispose();
+      super.dispose();
+    }
+
+    void scrollRight() {
+      _scrollController.animateTo(
+        _scrollController.offset + widget.screenWidth,
+        duration: Duration(milliseconds: 500),
+        curve: Curves.ease,
+      );
+    }
+
+    void scrollLeft() {
+      _scrollController.animateTo(
+        _scrollController.offset - widget.screenWidth,
+        duration: Duration(milliseconds: 500),
+        curve: Curves.ease,
+      );
+    }
+
+    @override
     Widget build(BuildContext context) {
-      bool isMobile = screenWidth < 600;
+      bool isMobile = widget.screenWidth < 600;
 
       return Padding(
         padding: const EdgeInsets.all(16.0),
@@ -396,16 +575,16 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              title,
+              widget.title,
               style: TextStyle(
-                fontSize: isMobile ? screenWidth * 0.05 : screenWidth * 0.015,
+                fontSize: isMobile ? widget.screenWidth * 0.05 : widget.screenWidth * 0.015,
                 fontFamily: 'Inter',
               ),
             ),
             Text(
-              description,
+              widget.description,
               style: TextStyle(
-                fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
+                fontSize: isMobile ? widget.screenWidth * 0.04 : widget.screenWidth * 0.012,
                 color: Colors.grey,
                 fontFamily: 'Inter',
               ),
@@ -414,50 +593,71 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
             SizedBox(
               height: 300,
               width: double.infinity,
-              child: quizzes.isEmpty
+              child: widget.quizzes.isEmpty
                   ? Center(
                 child: Text(
                   'No content available',
                   style: TextStyle(
-                    fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
+                    fontSize: isMobile ? widget.screenWidth * 0.04 : widget.screenWidth * 0.012,
                     color: Colors.grey,
                     fontFamily: 'Inter',
                   ),
                 ),
               )
-                  : Scrollbar(
-                thumbVisibility: true,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
+                  : Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const SizedBox(width: 16), // Add initial padding
-                      ...quizzes.map((quiz) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 16.0),
-                          child: QuizCard(
-                            quiz: quiz,
-                            screenWidth: screenWidth,
-                            path: "assets/image/liveadapter.png",
-                            onTap: (questionId) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PgNeetPayment(
-                                    title: quiz.title,
-                                    quizId: questionId,
-                                    dueDate: quiz.to.toString(),
+                      IconButton(
+                        icon: Icon(Icons.arrow_back_ios),
+                        onPressed: () {
+                          scrollLeft();
+                        },
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          controller: _scrollController,
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 16), // Add initial padding
+                              ...widget.quizzes.map((quiz) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 16.0),
+                                  child: QuizCard(
+                                    quiz: quiz,
+                                    screenWidth: widget.screenWidth,
+                                    path: "assets/image/liveadapter.png",
+                                    onTap: (questionId) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => PgNeetPayment(
+                                            title: quiz.title,
+                                            quizId: questionId,
+                                            dueDate: quiz.to.toString(),
+                                          ),
+                                        ),
+                                      );
+                                      print('Tapped on question with ID: $questionId');
+                                    },
                                   ),
-                                ),
-                              );
-                              print('Tapped on question with ID: $questionId');
-                            },
+                                );
+                              }).toList(),
+                            ],
                           ),
-                        );
-                      }).toList(),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.arrow_forward_ios),
+                        onPressed: () {
+                          scrollRight();
+                        },
+                      ),
                     ],
                   ),
-                ),
+                ],
               ),
             ),
           ],
@@ -528,6 +728,7 @@ import 'package:mymedicosweb/pg_neet/app_drawer.dart';
       return quizzes;
     }
   }
+
   class QuizCard extends StatelessWidget {
     final QuizPG quiz;
     final double screenWidth;
