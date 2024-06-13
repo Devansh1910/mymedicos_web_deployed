@@ -250,6 +250,8 @@ class _QuizPageState extends State<QuizPage> {
 
   @override
   Widget build(BuildContext context) {
+
+
     html.document.documentElement?.requestFullscreen();
 
 
