@@ -8,11 +8,11 @@ import 'package:mymedicosweb/profile/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 // Import the generated file
-import '../models/theme_notifier.dart';
-import '../models/locale_notifier.dart';
-import '../Landing/screen/landing.dart';
-import '../extras/settings_screen.dart';
-import '../login/login_screen.dart'; // Ensure the correct path
+import 'models/theme_notifier.dart';
+import 'models/locale_notifier.dart';
+import 'Landing/screen/landing.dart';
+import 'extras/settings_screen.dart';
+import 'login/login_screen.dart'; // Ensure the correct path
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
