@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:mymedicosweb/pg_neet/ExamPaymentScreen.dart';
-
 class RecommendedGrandTest extends StatelessWidget {
   final double screenWidth;
   final QuizService quizService = QuizService(); // Instantiate the QuizService
@@ -12,9 +12,23 @@ class RecommendedGrandTest extends StatelessWidget {
     required this.screenWidth,
   });
 
+  void navigateToPgNeetPayment(BuildContext context, String title, String quizId, DateTime dueDate) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PgNeetPayment(
+          title: title,
+          quizId: quizId,
+          dueDate: dueDate.toString(),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isMobile = screenWidth < 600;
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -23,128 +37,178 @@ class RecommendedGrandTest extends StatelessWidget {
           Text(
             'Recommended Grand Test',
             style: TextStyle(
-              fontSize: screenWidth * 0.015,
+              fontSize: isMobile ? screenWidth * 0.03 : screenWidth * 0.015, // Adjusted font size for mobile
               fontFamily: 'Inter',
             ),
           ),
           Text(
             'Go through these examinations for better preparation & get ready for the final buzz!',
             style: TextStyle(
-              fontSize: screenWidth * 0.012,
+              fontSize: isMobile ? screenWidth * 0.025 : screenWidth * 0.012, // Adjusted font size for mobile
               color: Colors.grey,
               fontFamily: 'Inter',
             ),
           ),
+
           const SizedBox(height: 20),
-          FutureBuilder(
-            future: quizService.fetchQuizzes(2), // Fetch only 2 quizzes
-            builder: (context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator(); // Show loading indicator while fetching data
-              }
-              if (snapshot.hasError) {
-                return const Text('Error fetching quizzes');
-              }
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return SizedBox(
-                  height: 300,
-                  width: double.infinity,
-                  child: Center(
-                    child: Text(
-                      'No content available',
-                      style: TextStyle(
-                        fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
-                        color: Colors.grey,
-                        fontFamily: 'Inter',
-                      ),
-                    ),
-                  ),
-                  );
-              }
-              List<Map<String, dynamic>> quizzes = snapshot.data!;
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: screenWidth < 600 ? 1 : 2,
-                  crossAxisSpacing: 32.0,
-                  mainAxisSpacing: 32.0,
-                  childAspectRatio: 2, // Adjusts the height of the cards
-                ),
-                itemCount: quizzes.length,
-                itemBuilder: (context, index) {
-                  var quiz = quizzes[index];
-                  return GestureDetector(
-                    onTap: () {
-                      // Navigate to the next screen and pass arguments
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PgNeetPayment(
-                            title: quiz['title'],
-                            quizId: quiz['qid'],
-                            dueDate: ((quiz['to'] as Timestamp).toDate()).toString(),
-                          ),
+          SingleChildScrollView( // Wrap with SingleChildScrollView
+            scrollDirection: Axis.horizontal, // Set scroll direction to horizontal
+            child: FutureBuilder(
+              future: quizService.fetchQuizzes(2), // Fetch only 2 quizzes
+              builder: (context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator(); // Show loading indicator while fetching data
+                }
+                if (snapshot.hasError) {
+                  return const Text('Error fetching quizzes');
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return SizedBox(
+                    height: 300,
+                    width: double.infinity,
+                    child: Center(
+                      child: Text(
+                        'No content available',
+                        style: TextStyle(
+                          fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
+                          color: Colors.grey,
+                          fontFamily: 'Inter',
                         ),
-                      );
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Expanded(
-                            child: Image.asset(
-                              'assets/image/liveadapter.png',
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.black),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(
-                                    quiz['title'],
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.012,
-                                      fontFamily: 'Inter',
-                                    ),
-                                    textAlign: TextAlign.start,
-                                  ),
-                                  Text(
-                                    'Due Date: ${((quiz['to'] as Timestamp).toDate()).toString()}',
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.012,
-                                      color: Colors.grey,
-                                      fontFamily: 'Inter',
-                                    ),
-                                    textAlign: TextAlign.start,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   );
-                },
-              );
-            },
+                }
+                List<Map<String, dynamic>> quizzes = snapshot.data!;
+                return Row(
+                  children: quizzes.map((quizData) {
+                    var quiz = QuizPG(
+                      qid: quizData['qid'],
+                      title: quizData['title'],
+                      to: (quizData['to'] as Timestamp).toDate(),
+                    );
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0), // Adjust the padding value as needed
+                      child: QuizCard(
+                        quiz: quiz,
+                        screenWidth: screenWidth,
+                        onTap: (quizId) {
+                          navigateToPgNeetPayment(context, quiz.title, quizId, quiz.to);
+                        },
+                        path: 'assets/image/liveadapter.png',
+                      ),
+                    );
+                  }).toList(),
+                );
+
+              },
+            ),
           ),
         ],
       ),
     );
   }
 }
+class QuizCard extends StatelessWidget {
+  final QuizPG quiz;
+  final double screenWidth;
+  final Function(String) onTap;
+  final String mobileImagePath = 'assets/image/mobile_image.png';
+  final String path;
+
+
+  QuizCard({required this.quiz,required this.screenWidth, required this.onTap, required this.path});
+
+  @override
+  Widget build(BuildContext context) {
+    bool isMobile = screenWidth < 600;
+
+    return GestureDetector(
+      onTap: () => onTap(quiz.qid), // Pass the ID of the question when tapped
+      child: Container(
+        height: isMobile ? 200 : 250,
+        width: isMobile ? screenWidth - 160 : 500, // Adjust the width as needed
+        margin: const EdgeInsets.only(bottom: 0.0), // Adjust the margin as needed
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black),
+          borderRadius: BorderRadius.circular(8.0), // Add border radius for rounded corners
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(0.0), // Adjust the padding as needed
+                child: Image.asset(
+                  path, // Replace with actual image path
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: isMobile ? 120 : double.maxFinite, // Adjust the height for mobile
+                ),
+              ),
+            ),
+
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(8.0),
+                  bottomRight: Radius.circular(8.0),
+                ), // Match border radius for rounded corners
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children:[
+
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          quiz.title,
+                          style: TextStyle(
+                            fontSize: isMobile ? screenWidth * 0.03 : screenWidth * 0.013,
+                            fontFamily: 'Inter',
+                          ),
+                        ),
+                        Text(
+                          'Due Date: ${DateFormat('d MMM yy').format(quiz.to)}',
+                          style: TextStyle(
+                            fontSize: isMobile ? screenWidth * 0.03 : screenWidth * 0.013,
+                            color: Colors.grey,
+                            fontFamily: 'Inter',
+                          ),
+                        ),
+
+                      ],
+
+                    ),
+
+                    Expanded(child:
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Text(
+                        "Attempt Now",
+                        style: TextStyle(
+                          fontSize: isMobile ? screenWidth * 0.03 : screenWidth * 0.013,
+                          color: Colors.red,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 
 class QuizService {
   final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -196,34 +260,11 @@ class QuizService {
   }
 }
 
-class QuizDetailScreen extends StatelessWidget {
+class QuizPG {
+  final String qid;
   final String title;
-  final String quizId;
-  final String dueDate;
+  final DateTime to;
 
-  QuizDetailScreen({
-    super.key,
-    required this.title,
-    required this.quizId,
-    required Timestamp dueDate,
-  }) : dueDate = dueDate.toDate().toString();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Quiz Details'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Title: $title'),
-            Text('Quiz ID: $quizId'),
-            Text('Due Date: $dueDate'),
-          ],
-        ),
-      ),
-    );
-  }
+  QuizPG({required this.qid, required this.title, required this.to});
 }
+

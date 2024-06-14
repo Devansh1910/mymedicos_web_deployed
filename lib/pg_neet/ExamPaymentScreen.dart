@@ -1,7 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
+import 'package:mymedicosweb/Profile/profile.dart';
 import 'package:mymedicosweb/login/components/login_check.dart';
 import 'package:mymedicosweb/login/login_screen.dart';
 import 'package:mymedicosweb/pg_neet/QuizScreen.dart';
@@ -10,7 +13,7 @@ import 'package:mymedicosweb/components/Appbar.dart';
 import 'package:mymedicosweb/components/drawer/app_drawer.dart';
 import 'package:mymedicosweb/pg_neet/NeetScree.dart';
 import 'package:mymedicosweb/components/Credit.dart';
-import 'package:mymedicosweb/profile/profile.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/svg.dart';
 class PgNeetPayment extends StatefulWidget {
@@ -177,6 +180,7 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
     }
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: !kIsWeb,
         title: AppBarContent(),
@@ -191,16 +195,20 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
       ),
       drawer: MediaQuery.of(context).size.width <= 600 ?   AppDrawer(initialIndex: 0) : null,
       body: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           const OrangeStrip(
             text: 'Give your learning an extra edge with our premium content, curated exclusively for you!',
           ),
           Expanded(
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                if (isLargeScreen) sideDrawer(initialIndex: 1,),
+                if (isLargeScreen) SideDrawer(initialIndex: 1,),
                 Expanded(
                   child: SingleChildScrollView(
+
+                    padding: EdgeInsets.zero, // Ensure no extra padding in the scroll view
                     child: MainContent(
                       isLargeScreen: isLargeScreen,
                       hasReadInstructions: hasReadInstructions,
@@ -210,14 +218,13 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
                         });
                       },
                       title: widget.title,
-                      qid:widget.quizId,
+                      qid: widget.quizId,
                       dueDate: widget.dueDate,
                       onTakeTest: (String phoneNumber) => deductCoinsAndNavigate(phoneNumber),
-
-
                     ),
                   ),
                 ),
+
               ],
             ),
           ),
@@ -227,8 +234,7 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
   }
 }
 
-
-class MainContent extends StatelessWidget {
+class MainContent extends StatefulWidget {
   final bool isLargeScreen;
   final bool hasReadInstructions;
   final ValueChanged<bool?> onCheckboxChanged;
@@ -247,31 +253,171 @@ class MainContent extends StatelessWidget {
     required this.onTakeTest,
   });
 
+  @override
+  _MainContentState createState() => _MainContentState();
+}
 
+class _MainContentState extends State<MainContent> {
+  int currentCoins = 0;
+  late DatabaseReference databaseReference;
+  bool _isLoading = true;
+  User? currentUser;
 
+  @override
+  void initState() {
+    super.initState();
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user != null) {
+        fetchCurrentUserCoins();
+      } else {
+        fetchPhoneNumberFromLocalStorage();
+      }
+    });
+  }
+
+  Future<void> fetchPhoneNumberFromLocalStorage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? phoneNumber = prefs.getString('phoneNumber');
+    if (phoneNumber != null) {
+      fetchCoinsFromDatabase(phoneNumber);
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void fetchCurrentUserCoins() {
+    currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      String? phoneNumber = currentUser!.phoneNumber;
+      if (phoneNumber != null) {
+        savePhoneNumberToLocalStorage(phoneNumber);
+        fetchCoinsFromDatabase(phoneNumber);
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } else {
+      print("Current user is null");
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+  String formatDate(String dueDate) {
+    // Assuming dueDate is in the format 'yyyy-MM-dd'
+    DateTime parsedDate = DateTime.parse(dueDate);
+    String formattedDate = DateFormat('d,MMMM yyyy').format(parsedDate);
+    return formattedDate;
+  }
+
+  Future<void> savePhoneNumberToLocalStorage(String phoneNumber) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('phoneNumber', phoneNumber);
+  }
+
+  void fetchCoinsFromDatabase(String phoneNumber) {
+    databaseReference = FirebaseDatabase.instance.reference();
+
+    // Retrieve coins
+    databaseReference.child('profiles').child(phoneNumber).child('coins').onValue.listen((event) {
+      DataSnapshot snapshot = event.snapshot;
+      int? coinsValue = snapshot.value as int?;
+      setState(() {
+        currentCoins = coinsValue ?? 0;
+        _isLoading = false;
+      });
+    });
+
+    // Update phone number
+    databaseReference.child('profiles').child(phoneNumber).child('phoneNumber').set(phoneNumber).then((_) {
+      print('Phone number updated successfully');
+    }).catchError((error) {
+      print('Error updating phone number: $error');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    late DatabaseReference databaseReference;
+    double screenWidth = MediaQuery.of(context).size.width; // Ensure screenWidth is available
+
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: isLargeScreen ? 32 : 16),
+      padding: EdgeInsets.symmetric(horizontal: widget.isLargeScreen ? 32 : 16,vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+
         children: <Widget>[
-          Text(
-            title,
-            style: const TextStyle(fontSize: 24, fontFamily: 'Inter', fontWeight: FontWeight.bold),
+
+      Row(
+        mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween, // Ensures the Row items are spaced apart
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start, // Aligns text to the start (left)
+              children: [
+                Text(
+                  widget.title,
+                  style: const TextStyle(fontSize: 24, fontFamily: 'Inter', fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+
+                 Text(
+                   "Due Date:"+formatDate(widget.dueDate),
+                    style: const TextStyle(fontFamily: 'Inter',fontSize: 18,color: Colors.grey),
+                  ),
+
+
+
+
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            dueDate,
-            style: const TextStyle(fontFamily: 'Inter'),
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, '/profile'); // Navigate to the profile page
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                  vertical: screenWidth < 600 ? 5 : 10,
+                  horizontal: screenWidth < 600 ? 20 : 40),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(7),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 8,
+                    offset: Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: _isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : Text(
+                '$currentCoins',
+                style: TextStyle(
+                  fontSize: screenWidth < 600 ? 12 : 18,
+                  color: Colors.grey,
+                  fontFamily: 'Inter',
+                ),
+              ),
+            ),
           ),
-          const SizedBox(height: 16),
+        ],
+      ),
+
+
+
+        const SizedBox(height: 30),
           InstructionContainer(),
-          const SizedBox(height: 16),
-          CreditStrip(),
-          const SizedBox(height: 16),
+          // const SizedBox(height: 16),
+          // CreditStrip(),
+          const SizedBox(height: 30),
           const Text(
             'Format of the Question Paper:',
             style: TextStyle(fontSize: 18, fontFamily: 'Inter', fontWeight: FontWeight.bold),
@@ -280,10 +426,17 @@ class MainContent extends StatelessWidget {
             'Go through the under given instructions for better understanding of the examination.',
             style: TextStyle(fontFamily: 'Inter'),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 20),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // First row
+
           Row(
             children: [
-              // First column
+      if (MediaQuery.of(context).size.width > 600) ...[
+
+                const SizedBox(width: 16),
               Expanded(
                 child: Row(
                   children: [
@@ -297,9 +450,10 @@ class MainContent extends StatelessWidget {
                         ),
                         borderRadius: BorderRadius.circular(5),
                       ),
+                      child: Icon(Icons.timer), // Add icon related to time/duration
                     ),
                     const SizedBox(width: 8),
-                    const Column(
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -319,84 +473,132 @@ class MainContent extends StatelessWidget {
                   ],
                 ),
               ),
-              if (MediaQuery.of(context).size.width > 600) const SizedBox(width: 16),
-              if (MediaQuery.of(context).size.width > 600)
-                Expanded(
-                  child: Row(
-                    children: [
-                      Container(
-                        height: 40,
-                        width: 40,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.black,
-                            width: 1.0,
-                          ),
-                          borderRadius: BorderRadius.circular(5),
+              // Add SizedBox and other sections similar to the first one with different icons
+
+              // Second column
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.black,
+                          width: 1.0,
                         ),
+                        borderRadius: BorderRadius.circular(5),
                       ),
-                      const SizedBox(width: 8),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '200 Questions - 800 Marks',
-                            style: TextStyle(fontFamily: 'Inter'),
-                          ),
-                          Text(
-                            'Score details',
-                            style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              if (MediaQuery.of(context).size.width > 600) const SizedBox(width: 16),
-              if (MediaQuery.of(context).size.width > 600)
-                Expanded(
-                  child: Row(
-                    children: [
-                      Container(
-                        height: 40,
-                        width: 40,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.black,
-                            width: 1.0,
-                          ),
-                          borderRadius: BorderRadius.circular(5),
+                      child: Icon(Icons.assignment), // Add icon related to score/details
+                    ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '200 Questions - 800 Marks',
+                          style: TextStyle(fontFamily: 'Inter'),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'English',
-                            style: TextStyle(fontFamily: 'Inter'),
+                        Text(
+                          'Score details',
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 12,
+                            color: Colors.grey,
                           ),
-                          Text(
-                            'Language',
-                            style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
+              ),
+
+              // Third column
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.black,
+                          width: 1.0,
+                        ),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Icon(Icons.language), // Add icon related to language
+                    ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'English',
+                          style: TextStyle(fontFamily: 'Inter'),
+                        ),
+                        Text(
+                          'Language',
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
             ],
           ),
+
+          // Below the condition for small screen (width <= 600)
           if (MediaQuery.of(context).size.width <= 600) ...[
-            const SizedBox(height: 16),
+            SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+              child: Row(
+                children: [
+                  Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.black,
+                        width: 1.0,
+                      ),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: Icon(Icons.timer), // Add icon related to time/duration
+                  ),
+                  const SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '200 mins',
+                        style: TextStyle(fontFamily: 'Inter'),
+                      ),
+                      Text(
+                        'Duration',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            ],
+    ),
+            SizedBox(height: 20),
+            // Additional rows for small screens
             Row(
               children: [
                 Expanded(
@@ -412,9 +614,10 @@ class MainContent extends StatelessWidget {
                           ),
                           borderRadius: BorderRadius.circular(5),
                         ),
+                        child: Icon(Icons.assignment), // Add icon related to score/details
                       ),
                       const SizedBox(width: 8),
-                      const Column(
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
@@ -436,7 +639,7 @@ class MainContent extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
@@ -452,9 +655,10 @@ class MainContent extends StatelessWidget {
                           ),
                           borderRadius: BorderRadius.circular(5),
                         ),
+                        child: Icon(Icons.language), // Add icon related to language
                       ),
                       const SizedBox(width: 8),
-                      const Column(
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
@@ -477,45 +681,14 @@ class MainContent extends StatelessWidget {
               ],
             ),
           ],
-
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                flex: isLargeScreen ? 2 : 3,
-                child: const TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Apply Coupon',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 1,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    minimumSize: const Size.fromHeight(55),
-                  ),
-                  child: const Text(
-                    'Apply',
-                    style: TextStyle(fontFamily: 'Inter', color: Colors.black),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
+    ],
+    ),
+          SizedBox(height: 30,),
           Row(
             children: [
               Checkbox(
-                value: hasReadInstructions,
-                onChanged: onCheckboxChanged,
+                value: widget.hasReadInstructions,
+                onChanged: widget.onCheckboxChanged,
                 activeColor: Colors.black,
               ),
               const Text(
@@ -524,6 +697,7 @@ class MainContent extends StatelessWidget {
               ),
             ],
           ),
+          SizedBox(height: 20,),
           Center(
             child: Container(
               color: const Color(0xFFFFFFFF),
@@ -539,12 +713,12 @@ class MainContent extends StatelessWidget {
                   ),
                   child: ElevatedButton(
                     onPressed:
-                      hasReadInstructions
+                      widget.hasReadInstructions
                           ? () async {
                         SharedPreferences prefs = await SharedPreferences.getInstance();
                         String? phoneNumber = prefs.getString('phoneNumber');
                         if (phoneNumber != null) {
-                          await onTakeTest(phoneNumber);
+                          await  widget.onTakeTest(phoneNumber);
 
                         } else {
                           Fluttertoast.showToast(
@@ -606,7 +780,7 @@ class InstructionContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(25),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.black),
         borderRadius: BorderRadius.circular(8),
@@ -627,7 +801,7 @@ class InstructionContainer extends StatelessWidget {
             'This is the examination based quiz on the NEET 2023 pattern with more predictable questions.',
             style: TextStyle(fontSize: 16, fontFamily: 'Inter'),
           ),
-          SizedBox(height: 16),
+          SizedBox(height: 20),
           Row(
             children: [
               Icon(Icons.circle, color: Colors.green, size: 12),

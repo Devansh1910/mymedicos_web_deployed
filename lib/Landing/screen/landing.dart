@@ -55,17 +55,18 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 SvgPicture.asset(
                   'assets/landing/logoperfect.svg',
-                  height: 40,
+                  height: 30, // Adjust the height of the logo
                   placeholderBuilder: (BuildContext context) => Container(
-                    padding: const EdgeInsets.all(30.0),
+                    padding: const EdgeInsets.all(4.0),
                     child: const CircularProgressIndicator(),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8), // Reduce the space between logo and text
                 const Text(
                   'mymedicos',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
+                    fontSize: 18, // Adjust the font size
                     color: Color(0xFF85E8D1),
                   ),
                 ),
@@ -75,30 +76,29 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 OutlinedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/login');
+                    _launchURL("https://mymedicos.in/contactus/");
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.black,
-                    backgroundColor: Colors.white, // text color
+                    foregroundColor: Colors.black, backgroundColor: Colors.white,
                     side: const BorderSide(
-                        color: Color.fromARGB(255, 36, 36, 36),
-                        width: 1), // border color
+                      color: Color.fromARGB(255, 36, 36, 36),
+                      width: 1,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(4.0),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    // Add margin to the right
+                    padding: const EdgeInsets.symmetric(horizontal: 4), // Adjust the padding
                   ),
-                  child:  Center(
+                  child: Center(
                     child: GestureDetector(
                       onTap: () {
-                        _launchURL("https://mymedicos.in/contactus/"); // Function to launch URL
+                        _launchURL("https://mymedicos.in/contactus/");
                       },
                       child: const Text(
                         'Contact us',
                         style: TextStyle(
-                          fontFamily: 'Inter', // text style
-                          fontSize: 18,
+                          fontFamily: 'Inter',
+                          fontSize: 14, // Adjust the font size
                           decoration: TextDecoration.underline,
                           color: Colors.blue,
                         ),
@@ -106,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8), // Space between buttons
+                const SizedBox(width: 4), // Space between buttons
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pushNamed(context, '/login');
@@ -116,10 +116,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(4.0),
                     ),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16), // Adjust the padding
                   ),
                   child: const Text(
                     'Get Started',
                     style: TextStyle(
+                      fontSize: 14, // Adjust the font size
                       color: Colors.white,
                       fontFamily: 'Inter',
                     ),

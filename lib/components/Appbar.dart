@@ -1,13 +1,20 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:mymedicosweb/profile/Usersdetails.dart';
 
 class AppBarContent extends StatelessWidget {
+  Future<Map<String, dynamic>> _getUserDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userName = prefs.getString('userName') ?? 'Default User';
+    final userProfileImageUrl = prefs.getString('userProfileImageUrl') ?? '';
+    return {'userName': userName, 'userProfileImageUrl': userProfileImageUrl};
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>>(
-      future: UserDetailsFetcher().fetchUserDetails(), // Call UserDetailsFetcher to fetch user details
+      future: _getUserDetails(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -25,22 +32,22 @@ class AppBarContent extends StatelessWidget {
                     alignment: Alignment.center,
                     children: [
                       Material(
-                        elevation: 4.0, // Adjust the elevation as needed
+                        elevation: 4.0,
                         shape: CircleBorder(),
                         child: CircleAvatar(
-                          radius: 20.0, // Adjust the size of the CircleAvatar
-                          backgroundColor: Colors.transparent, // Make the CircleAvatar's background transparent
+                          radius: 20.0,
+                          backgroundColor: Colors.white,
                         ),
                       ),
                       CircleAvatar(
-                        radius: 20.0, // Adjust the size of the CircleAvatar
-                        backgroundColor: Colors.grey.shade200, // Placeholder background color
+                        radius: 20.0,
+                        backgroundColor: Colors.grey.shade200,
                         child: ClipOval(
                           child: CachedNetworkImage(
-                            imageUrl: userProfileImageUrl ?? '',
+                            imageUrl: userProfileImageUrl,
                             placeholder: (context, url) => CircularProgressIndicator(),
                             errorWidget: (context, url, error) => Image.asset(
-                              'assets/image/default_profile.png',
+                              'assets/image/past.png',
                               fit: BoxFit.cover,
                             ),
                             fit: BoxFit.cover,
@@ -87,7 +94,6 @@ class AppBarContent extends StatelessWidget {
           return Center(child: Text("No user data found."));
         }
       },
-
     );
   }
 }

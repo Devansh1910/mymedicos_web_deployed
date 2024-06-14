@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mymedicosweb/login/components/login_check.dart';
+
 import 'package:provider/provider.dart';
 // Import the UserNotifier class
 
-class sideDrawer extends StatefulWidget {
+class SideDrawer extends StatefulWidget {
   final int initialIndex;
 
-  sideDrawer({required this.initialIndex});
+  SideDrawer({required this.initialIndex});
 
   @override
   _SideDrawerState createState() => _SideDrawerState();
 }
 
-class _SideDrawerState extends State<sideDrawer> {
+class _SideDrawerState extends State<SideDrawer> {
   late int _selectedIndex;
 
   @override
@@ -23,7 +24,7 @@ class _SideDrawerState extends State<sideDrawer> {
   }
 
   void _onItemTapped(int index, String routeName) {
-    if (index == 2) { // Check if FMGE is tapped
+    if (index == 2) {
       Fluttertoast.showToast(
         msg: "This feature is currently not available",
         toastLength: Toast.LENGTH_SHORT,
@@ -32,7 +33,7 @@ class _SideDrawerState extends State<sideDrawer> {
         textColor: Colors.white,
         fontSize: 16.0,
       );
-      return; // Don't change the selected index or navigate
+      return;
     }
 
     if (_selectedIndex == index) {
@@ -64,13 +65,13 @@ class _SideDrawerState extends State<sideDrawer> {
             TextButton(
               child: Text('Cancel'),
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
               child: Text('Logout'),
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
                 _logout();
               },
             ),
@@ -88,45 +89,53 @@ class _SideDrawerState extends State<sideDrawer> {
 
   @override
   Widget build(BuildContext context) {
+    bool isLargeScreen = MediaQuery.of(context).size.width > 600;
+
     return Container(
       width: 200,
-      color: Colors.white,
+      decoration: isLargeScreen
+          ? BoxDecoration(
+        border: Border(
+          right: BorderSide(color: Colors.grey, width: 1.0),
+        ),
+      )
+          : null, // Only apply decoration if isLargeScreen is true
       child: Column(
         children: [
           // UserHeader(),
           ListTile(
-            leading: Icon(Icons.home),
-            title: Text('Home'),
+            leading: Icon(Icons.home,color: Colors.black,),
+            title: Text('Home',style: TextStyle(fontFamily: 'Inter',color: Colors.black),),
             selected: _selectedIndex == 0,
-            selectedTileColor: Colors.green,
+            selectedTileColor: Colors.grey[300],
             onTap: () => _onItemTapped(0, '/homescreen'),
           ),
           ListTile(
-            leading: Icon(Icons.school),
-            title: Text('NEET PG'),
+            leading: Icon(Icons.school,color: Colors.black,),
+            title: Text('NEET PG',style: TextStyle(fontFamily: 'Inter',color: Colors.black),),
             selected: _selectedIndex == 1,
-            selectedTileColor: Colors.green,
+            selectedTileColor: Colors.grey[300],
             onTap: () => _onItemTapped(1, '/pgneet'),
           ),
           ListTile(
-            leading: Icon(Icons.book),
-            title: Text('FMGE'),
+            leading: Icon(Icons.book,color: Colors.black,),
+            title: Text('FMGE',style: TextStyle(fontFamily: 'Inter',color: Colors.black),),
             selected: _selectedIndex == 2,
-            selectedTileColor: Colors.green,
-            onTap: () => _onItemTapped(2, ''), // Pass an empty string for routeName
+            selectedTileColor: Colors.grey[300],
+            onTap: () => _onItemTapped(2, ''),
           ),
           ListTile(
-            leading: Icon(Icons.person),
-            title: Text('Profile'),
+            leading: Icon(Icons.person,color: Colors.black,),
+            title: Text('Profile',style: TextStyle(fontFamily: 'Inter',color: Colors.black),),
             selected: _selectedIndex == 3,
-            selectedTileColor: Colors.green,
+            selectedTileColor: Colors.grey[300],
             onTap: () => _onItemTapped(3, '/profile'),
           ),
-          Expanded(child: Container()), // Takes up the remaining space
-          Divider(), // Optional: adds a divider before the logout button
+          Expanded(child: Container()),
+          Divider(),
           ListTile(
-            leading: Icon(Icons.logout),
-            title: Text('Logout'),
+            leading: Icon(Icons.logout,color: Colors.black,),
+            title: Text('Logout',style: TextStyle(fontFamily: 'Inter',color: Colors.black),),
             onTap: _confirmLogout,
           ),
         ],

@@ -68,7 +68,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   ];
 
   final List<String> subspecialities = [
-    "Speciality2",
+    "Select SubSpeciality",
     "Cardiology",
     "Gastroenterology (M)",
     "Nephrology",
@@ -321,15 +321,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            _buildDropdownField(
-              label: 'Prefix',
-              value: prefix,
-              items: ['Hr.', 'Nr.', 'Dr.'],
-              onChanged: (newValue) {
-                setState(() {
-                  prefix = newValue;
-                });
-              },
+            _buildTextField(
+              label: 'Email ID',
+              icon: Icons.email,
+              validator: (value) =>
+              value!.isEmpty ? 'Please enter an email address' : null,
+              onSaved: (value) => email = value!,
             ),
             _buildTextField(
               label: 'Name',
@@ -338,14 +335,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               value!.isEmpty ? 'Please enter your name' : null,
               onSaved: (value) => name = value!,
             ),
-            _buildTextField(
-              label: 'Email ID',
-              icon: Icons.email,
-              validator: (value) =>
-              value!.isEmpty ? 'Please enter an email address' : null,
-              onSaved: (value) => email = value!,
-            ),
-
             _buildPhoneNumberField(
               label: 'Phone Number',
               icon: Icons.phone,
@@ -353,7 +342,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
               value!.isEmpty ? 'Please enter your phone number' : null,
               onSaved: (value) => phoneNumber = value!,
             ),
-
+            _buildTextField(
+              label: 'Location',
+              icon: Icons.location_on,
+              onSaved: (value) => location = value!,
+              validator: (value) => null,
+            ),
             _buildDropdownField(
               label: 'Speciality',
               value: interest,
@@ -365,7 +359,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               },
             ),
             _buildDropdownField(
-              label: 'Speciality2',
+              label: 'SubSpeciality',
               value: interest2,
               items: subspecialities,
               onChanged: (value) {
@@ -374,13 +368,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 });
               },
             ),
-            _buildTextField(
-              label: 'Location',
-              icon: Icons.location_on,
-              onSaved: (value) => location = value!,
-              validator: (value) => null,
+            _buildDropdownField(
+              label: 'Prefix',
+              value: prefix,
+              items: ['Hr.', 'Nr.', 'Dr.'],
+              onChanged: (newValue) {
+                setState(() {
+                  prefix = newValue;
+                });
+              },
             ),
-
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
@@ -491,7 +488,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         onSaved: (value) {
           if (label == 'Speciality') {
             interest = value;
-          } else if (label == 'Speciality2') {
+          } else if (label == 'SubSpeciality') {
             interest2 = value;
           } else if (label == 'Prefix') {
             prefix = value;

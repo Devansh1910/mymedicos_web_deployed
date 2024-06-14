@@ -87,46 +87,59 @@ class _AppDrawerState extends State<AppDrawer> {
 
   @override
   Widget build(BuildContext context) {
+    bool isLargeScreen = MediaQuery.of(context).size.width > 600;
     return Drawer(
-      child: Column(
-        children: [
-          // UserHeader(), // Uncomment this if you have a UserHeader widget
-          ListTile(
-            leading: Icon(Icons.home),
-            title: Text('Home'),
-            selected: _selectedIndex == 0,
-            selectedTileColor:  Color(0xFFEAFBF9),
-            onTap: () => _onItemTapped(0, '/homescreen'),
+      backgroundColor: Colors.white,
+      child: Container(
+        color: Colors.white,
+        width: 200,
+        decoration: isLargeScreen
+            ? BoxDecoration(
+          border: Border(
+            right: BorderSide(color: Colors.grey, width: 1.0),
           ),
-          ListTile(
-            leading: Icon(Icons.school),
-            title: Text('NEET PG'),
-            selected: _selectedIndex == 1,
-            selectedTileColor:  Color(0xFFEAFBF9),
-            onTap: () => _onItemTapped(1, '/pgneet'),
-          ),
-          ListTile(
-            leading: Icon(Icons.book),
-            title: Text('FMGE'),
-            selected: _selectedIndex == 2,
-            selectedTileColor:  Color(0xFFEAFBF9),
-            onTap: () => _onItemTapped(2, ''), // Pass an empty string for routeName
-          ),
-          ListTile(
-            leading: Icon(Icons.person),
-            title: Text('Profile'),
-            selected: _selectedIndex == 3,
-            selectedTileColor:  Color(0xFFEAFBF9),
-            onTap: () => _onItemTapped(3, '/profile'),
-          ),
-          Expanded(child: Container()), // Takes up the remaining space
-          Divider(), // Optional: adds a divider before the logout button
-          ListTile(
-            leading: Icon(Icons.logout),
-            title: Text('Logout'),
-            onTap: _confirmLogout,
-          ),
-        ],
+        )
+            : null, // Only apply decoration if isLargeScreen is true
+        child: Column(
+          children: [
+            // UserHeader(),
+            ListTile(
+              leading: Icon(Icons.home,color: Colors.black,),
+              title: Text('Home',style: TextStyle(fontFamily: 'Inter',color: Colors.black),),
+              selected: _selectedIndex == 0,
+              selectedTileColor: Colors.grey[300],
+              onTap: () => _onItemTapped(0, '/homescreen'),
+            ),
+            ListTile(
+              leading: Icon(Icons.school,color: Colors.black,),
+              title: Text('NEET PG',style: TextStyle(fontFamily: 'Inter',color: Colors.black),),
+              selected: _selectedIndex == 1,
+              selectedTileColor: Colors.grey[300],
+              onTap: () => _onItemTapped(1, '/pgneet'),
+            ),
+            ListTile(
+              leading: Icon(Icons.book,color: Colors.black,),
+              title: Text('FMGE',style: TextStyle(fontFamily: 'Inter',color: Colors.black),),
+              selected: _selectedIndex == 2,
+              selectedTileColor: Colors.grey[300],
+              onTap: () => _onItemTapped(2, ''),
+            ),
+            ListTile(
+              leading: Icon(Icons.person,color: Colors.black,),
+              title: Text('Profile',style: TextStyle(fontFamily: 'Inter',color: Colors.black),),
+              selected: _selectedIndex == 3,
+              selectedTileColor: Colors.grey[300],
+              onTap: () => _onItemTapped(3, '/profile'),
+            ),
+            Expanded(child: Container()),
+            Divider(),
+            ListTile(
+              leading: Icon(Icons.logout,color: Colors.black,),
+              title: Text('Logout',style: TextStyle(fontFamily: 'Inter',color: Colors.black),),
+              onTap: _confirmLogout,
+            ),
+          ],
+        ),
       ),
     );
   }

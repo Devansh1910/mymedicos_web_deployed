@@ -83,18 +83,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: isLargeScreen ? null : IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () {
+            Scaffold.of(context).openDrawer();  // Open the drawer when the menu icon is pressed
+          },
+        ),
         automaticallyImplyLeading: !kIsWeb,
         title: AppBarContent(),
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: isLargeScreen ? null : IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () {
-            Scaffold.of(context).openDrawer(); // Open the drawer when the menu icon is pressed
-          },
-        ),
+
       ),
-      drawer: MediaQuery.of(context).size.width <= 600 ?   AppDrawer(initialIndex: 0) : null,
+      drawer: isLargeScreen ? null : AppDrawer(initialIndex: 4),
       body: Column(
         children: [
           const OrangeStrip(
@@ -103,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Expanded(
             child: Row(
               children: [
-                if (isLargeScreen) sideDrawer(initialIndex: 3,),
+                if (isLargeScreen) SideDrawer(initialIndex: 3,),
                 Expanded(
                   child: SingleChildScrollView(
                     child: MainContent(

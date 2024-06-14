@@ -360,6 +360,15 @@ class _LoginFormState extends State<LoginForm> {
       SnackBar(content: Text(message)),
     );
   }
+  Widget buildLoadingIndicator() {
+    return Container(
+      height:300,
+      width: double.infinity,
+        child:Center(
+      child: CircularProgressIndicator(),
+    ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -391,8 +400,11 @@ class _LoginFormState extends State<LoginForm> {
             ),
           ],
         ),
-        child: Stack(
+        child: isLoading?
+        buildLoadingIndicator()
+            : Stack(
           children: [
+
             Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -501,10 +513,9 @@ class _LoginFormState extends State<LoginForm> {
                 ),
               ],
             ),
-            if (isLoading)
-              const Center(
-                child: CircularProgressIndicator(),
-              ),
+
+
+
           ],
         ),
       ),

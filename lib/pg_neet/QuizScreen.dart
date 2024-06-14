@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:mymedicosweb/pg_neet/ResultScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_html/html.dart' as html;
@@ -51,11 +52,11 @@ class _QuizPageState extends State<QuizPage> {
     super.dispose();
   }
   void exitFullscreenAfterDelay() {
-    Future.delayed(const Duration(milliseconds: 500), () {
+
       if (html.document.fullscreenElement != null) {
         html.document.exitFullscreen();
       }
-    });
+
   }
 
   void _startTimer() {
@@ -252,7 +253,7 @@ class _QuizPageState extends State<QuizPage> {
   Widget build(BuildContext context) {
 
 
-    html.document.documentElement?.requestFullscreen();
+
 
 
 
@@ -268,9 +269,10 @@ class _QuizPageState extends State<QuizPage> {
             children: [
               Text(widget.title), // Grandtest heading
               Text(
-                widget.duedate, // Replace with actual due date
+                DateFormat('dd MMMM yyyy').format(DateTime.parse(widget.duedate)),
                 style: const TextStyle(fontSize: 12),
               ),
+
             ],
           ),
           actions: [
@@ -318,14 +320,14 @@ class _QuizPageState extends State<QuizPage> {
 
         return Scaffold(
           appBar: PreferredSize(
-            preferredSize: const Size.fromHeight(
-                kToolbarHeight + 1), // Adjust the height as needed
+            preferredSize: const Size.fromHeight(kToolbarHeight + 1),
             child: Container(
               decoration: const BoxDecoration(
-                border: const Border(
+                border: Border(
                   bottom: BorderSide(
-                      color: Colors.black,
-                      width: 2.0), // Border styling for the bottom side
+                    color: Colors.black,
+                    width: 2.0,
+                  ),
                 ),
               ),
               child: AppBar(
@@ -333,10 +335,17 @@ class _QuizPageState extends State<QuizPage> {
                 title: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.title), // Grandtest heading
                     Text(
-                      widget.duedate, // Replace with actual due date
-                      style: const TextStyle(fontSize: 12),
+                      widget.title,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w100,
+                      ),
+                    ),
+                    Text(
+                      DateFormat('dd MMMM yyyy').format(DateTime.parse(widget.duedate)),
+                      style: const TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -344,28 +353,23 @@ class _QuizPageState extends State<QuizPage> {
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.red,
-                      borderRadius: BorderRadius.circular(
-                          8), // Adjust the border radius as needed
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: ElevatedButton(
                       onPressed: _submitQuiz,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors
-                            .transparent, // Make the button transparent to show the container's background color
-                        elevation: 0, // Remove elevation
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              8), // Adjust the border radius to match the container
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       child: const Padding(
-                        padding: EdgeInsets.symmetric(
-                            vertical: 10,
-                            horizontal: 16), // Adjust padding as needed
+                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                         child: Text(
                           'End Quiz',
                           style: TextStyle(
-                            color: Colors.white, // Text color
+                            color: Colors.white,
                             fontSize: 16,
                           ),
                         ),
@@ -378,6 +382,7 @@ class _QuizPageState extends State<QuizPage> {
           ),
           drawer: isMobile
               ? Drawer(
+            backgroundColor: Colors.white,
                   child: Column(
                     children: [
                       InstructionPanel(
@@ -587,6 +592,78 @@ class HeaderSection extends StatelessWidget {
   }
 }
 
+
+
+
+
+class ImageDisplayWidget extends StatefulWidget {
+  final String image;
+
+  const ImageDisplayWidget({Key? key, required this.image}) : super(key: key);
+
+  @override
+  _ImageDisplayWidgetState createState() => _ImageDisplayWidgetState();
+}
+
+class _ImageDisplayWidgetState extends State<ImageDisplayWidget> {
+  void _openFullScreenImage() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => FullScreenImage(image: widget.image),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _openFullScreenImage,
+      child: SizedBox(
+        width: double.infinity,
+        height: 200,
+        child: CachedNetworkImage(
+          imageUrl: widget.image,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => CircularProgressIndicator(),
+          errorWidget: (context, url, error) => Icon(Icons.error),
+        ),
+      ),
+    );
+  }
+}
+
+class FullScreenImage extends StatelessWidget {
+  final String image;
+
+  const FullScreenImage({Key? key, required this.image}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[100],  // Changed to grey
+      body: GestureDetector(
+        onTap: () {
+          Navigator.of(context).pop();
+        },
+        child: Center(
+          child: InteractiveViewer(
+            panEnabled: true,
+            boundaryMargin: EdgeInsets.all(20),
+            minScale: 0.5,
+            maxScale: 3.0,
+            child: CachedNetworkImage(
+              imageUrl: image,
+              fit: BoxFit.contain,
+              placeholder: (context, url) => CircularProgressIndicator(),
+              errorWidget: (context, url, error) => Icon(Icons.error),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class QuestionSection extends StatelessWidget {
   final String question;
   final List<String> options;
@@ -627,7 +704,7 @@ class QuestionSection extends StatelessWidget {
                   borderRadius: BorderRadius.circular(0),
                 ),
                 padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                 child: Text(
                   'Remaining Time: $hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
                   style: const TextStyle(
@@ -640,6 +717,44 @@ class QuestionSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  // Handle tap on '+4 correct'
+                  print('Tapped on +4 correct');
+                  // Add your logic here for what happens when users tap on '+4 correct'
+                },
+                child: Text(
+                  '+4 correct',
+                  style: TextStyle(
+                    fontSize: 20, // Adjust the font size as needed
+                    color: Colors.green,
+                    fontFamily: 'Inter', // Font family
+                    decoration: TextDecoration.underline, // Underline the text on tap
+                  ),
+                ),
+              ),
+              SizedBox(width: 16), // Adjust spacing between texts
+              GestureDetector(
+                onTap: () {
+                  // Handle tap on '-1 wrong'
+                  print('Tapped on -1 wrong');
+                  // Add your logic here for what happens when users tap on '-1 wrong'
+                },
+                child: Text(
+                  '-1 wrong',
+                  style: TextStyle(
+                    fontSize: 20, // Adjust the font size as needed
+                    color: Colors.red,
+                    fontFamily: 'Inter', // Font family
+                    decoration: TextDecoration.underline, // Underline the text on tap
+                  ),
+                ),
+              ),
+            ],
+          ),
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: Text(
@@ -648,29 +763,13 @@ class QuestionSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          if (image.isNotEmpty &&
-              image !=
-                  "noimage") // Check if image is not empty and not equal to "noimage"
-            Center(
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width *
-                    0.8, // Adjust the width as needed
-                height: 200, // Adjust the height as needed
-                child: CachedNetworkImage(
-                  imageUrl: image,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) =>
-                      const CircularProgressIndicator(),
-                  errorWidget: (context, url, error) => const Icon(Icons.error),
-                ),
-              ),
-            ),
+          if (image.isNotEmpty && image != "noimage")
+            ImageDisplayWidget(image: image),
           const SizedBox(height: 20),
           ...options.asMap().entries.map((entry) {
             int idx = entry.key;
             String option = entry.value;
-            String letter = String.fromCharCode(
-                65 + idx); // Convert index to letter (A, B, C, ...)
+            String letter = String.fromCharCode(65 + idx); // Convert index to letter (A, B, C, ...)
             return InkWell(
               onTap: () {
                 onAnswerSelected(idx);
@@ -680,9 +779,7 @@ class QuestionSection extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.symmetric(vertical: 4),
                 decoration: BoxDecoration(
-                  color: selectedAnswer == idx
-                      ? const Color(0xFF5BFC8B)
-                      : Colors.white,
+                  color: selectedAnswer == idx ? const Color(0xFF5BFC8B) : Colors.white,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.grey, width: 2),
                 ),
@@ -699,9 +796,10 @@ class QuestionSection extends StatelessWidget {
                       child: Text(
                         letter,
                         style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            fontFamily: 'Inter'),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontFamily: 'Inter',
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -709,9 +807,7 @@ class QuestionSection extends StatelessWidget {
                       child: Text(
                         option,
                         style: TextStyle(
-                          color: selectedAnswer == idx
-                              ? Colors.white
-                              : Colors.black,
+                          color: selectedAnswer == idx ? Colors.white : Colors.black,
                         ),
                       ),
                     ),
@@ -725,6 +821,7 @@ class QuestionSection extends StatelessWidget {
     );
   }
 }
+
 
 class NavigationButtons extends StatelessWidget {
   final VoidCallback? onNextPressed;
@@ -783,9 +880,9 @@ class NavigationButtons extends StatelessWidget {
                 ],
               )
             : Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  const SizedBox(width: 5),
+                  const SizedBox(width: 15),
                   _checkbox(
                     onPressed: onMarkForReviewPressed,
                     label: 'Mark for Review',
@@ -793,12 +890,13 @@ class NavigationButtons extends StatelessWidget {
                   ),
                   const SizedBox(
                       width:
-                          300), // Adjust spacing between the two sets of buttons
+                          500), // Adjust spacing between the two sets of buttons
                   _customButton(
                     onPressed: onPreviousPressed,
                     label: 'Previous',
                     buttonColor: Colors.grey,
                   ),
+                  const SizedBox(width: 40,),
                   _customButton(
                     onPressed: onNextPressed,
                     label: 'Next',
@@ -858,17 +956,20 @@ class NavigationButtons extends StatelessWidget {
     return InkWell(
       onTap: onPressed,
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Checkbox(
             value: isChecked,
             onChanged: (_) => onPressed?.call(),
             activeColor: Colors.green,
+            visualDensity: VisualDensity.adaptivePlatformDensity, // Adjusts the size of the checkbox
           ),
           const SizedBox(width: 8),
           Text(
             label,
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 18,
+              fontFamily: 'Inter'
             ),
           ),
         ],
