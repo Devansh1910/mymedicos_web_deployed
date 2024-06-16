@@ -12,6 +12,7 @@ import 'package:mymedicosweb/components/drawer/app_drawer.dart';
 import 'package:mymedicosweb/components/drawer/sideDrawer.dart';
 
 import 'package:mymedicosweb/login/components/login_check.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 
@@ -24,10 +25,25 @@ class _HomeScreen2State extends State<HomeScreen2> {
   bool _isLoggedIn = false;
   bool _isInitialized = false;
 
+  String? _phoneNumber;
+
   @override
   void initState() {
     super.initState();
     _initializeUser();
+  }
+  void logOut() async {
+    _isLoggedIn = false;
+    _phoneNumber = null;
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', false);
+      await prefs.remove('phoneNumber');
+    } catch (e) {
+      // Handle any errors that occur while clearing login status
+      print('Failed to clear login status: $e');
+    }
+  // Notify listeners after logging out
   }
 
   void _initializeUser() async {
@@ -63,7 +79,40 @@ class _HomeScreen2State extends State<HomeScreen2> {
       return Container();
     }
 
-    return LayoutBuilder(
+    return WillPopScope(
+      onWillPop: () async {
+        // Show alert dialog when user tries to leave the page
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Are you sure?"),
+              content: Text("Do you want to leave the site?"),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    logOut();
+                    // Navigate to the home screen when user confirms
+                    Navigator.of(context).popUntil(ModalRoute.withName('/'));
+                  },
+                  child: Text("Logout"),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // Dismiss the dialog when user cancels
+                    Navigator.of(context).pop(false);
+                  },
+                  child: Text("Cancel"),
+                ),
+              ],
+            );
+          },
+        );
+        // Return false to prevent the default back navigation behavior
+        return false;
+      },
+    child:
+      LayoutBuilder(
       builder: (context, constraints) {
         final bool isLargeScreen = constraints.maxWidth > 600;
 
@@ -74,7 +123,7 @@ class _HomeScreen2State extends State<HomeScreen2> {
             backgroundColor: Colors.white,
             elevation: 0,
           ),
-          drawer: isLargeScreen ? null :  AppDrawer(initialIndex: 0),
+
           body: Column(
             children: [
               OrangeStrip(
@@ -109,6 +158,7 @@ class _HomeScreen2State extends State<HomeScreen2> {
           ),
         );
       },
+      ),
     );
   }
 }

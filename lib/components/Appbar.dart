@@ -26,59 +26,64 @@ class AppBarContent extends StatelessWidget {
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Material(
-                        elevation: 4.0,
-                        shape: CircleBorder(),
-                        child: CircleAvatar(
-                          radius: 20.0,
-                          backgroundColor: Colors.white,
-                        ),
-                      ),
-                      CircleAvatar(
-                        radius: 20.0,
-                        backgroundColor: Colors.grey.shade200,
-                        child: ClipOval(
-                          child: CachedNetworkImage(
-                            imageUrl: userProfileImageUrl,
-                            placeholder: (context, url) => CircularProgressIndicator(),
-                            errorWidget: (context, url, error) => Image.asset(
-                              'assets/image/past.png',
-                              fit: BoxFit.cover,
-                            ),
-                            fit: BoxFit.cover,
+              GestureDetector( // Add GestureDetector to make the image clickable
+                onTap: () {
+                  Scaffold.of(context).openDrawer(); // Open the drawer when image is tapped
+                },
+                child: Row(
+                  children: [
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Material(
+                          elevation: 4.0,
+                          shape: CircleBorder(),
+                          child: CircleAvatar(
+                            radius: 20.0,
+                            backgroundColor: Colors.white,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(width: 8.0),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Good Morning!',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
+                        CircleAvatar(
+                          radius: 20.0,
+                          backgroundColor: Colors.grey.shade200,
+                          child: ClipOval(
+                            child: CachedNetworkImage(
+                              imageUrl: userProfileImageUrl,
+                              placeholder: (context, url) => CircularProgressIndicator(),
+                              errorWidget: (context, url, error) => Image.asset(
+                                'assets/image/past.png',
+                                fit: BoxFit.cover,
+                              ),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
-                      ),
-                      Text(
-                        userName,
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 14.0,
-                          color: Colors.grey,
+                      ],
+                    ),
+                    SizedBox(width: 8.0),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Good Morning!',
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        Text(
+                          userName,
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 14.0,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               SvgPicture.asset(
                 'assets/image/logo.svg',
@@ -90,6 +95,7 @@ class AppBarContent extends StatelessWidget {
               ),
             ],
           );
+
         } else {
           return Center(child: Text("No user data found."));
         }

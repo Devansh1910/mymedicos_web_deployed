@@ -60,26 +60,28 @@ class _PgNeetState extends State<PgNeet> {
       );
     }
 
-    return LayoutBuilder(
+    return WillPopScope(
+        onWillPop: () async {
+      // Navigate to the home screen when the back button is pressed
+     Navigator.pushNamed(context, "/homescreen");
+      return true;
+    },
+    child: LayoutBuilder(
       builder: (context, constraints) {
         return Scaffold(appBar: AppBar(
           automaticallyImplyLeading: !kIsWeb,
           title: AppBarContent(),
           backgroundColor: Colors.white,
           elevation: 0,
-          leading: isLargeScreen ? null : IconButton(
-            icon: Icon(Icons.menu),
-            onPressed: () {
-              Scaffold.of(context).openDrawer(); // Open the drawer when the menu icon is pressed
-            },
-          ),
+
         ),
-          drawer: isLargeScreen ? null : AppDrawer(initialIndex: 1),
+          drawer: !isLargeScreen ? AppDrawer(initialIndex: 1) : null,
 
 
           body: MainContent(isLargeScreen: isLargeScreen),
         );
       },
+    ),
     );
   }
 }
@@ -222,22 +224,24 @@ class _QuizSection2State extends State<QuizSection2> {
     _scrollController.dispose();
     super.dispose();
   }
-
   void scrollRight() {
+    double scrollDistance = MediaQuery.of(context).size.width < 600 ? 250 : 500;
     _scrollController.animateTo(
-      _scrollController.offset + widget.screenWidth,
+      _scrollController.offset + scrollDistance,
       duration: Duration(milliseconds: 500),
       curve: Curves.ease,
     );
   }
 
   void scrollLeft() {
+    double scrollDistance = MediaQuery.of(context).size.width < 600 ? 250 : 500;
     _scrollController.animateTo(
-      _scrollController.offset - widget.screenWidth,
+      _scrollController.offset - scrollDistance,
       duration: Duration(milliseconds: 500),
       curve: Curves.ease,
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -374,20 +378,23 @@ class _QuizSection1State extends State<QuizSection1> {
   }
 
   void scrollRight() {
+    double scrollDistance = MediaQuery.of(context).size.width < 600 ? 250 : 500;
     _scrollController.animateTo(
-      _scrollController.offset + widget.screenWidth,
+      _scrollController.offset + scrollDistance,
       duration: Duration(milliseconds: 500),
       curve: Curves.ease,
     );
   }
 
   void scrollLeft() {
+    double scrollDistance = MediaQuery.of(context).size.width < 600 ? 250 : 500;
     _scrollController.animateTo(
-      _scrollController.offset - widget.screenWidth,
+      _scrollController.offset - scrollDistance,
       duration: Duration(milliseconds: 500),
       curve: Curves.ease,
     );
   }
+
 
   void scheduleEventInCalendar(DateTime startTime,String title1) async {
     // Format the data you want to pass to the calendar event
@@ -538,20 +545,23 @@ class _QuizSectionState extends State<QuizSection> {
   }
 
   void scrollRight() {
+    double scrollDistance = MediaQuery.of(context).size.width < 600 ? 250 : 500;
     _scrollController.animateTo(
-      _scrollController.offset + widget.screenWidth,
+      _scrollController.offset + scrollDistance,
       duration: Duration(milliseconds: 500),
       curve: Curves.ease,
     );
   }
 
   void scrollLeft() {
+    double scrollDistance = MediaQuery.of(context).size.width < 600 ? 250 : 500;
     _scrollController.animateTo(
-      _scrollController.offset - widget.screenWidth,
+      _scrollController.offset - scrollDistance,
       duration: Duration(milliseconds: 500),
       curve: Curves.ease,
     );
   }
+
 
   @override
   Widget build(BuildContext context) {

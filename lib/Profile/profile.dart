@@ -4,6 +4,7 @@ import 'dart:html' as html;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 // Import your UserDetailsFetcher class
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 // Import your UserDetailsFetcher class
 
 class ProfileScreen extends StatefulWidget {
@@ -83,19 +85,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: isLargeScreen ? null : IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () {
-            Scaffold.of(context).openDrawer();  // Open the drawer when the menu icon is pressed
-          },
-        ),
         automaticallyImplyLeading: !kIsWeb,
         title: AppBarContent(),
         backgroundColor: Colors.white,
         elevation: 0,
 
       ),
-      drawer: isLargeScreen ? null : AppDrawer(initialIndex: 4),
+
       body: Column(
         children: [
           const OrangeStrip(
@@ -140,6 +136,12 @@ class _MainContentState extends State<MainContent> {
 
   late String userId;
   String? userProfileImageUrl;
+  int currentCoins = 0;
+  late DatabaseReference databaseReference;
+  bool _isLoading = true;
+  User? currentUser;
+
+
 
   @override
   void initState() {
@@ -147,8 +149,48 @@ class _MainContentState extends State<MainContent> {
 
 
 
-      fetchUserProfileImageVerified();
+    fetchUserProfileImageVerified();
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user != null) {
+        fetchCurrentUserCoins();
+      } else {
+        fetchPhoneNumberFromLocalStorage();
+      }
+    });
 
+  }
+
+
+  Future<void> fetchPhoneNumberFromLocalStorage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? phoneNumber = prefs.getString('phoneNumber');
+    if (phoneNumber != null) {
+      fetchCoinsFromDatabase(phoneNumber);
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void fetchCurrentUserCoins() {
+    currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      String? phoneNumber = currentUser!.phoneNumber;
+      if (phoneNumber != null) {
+
+        fetchCoinsFromDatabase(phoneNumber);
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } else {
+      print("Current user is null");
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
   Future<String?> fetchUserProfileImageVerified() async {
     try {
@@ -334,6 +376,26 @@ class _MainContentState extends State<MainContent> {
       );
     }
   }
+  void fetchCoinsFromDatabase(String phoneNumber) {
+    databaseReference = FirebaseDatabase.instance.reference();
+
+    // Retrieve coins
+    databaseReference.child('profiles').child(phoneNumber).child('coins').onValue.listen((event) {
+      DataSnapshot snapshot = event.snapshot;
+      int? coinsValue = snapshot.value as int?;
+      setState(() {
+        currentCoins = coinsValue ?? 0;
+        _isLoading = false;
+      });
+    });
+
+    // Update phone number
+    databaseReference.child('profiles').child(phoneNumber).child('phoneNumber').set(phoneNumber).then((_) {
+      print('Phone number updated successfully');
+    }).catchError((error) {
+      print('Error updating phone number: $error');
+    });
+  }
 
 
 
@@ -464,14 +526,47 @@ class _MainContentState extends State<MainContent> {
               borderRadius: BorderRadius.circular(0),
               border: Border.all(color: Colors.black, width: 1),
             ),
-            child: const Column(
+            child:  Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
+
+
                     Text('Get Credits', style: TextStyle(fontSize: 16)),
-                    Text('5634', style: TextStyle(fontSize: 16)),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, '/profile'); // Navigate to the profile page
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                            vertical: screenWidth < 600 ? 5 : 10,
+                            horizontal: screenWidth < 600 ? 20 : 40),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(7),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 8,
+                              offset: Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: _isLoading
+                            ? Center(child: CircularProgressIndicator())
+                            : Text(
+                          '$currentCoins',
+                          style: TextStyle(
+                            fontSize: screenWidth < 600 ? 12 : 18,
+                            color: Colors.grey,
+                            fontFamily: 'Inter',
+                          ),
+                        ),
+                      ),
+                    ),
+
                   ],
                 ),
                 Text(
@@ -1056,7 +1151,6 @@ Future<void> processCreditsOrderPackage1(BuildContext context) async {
     );
   }
 }
-
 Future<void> processCreditsOrderPackage2(BuildContext context) async {
   // Show a loading indicator
   showDialog(
@@ -1095,53 +1189,65 @@ Future<void> processCreditsOrderPackage2(BuildContext context) async {
       String url = "https://admin.mymedicos.in/api/ecom/medcoins/generateOrder/$userId/package2";
       print("API Request URL: $url");
 
+
       try {
         http.Response response = await http.get(Uri.parse(url));
+
+        print("Status Code: ${response.statusCode}");
+        print("Headers: ${response.headers}");
         print("API Response: ${response.body}");
 
-        var requestBody = json.decode(response.body);
-        if (requestBody["status"] == "success") {
-          String orderNumber = requestBody["order_id"];
-          print("Order ID check: $orderNumber");
+        if (response.statusCode == 200) {
+          var requestBody = json.decode(response.body);
+          if (requestBody["status"] == "success") {
+            String orderNumber = requestBody["order_id"];
+            print("Order ID check: $orderNumber");
 
-          // Dismiss the loading indicator
-          Navigator.of(context, rootNavigator: true).pop();
+            // Dismiss the loading indicator
+            Navigator.of(context, rootNavigator: true).pop();
 
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text("Order Successful"),
-                content: Text("Your order number is: $orderNumber"),
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text("Pay Now"),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      // Navigate to the payment screen
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PaymentPublicationActivity(orderCode: orderNumber),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              );
-            },
-          );
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text("Order Successful"),
+                  content: Text("Your order number is: $orderNumber"),
+                  actions: <Widget>[
+                    TextButton(
+                      child: const Text("Pay Now"),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        // Navigate to the payment screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PaymentPublicationActivity(orderCode: orderNumber),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          } else {
+            // Dismiss the loading indicator
+            Navigator.of(context, rootNavigator: true).pop();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Failed order: ${requestBody["message"]}")),
+            );
+          }
         } else {
-          // Dismiss the loading indicator
+          // Handle non-200 response codes
           Navigator.of(context, rootNavigator: true).pop();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Failed order.")),
+            SnackBar(content: Text("Error: ${response.statusCode} ${response.reasonPhrase}")),
           );
         }
       } catch (e) {
         // Dismiss the loading indicator
         Navigator.of(context, rootNavigator: true).pop();
-        print("Error: $e");
+        print("Error making HTTP request: $e");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Error: $e")),
         );
@@ -1269,21 +1375,93 @@ Future<void> processCreditsOrderPackage3(BuildContext context) async {
 class PaymentPublicationActivity extends StatelessWidget {
   final String orderCode;
 
-  const PaymentPublicationActivity({Key? key, required this.orderCode}) : super(key: key);
+  const PaymentPublicationActivity({required this.orderCode});
 
   @override
   Widget build(BuildContext context) {
+    Uri apiUrl = Uri.parse(
+        "https://admin.mymedicos.in/api/ecom/medcoins/checkout/$orderCode");
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Payment"),
+        title: Text('Payment Publication Activity'),
       ),
       body: Center(
-        child: Text("Order Code: $orderCode"),
+        child: ElevatedButton(
+          onPressed: () => _showPaymentDialog(context, apiUrl),
+          child: Text('Open Payment Page'),
+        ),
       ),
     );
   }
-}
 
+  void _showPaymentDialog(BuildContext context, Uri url) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Pay Now'),
+          content: Text('Your order ID is $orderCode'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Return to Profile'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.pushNamed(context, '/profile');
+              },
+            ),
+            ElevatedButton(
+              child: Text('Pay'),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _processPayment(url, context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _processPayment(Uri url, BuildContext context) async {
+    try {
+      final response = await http.post(url);
+
+      if (response.statusCode == 200) {
+        // Handle successful response
+        final responseData = json.decode(response.body);
+        // Process the response data as needed
+        // Example: Navigate to a success page
+        Navigator.pushNamed(context, '/payment-success');
+      } else {
+        // Handle error response
+        _showErrorDialog(context, 'Payment failed. Please try again.');
+      }
+    } catch (e) {
+      _showErrorDialog(context, 'An error occurred. Please try again.');
+    }
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
 
 class FeatureCard extends StatelessWidget {
   final String imagePath;
@@ -1467,7 +1645,7 @@ class CreditCard extends StatelessWidget {
 class OrangeStrip extends StatelessWidget {
   final String text;
 
-  const OrangeStrip({super.key, 
+  const OrangeStrip({super.key,
     required this.text,
   });
 

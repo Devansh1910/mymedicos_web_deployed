@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
-
-import 'package:mymedicosweb/Home/home.dart';
-import 'package:mymedicosweb/login/components/login_check.dart';
-import 'package:mymedicosweb/login/sign_up.dart';
-import 'package:mymedicosweb/pg_neet/NeetScree.dart';
-import 'package:mymedicosweb/profile/profile.dart';
-import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-// Import the generated file
+import 'package:flutter/rendering.dart';
+import 'package:provider/provider.dart';
+
 import 'models/theme_notifier.dart';
 import 'models/locale_notifier.dart';
-import 'Landing/screen/landing.dart';
+import 'login/login_screen.dart';
+import 'login/sign_up.dart';
+import 'Home/home.dart';
 import 'extras/settings_screen.dart';
-import 'login/login_screen.dart'; // Ensure the correct path
+import 'Landing/screen/landing.dart';
+import 'profile/profile.dart';
+import 'pg_neet/NeetScree.dart';
+import 'login/components/login_check.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SemanticsBinding.instance.ensureSemantics();
   await Firebase.initializeApp(
     options: const FirebaseOptions(
         apiKey: "AIzaSyCE7_gYf1UZ-KgfRS45xPKYkAy0S5GxYbk",
@@ -26,8 +27,7 @@ void main() async {
         messagingSenderId: "968103235749",
         appId: "1:968103235749:web:403b7c7a79c3846fedbd4c",
         measurementId: "G-B66D4LFS4J"
-
-        ),
+    ),
   );
 
   runApp(
@@ -41,7 +41,6 @@ void main() async {
     ),
   );
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -65,15 +64,15 @@ class MyApp extends StatelessWidget {
             '/login': (context) => const LoginScreen(),
             '/register': (context) => const SignUpScreen(),
             '/homescreen': (context) =>  HomeScreen2(),
-            '/pgneet': (context) => PgNeet(),
-            '/profile': (context) => ProfileScreen(),
-            // '/quiz': (context) => QuizPage(),
+            '/pgneet': (context) =>  PgNeet(),
+            '/profile': (context) => const ProfileScreen(),
           },
         );
       },
     );
   }
 }
+
 class LoadingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

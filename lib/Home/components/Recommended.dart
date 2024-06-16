@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:mymedicosweb/pg_neet/ExamPaymentScreen.dart';
+
 class RecommendedGrandTest extends StatelessWidget {
   final double screenWidth;
   final QuizService quizService = QuizService(); // Instantiate the QuizService
@@ -49,37 +50,36 @@ class RecommendedGrandTest extends StatelessWidget {
               fontFamily: 'Inter',
             ),
           ),
-
           const SizedBox(height: 20),
-          SingleChildScrollView( // Wrap with SingleChildScrollView
-            scrollDirection: Axis.horizontal, // Set scroll direction to horizontal
-            child: FutureBuilder(
-              future: quizService.fetchQuizzes(2), // Fetch only 2 quizzes
-              builder: (context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator(); // Show loading indicator while fetching data
-                }
-                if (snapshot.hasError) {
-                  return const Text('Error fetching quizzes');
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return SizedBox(
-                    height: 300,
-                    width: double.infinity,
-                    child: Center(
-                      child: Text(
-                        'No content available',
-                        style: TextStyle(
-                          fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
-                          color: Colors.grey,
-                          fontFamily: 'Inter',
-                        ),
+          FutureBuilder(
+            future: quizService.fetchQuizzes(2), // Fetch only 2 quizzes
+            builder: (context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const CircularProgressIndicator(); // Show loading indicator while fetching data
+              }
+              if (snapshot.hasError) {
+                return const Text('Error fetching quizzes');
+              }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return SizedBox(
+                  height: 300,
+                  width: double.infinity,
+                  child: Center(
+                    child: Text(
+                      'No content available',
+                      style: TextStyle(
+                        fontSize: isMobile ? screenWidth * 0.04 : screenWidth * 0.012,
+                        color: Colors.grey,
+                        fontFamily: 'Inter',
                       ),
                     ),
-                  );
-                }
-                List<Map<String, dynamic>> quizzes = snapshot.data!;
-                return Row(
+                  ),
+                );
+              }
+              List<Map<String, dynamic>> quizzes = snapshot.data!;
+              return SingleChildScrollView( // Wrap with SingleChildScrollView
+                scrollDirection: Axis.horizontal, // Set scroll direction to horizontal
+                child: Row(
                   children: quizzes.map((quizData) {
                     var quiz = QuizPG(
                       qid: quizData['qid'],
@@ -98,16 +98,16 @@ class RecommendedGrandTest extends StatelessWidget {
                       ),
                     );
                   }).toList(),
-                );
-
-              },
-            ),
+                ),
+              );
+            },
           ),
         ],
       ),
     );
   }
 }
+
 class QuizCard extends StatelessWidget {
   final QuizPG quiz;
   final double screenWidth;
@@ -115,8 +115,7 @@ class QuizCard extends StatelessWidget {
   final String mobileImagePath = 'assets/image/mobile_image.png';
   final String path;
 
-
-  QuizCard({required this.quiz,required this.screenWidth, required this.onTap, required this.path});
+  QuizCard({required this.quiz, required this.screenWidth, required this.onTap, required this.path});
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +145,6 @@ class QuizCard extends StatelessWidget {
                 ),
               ),
             ),
-
             Container(
               width: double.infinity,
               decoration: BoxDecoration(
@@ -159,8 +157,7 @@ class QuizCard extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
-                  children:[
-
+                  children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -179,24 +176,21 @@ class QuizCard extends StatelessWidget {
                             fontFamily: 'Inter',
                           ),
                         ),
-
                       ],
-
                     ),
-
-                    Expanded(child:
-                    Align(
-                      alignment: Alignment.bottomRight,
-                      child: Text(
-                        "Attempt Now",
-                        style: TextStyle(
-                          fontSize: isMobile ? screenWidth * 0.03 : screenWidth * 0.013,
-                          color: Colors.red,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.bottomRight,
+                        child: Text(
+                          "Attempt Now",
+                          style: TextStyle(
+                            fontSize: isMobile ? screenWidth * 0.03 : screenWidth * 0.013,
+                            color: Colors.red,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
                     ),
                   ],
                 ),
@@ -208,7 +202,6 @@ class QuizCard extends StatelessWidget {
     );
   }
 }
-
 
 class QuizService {
   final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -267,4 +260,3 @@ class QuizPG {
 
   QuizPG({required this.qid, required this.title, required this.to});
 }
-

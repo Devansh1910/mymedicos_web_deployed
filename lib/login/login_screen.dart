@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:mymedicosweb/Profile/Usersdetails.dart';
 import 'package:mymedicosweb/login/components/login_check.dart';
-
 import 'package:mymedicosweb/login/sign_up.dart';
 import 'package:provider/provider.dart';
+
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -327,6 +327,20 @@ class _LoginFormState extends State<LoginForm> {
     );
   }
 
+  void fetchUserDetailsAndNavigate(BuildContext context) async {
+    final userDetailsFetcher = UserDetailsFetcher();
+    try {
+      final userDetails = await userDetailsFetcher.fetchUserDetails();
+
+      // Navigate to home screen with user details
+
+    } catch (error) {
+      // Handle error
+      print("Error fetching user details: $error");
+      // Optionally, show a snackbar or dialog to inform the user about the error
+    }
+  }
+
   void verifyOtp() async {
     setState(() {
       isLoading = true;
@@ -342,6 +356,7 @@ class _LoginFormState extends State<LoginForm> {
       await _auth.signInWithCredential(credential);
       String phoneNumber = "+91${phoneController.text}";
       Provider.of<UserNotifier>(context, listen: false).logIn(phoneNumber);
+      fetchUserDetailsAndNavigate(context);
 
       Navigator.pushNamed(context, '/homescreen');
       print('Phone number verified successfully!');
@@ -360,13 +375,14 @@ class _LoginFormState extends State<LoginForm> {
       SnackBar(content: Text(message)),
     );
   }
+
   Widget buildLoadingIndicator() {
     return Container(
-      height:300,
+      height: 300,
       width: double.infinity,
-        child:Center(
-      child: CircularProgressIndicator(),
-    ),
+      child: Center(
+        child: CircularProgressIndicator(),
+      ),
     );
   }
 
@@ -400,11 +416,10 @@ class _LoginFormState extends State<LoginForm> {
             ),
           ],
         ),
-        child: isLoading?
-        buildLoadingIndicator()
+        child: isLoading
+            ? buildLoadingIndicator()
             : Stack(
           children: [
-
             Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,17 +461,24 @@ class _LoginFormState extends State<LoginForm> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: TextFormField(
+
+                          key: Key('phoneTextField'),
                           controller: phoneController,
-                          keyboardType: TextInputType.number, // Set keyboard type to number
+                          keyboardType: TextInputType.number,
+                          // Set keyboard type to number
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly, // Only allow digits
-                            LengthLimitingTextInputFormatter(10), // Limit to 10 digits
+                            LengthLimitingTextInputFormatter(10),
+                            // Limit to 10 digits
                           ],
+
                           decoration: const InputDecoration(
+                            labelText: 'Phone Number',
                             border: OutlineInputBorder(),
                             hintText: 'Enter Phone Number',
                             counterText: '', // This hides the counter, which otherwise shows up due to maxLength
                           ),
+
                         ),
                       ),
                     ],
@@ -513,9 +535,6 @@ class _LoginFormState extends State<LoginForm> {
                 ),
               ],
             ),
-
-
-
           ],
         ),
       ),
