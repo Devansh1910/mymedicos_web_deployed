@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 
 import 'models/theme_notifier.dart';
 import 'models/locale_notifier.dart';
-
+import 'package:url_strategy/url_strategy.dart';
 import 'login/login_screen.dart';
 import 'login/sign_up.dart';
 import 'Home/home.dart';
@@ -19,6 +19,7 @@ import 'pg_neet/ExamPaymentScreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  setPathUrlStrategy();
   await Firebase.initializeApp(
     options: const FirebaseOptions(
       apiKey: "AIzaSyCE7_gYf1UZ-KgfRS45xPKYkAy0S5GxYbk",
