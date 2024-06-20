@@ -1372,15 +1372,21 @@ Future<void> processCreditsOrderPackage3(BuildContext context) async {
     );
   }
 }
-class PaymentPublicationActivity extends StatelessWidget {
+
+
+class PaymentPublicationActivity extends StatefulWidget {
   final String orderCode;
 
   const PaymentPublicationActivity({required this.orderCode});
 
   @override
+  _PaymentPublicationActivityState createState() => _PaymentPublicationActivityState();
+}
+
+class _PaymentPublicationActivityState extends State<PaymentPublicationActivity> {
+  @override
   Widget build(BuildContext context) {
-    Uri apiUrl = Uri.parse(
-        "https://admin.mymedicos.in/api/ecom/medcoins/checkout/$orderCode");
+    Uri apiUrl = Uri.parse("https://admin.mymedicos.in/checkout/${widget.orderCode}");
 
     return Scaffold(
       appBar: AppBar(
@@ -1401,7 +1407,7 @@ class PaymentPublicationActivity extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Pay Now'),
-          content: Text('Your order ID is $orderCode'),
+          content: Text('Your order ID is ${widget.orderCode}'),
           actions: <Widget>[
             TextButton(
               child: Text('Return to Profile'),
@@ -1430,7 +1436,6 @@ class PaymentPublicationActivity extends StatelessWidget {
       if (response.statusCode == 200) {
         // Handle successful response
         final responseData = json.decode(response.body);
-        // Process the response data as needed
         // Example: Navigate to a success page
         Navigator.pushNamed(context, '/payment-success');
       } else {
@@ -1438,9 +1443,13 @@ class PaymentPublicationActivity extends StatelessWidget {
         _showErrorDialog(context, 'Payment failed. Please try again.');
       }
     } catch (e) {
+      // Handle any thrown exceptions
       _showErrorDialog(context, 'An error occurred. Please try again.');
+      // Optionally, print or log the exception for debugging purposes
+      print('Error during payment process: $e');
     }
   }
+
 
   void _showErrorDialog(BuildContext context, String message) {
     showDialog(
@@ -1459,6 +1468,41 @@ class PaymentPublicationActivity extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class PaymentSuccessPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Payment Success'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Icon(
+              Icons.check_circle,
+              color: Colors.green,
+              size: 100,
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Payment Successful!',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/');
+              },
+              child: Text('Back to Home'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -630,17 +630,18 @@ class _QuizSectionState extends State<QuizSection> {
                                   path: "assets/image/liveadapter.png",
                                   Color1:Colors.red,
                                   onTap: (questionId) {
-                                    Navigator.push(
+                                    Navigator.pushNamed(
                                       context,
-                                      MaterialPageRoute(
-                                        builder: (context) => PgNeetPayment(
-                                          title: quiz.title,
-                                          quizId: questionId,
-                                          dueDate: quiz.to.toString(),
-                                        ),
-                                      ),
+                                      '/examdetails?examId=$questionId',
+                                      arguments: {
+                                        'title': quiz.title,
+                                        'quizId': questionId,
+                                        'dueDate': quiz.to.toString(),
+                                      },
                                     );
-                                    print('Tapped on question with ID: $questionId');
+                                    String duedata=quiz.to.toString();
+
+                                    print('Tapped on question with ID: $duedata');
                                   },
                                 ),
                               );

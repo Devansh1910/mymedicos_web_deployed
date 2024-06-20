@@ -1114,7 +1114,10 @@ class QuestionNavigationPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String heading = "Navigate and Review :";
-    return Padding(
+    return
+      SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child:Padding(
       padding: const EdgeInsets.all(4.0),
       child: Column(
         // Wrap the GridView.builder inside a Column
@@ -1138,12 +1141,12 @@ class QuestionNavigationPanel extends StatelessWidget {
                   fontSize: 14, color: Colors.grey, fontFamily: 'Inter'),
             ),
           ),
-          SingleChildScrollView(
-            child: Column(
+
+
+             Column(
               children: [
                 GridView.builder(
                   shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 6,
                     crossAxisSpacing: 4.0,
@@ -1185,9 +1188,10 @@ class QuestionNavigationPanel extends StatelessWidget {
                   },
                 ),
               ],
-            ),
+
           ),
         ],
+      ),
       ),
     );
   }
