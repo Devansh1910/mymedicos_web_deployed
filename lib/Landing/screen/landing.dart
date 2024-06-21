@@ -9,6 +9,7 @@ import 'package:mymedicosweb/Landing/components/HeroImage.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../extras/settings_screen.dart';
 import '../../login/sign_up.dart';
+import 'dart:html' as html;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.title});
@@ -76,6 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 OutlinedButton(
                   onPressed: () {
+                    html.window.open('https://mymedicos.in/contactus/', '_blank');
                     _launchURL("https://mymedicos.in/contactus/");
                   },
                   style: OutlinedButton.styleFrom(
@@ -139,9 +141,9 @@ class _HomeScreenState extends State<HomeScreen> {
               imagePath: 'assets/landing/playstore1.png',
               text: 'Download mymedicos *Application* available on PlayStore.',
             ),
-            const TopImage(),
-            const SizedBox(
-              height: 1100,
+             TopImage(),
+             SizedBox(
+              height:isMobile? 1400:1100,
               child: AlternatingImageTextList(
                 imagePaths: [
                   'assets/landing/top.png',
@@ -186,6 +188,7 @@ class OrangeStrip extends StatelessWidget {
 
   });
   Future<void> _launchURL() async {
+    html.window.open('https://play.google.com/store/search?q=mymedicos&c=apps&hl=en', '_blank');
     final Uri uri = Uri.parse("https://play.google.com/store/search?q=mymedicos&c=apps&hl=en");
     if (!await launchUrl(uri)) {
       throw 'Could not launch ';

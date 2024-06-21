@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'dart:html' as html;
 class Footer extends StatelessWidget {
   const Footer({super.key});
   Future<void> _launchURL(String url) async {
@@ -142,6 +142,7 @@ class Footer extends StatelessWidget {
             const SizedBox(height: 16),
             GestureDetector(
               onTap: () {
+                html.window.open('https://mymedicos.in/about-us/', '_blank');
                 _launchURL('https://mymedicos.in/about-us/'); // Replace with actual URL
               },
               child: const Text(
@@ -155,6 +156,7 @@ class Footer extends StatelessWidget {
             const SizedBox(height: 10),
             GestureDetector(
               onTap: () {
+                html.window.open('https://mymedicos.in/contactus/', '_blank');
                 _launchURL('https://mymedicos.in/contactus/'); // Replace with actual URL
               },
               child: const Text(

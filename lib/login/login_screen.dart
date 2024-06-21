@@ -390,6 +390,7 @@ class _LoginFormState extends State<LoginForm> {
   Widget build(BuildContext context) {
     return RawKeyboardListener(
       focusNode: FocusNode(),
+
       onKey: (event) {
         if (event is RawKeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
           if (isOtpSent) {
@@ -461,7 +462,6 @@ class _LoginFormState extends State<LoginForm> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: TextFormField(
-
                           key: Key('phoneTextField'),
                           controller: phoneController,
                           keyboardType: TextInputType.number,
@@ -471,16 +471,16 @@ class _LoginFormState extends State<LoginForm> {
                             LengthLimitingTextInputFormatter(10),
                             // Limit to 10 digits
                           ],
-
                           decoration: const InputDecoration(
                             labelText: 'Phone Number',
                             border: OutlineInputBorder(),
                             hintText: 'Enter Phone Number',
                             counterText: '', // This hides the counter, which otherwise shows up due to maxLength
                           ),
-
+                          autofocus: true, // Automatically focuses and opens keyboard when the screen loads
                         ),
                       ),
+
                     ],
                   ),
                 ] else ...[

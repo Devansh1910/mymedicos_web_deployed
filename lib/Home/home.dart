@@ -123,6 +123,7 @@ class _HomeScreen2State extends State<HomeScreen2> {
             backgroundColor: Colors.white,
             elevation: 0,
           ),
+          drawer: isLargeScreen?null: AppDrawer(initialIndex: 0,),
 
           body: Column(
             children: [

@@ -15,12 +15,14 @@ class QuizPage extends StatefulWidget {
   final String quizId;
   final String title;
   final String duedate;
+  final int discount;
 
   QuizPage(
       {Key? key,
       required this.quizId,
       required this.title,
-      required this.duedate})
+      required this.duedate,
+      required this.discount})
       : super(key: key);
 
   @override
@@ -76,7 +78,7 @@ class _QuizPageState extends State<QuizPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? phoneNumber = prefs.getString('phoneNumber');
     if (phoneNumber != null) {
-      deductCoinsAndNavigate(phoneNumber);
+      deductCoinsAndNavigate(phoneNumber,widget.discount);
     } else {
       setState(() {
         _isLoading = false;
@@ -84,7 +86,7 @@ class _QuizPageState extends State<QuizPage> {
     }
   }
 
-  Future<void> deductCoinsAndNavigate(String phoneNumber) async {
+  Future<void> deductCoinsAndNavigate(String phoneNumber, int discount) async {
     setState(() {
       _isLoading = true;
     });
@@ -96,9 +98,9 @@ class _QuizPageState extends State<QuizPage> {
         .get();
     int currentCoins = snapshot.value as int;
 
-    if (currentCoins >= 50) {
+    if (currentCoins >= 50-discount) {
       // Deduct 50 coins
-      currentCoins -= 50;
+      currentCoins -= 50-discount;
       await databaseReference
           .child('profiles')
           .child(phoneNumber)

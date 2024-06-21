@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
@@ -57,7 +58,65 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
       Navigator.of(context).pushReplacementNamed('/login');
     }
   }
-  Future<void> deductCoinsAndNavigate(String phoneNumber) async {
+
+
+  Future<void> addCouponToUsedListAndStartTest(String phoneNumber, String couponCode) async {
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      DocumentReference userCouponDoc = _firestore.collection("CouponUsed").doc(phoneNumber);
+
+      // Check if the document exists
+      var docSnapshot = await userCouponDoc.get();
+      if (docSnapshot.exists) {
+        // Document exists, update it
+        await updateCouponUsedList(userCouponDoc, couponCode);
+      } else {
+        // Document does not exist, create it first
+        await createCouponUsedList(userCouponDoc, couponCode);
+      }
+
+      // After updating or creating the coupon list, start the test or perform any other action
+     // Replace with your actual test initiation logic
+    } catch (e) {
+      print('Error adding coupon and starting test: $e');
+      // Handle error as per your application's requirement
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> updateCouponUsedList(DocumentReference userCouponDoc, String couponCode) async {
+    // Update existing document with new coupon code
+    try {
+      await userCouponDoc.update({
+        "coupon_used": FieldValue.arrayUnion([couponCode]),
+      });
+      print('Coupon code added to user\'s used list');
+    } catch (e) {
+      print('Error adding coupon code to used list: $e');
+      throw e; // Rethrow the exception to handle it in UI if needed
+    }
+  }
+
+  Future<void> createCouponUsedList(DocumentReference userCouponDoc, String couponCode) async {
+    // Create new document with initial coupon data
+    try {
+      await userCouponDoc.set({
+        "coupon_used": [couponCode],
+      });
+      print('New coupon list created for user');
+    } catch (e) {
+      print('Failed to create new coupon list for user: $e');
+      throw e; // Rethrow the exception to handle it in UI if needed
+    }
+  }
+  Future<void> deductCoinsAndNavigate(String phoneNumber,int discount,String code) async {
     setState(() {
       _isLoading = true;
     });
@@ -65,9 +124,12 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
     DataSnapshot snapshot =
     await databaseReference.child('profiles').child(phoneNumber).child('coins').get();
     int currentCoins = snapshot.value as int;
+    print("discount 20"+discount.toString());
 
-    if (currentCoins >= 50) {
-      currentCoins -= 50;
+    if (currentCoins >= 50-discount) {
+
+      int coins=50-discount;
+
       await databaseReference.child('profiles').child(phoneNumber).child('coins').set(currentCoins);
       if (widget.quizId != null) {
 
@@ -77,7 +139,7 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text('Confirmation'),
-              content: const Text('50 med coins will be deducted. Do you want to proceed?'),
+              content:  Text('$coins med coins will be deducted. Do you want to proceed?'),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -87,6 +149,7 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
                 ),
                 TextButton(
                   onPressed: () {
+                    addCouponToUsedListAndStartTest(phoneNumber,code);
                     Navigator.of(context).pop(); // Close the dialog
                     Navigator.push(
                       context,
@@ -95,6 +158,7 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
                           quizId: widget.quizId,
                           title: widget.title,
                           duedate: widget.dueDate,
+                          discount:discount,
                         ),
                       ),
                     );
@@ -220,7 +284,7 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
                       title: widget.title,
                       qid: widget.quizId,
                       dueDate: widget.dueDate,
-                      onTakeTest: (String phoneNumber) => deductCoinsAndNavigate(phoneNumber),
+                      onTakeTest: (String phoneNumber,int discount,String code) => deductCoinsAndNavigate(phoneNumber,discount,code),
                     ),
                   ),
                 ),
@@ -233,7 +297,6 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
     );
   }
 }
-
 class MainContent extends StatefulWidget {
   final bool isLargeScreen;
   final bool hasReadInstructions;
@@ -241,7 +304,7 @@ class MainContent extends StatefulWidget {
   final String title;
   final String qid;
   final String dueDate;
-  final Future<void> Function(String) onTakeTest;
+  final Future<void> Function(String, int,String) onTakeTest;
 
   MainContent({
     required this.isLargeScreen,
@@ -262,6 +325,8 @@ class _MainContentState extends State<MainContent> {
   late DatabaseReference databaseReference;
   bool _isLoading = true;
   User? currentUser;
+  late String code1;
+  int discount = 0; // State variable for discount
 
   @override
   void initState() {
@@ -306,6 +371,7 @@ class _MainContentState extends State<MainContent> {
       });
     }
   }
+
   String formatDate(String dueDate) {
     // Assuming dueDate is in the format 'yyyy-MM-dd'
     DateTime parsedDate = DateTime.parse(dueDate);
@@ -322,7 +388,12 @@ class _MainContentState extends State<MainContent> {
     databaseReference = FirebaseDatabase.instance.reference();
 
     // Retrieve coins
-    databaseReference.child('profiles').child(phoneNumber).child('coins').onValue.listen((event) {
+    databaseReference
+        .child('profiles')
+        .child(phoneNumber)
+        .child('coins')
+        .onValue
+        .listen((event) {
       DataSnapshot snapshot = event.snapshot;
       int? coinsValue = snapshot.value as int?;
       setState(() {
@@ -332,7 +403,12 @@ class _MainContentState extends State<MainContent> {
     });
 
     // Update phone number
-    databaseReference.child('profiles').child(phoneNumber).child('phoneNumber').set(phoneNumber).then((_) {
+    databaseReference
+        .child('profiles')
+        .child(phoneNumber)
+        .child('phoneNumber')
+        .set(phoneNumber)
+        .then((_) {
       print('Phone number updated successfully');
     }).catchError((error) {
       print('Error updating phone number: $error');
@@ -341,266 +417,98 @@ class _MainContentState extends State<MainContent> {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width; // Ensure screenWidth is available
+    double screenWidth = MediaQuery.of(context).size.width;
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: widget.isLargeScreen ? 32 : 16,vertical: 10),
+      padding: EdgeInsets.symmetric(
+        horizontal: widget.isLargeScreen ? 32 : 16,
+        vertical: 10,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
-
-        children: <Widget>[
-
-      Row(
-        mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween, // Ensures the Row items are spaced apart
         children: [
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start, // Aligns text to the start (left)
-              children: [
-                Text(
-                  widget.title,
-                  style: const TextStyle(fontSize: 24, fontFamily: 'Inter', fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-
-                 Text(
-                   "Due Date:"+formatDate(widget.dueDate),
-                    style: const TextStyle(fontFamily: 'Inter',fontSize: 18,color: Colors.grey),
-                  ),
-
-
-
-
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, '/profile'); // Navigate to the profile page
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                  vertical: screenWidth < 600 ? 5 : 10,
-                  horizontal: screenWidth < 600 ? 20 : 40),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(7),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 8,
-                    offset: Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: _isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : Text(
-                '$currentCoins',
-                style: TextStyle(
-                  fontSize: screenWidth < 600 ? 12 : 18,
-                  color: Colors.grey,
-                  fontFamily: 'Inter',
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-
-
-
-        const SizedBox(height: 30),
-          InstructionContainer(),
-          // const SizedBox(height: 16),
-          // CreditStrip(),
-          const SizedBox(height: 30),
-          const Text(
-            'Format of the Question Paper:',
-            style: TextStyle(fontSize: 18, fontFamily: 'Inter', fontWeight: FontWeight.bold),
-          ),
-          const Text(
-            'Go through the under given instructions for better understanding of the examination.',
-            style: TextStyle(fontFamily: 'Inter'),
-          ),
-          const SizedBox(height: 20),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // First row
-
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-      if (MediaQuery.of(context).size.width > 600) ...[
-
-                const SizedBox(width: 16),
               Expanded(
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      height: 40,
-                      width: 40,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.black,
-                          width: 1.0,
-                        ),
-                        borderRadius: BorderRadius.circular(5),
+                    Text(
+                      widget.title,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.bold,
                       ),
-                      child: Icon(Icons.timer), // Add icon related to time/duration
                     ),
-                    const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '200 mins',
-                          style: TextStyle(fontFamily: 'Inter'),
-                        ),
-                        Text(
-                          'Duration',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
+                    SizedBox(height: 8),
+                    Text(
+                      "Due Date: ${formatDate(widget.dueDate)}",
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 18,
+                        color: Colors.grey,
+                      ),
                     ),
                   ],
                 ),
               ),
-              // Add SizedBox and other sections similar to the first one with different icons
-
-              // Second column
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      height: 40,
-                      width: 40,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.black,
-                          width: 1.0,
-                        ),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child: Icon(Icons.assignment), // Add icon related to score/details
-                    ),
-                    const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '200 Questions - 800 Marks',
-                          style: TextStyle(fontFamily: 'Inter'),
-                        ),
-                        Text(
-                          'Score details',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // Third column
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      height: 40,
-                      width: 40,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.black,
-                          width: 1.0,
-                        ),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child: Icon(Icons.language), // Add icon related to language
-                    ),
-                    const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'English',
-                          style: TextStyle(fontFamily: 'Inter'),
-                        ),
-                        Text(
-                          'Language',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            ],
-          ),
-
-          // Below the condition for small screen (width <= 600)
-          if (MediaQuery.of(context).size.width <= 600) ...[
-            SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-              child: Row(
-                children: [
-                  Container(
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.black,
-                        width: 1.0,
-                      ),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Icon(Icons.timer), // Add icon related to time/duration
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, '/profile');
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    vertical: screenWidth < 600 ? 5 : 10,
+                    horizontal: screenWidth < 600 ? 20 : 40,
                   ),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '200 mins',
-                        style: TextStyle(fontFamily: 'Inter'),
-                      ),
-                      Text(
-                        'Duration',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(7),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 8,
+                        offset: Offset(0, 5),
                       ),
                     ],
                   ),
-                ],
+                  child: _isLoading
+                      ? Center(child: CircularProgressIndicator())
+                      : Text(
+                    '$currentCoins',
+                    style: TextStyle(
+                      fontSize: screenWidth < 600 ? 12 : 18,
+                      color: Colors.grey,
+                      fontFamily: 'Inter',
+                    ),
+                  ),
+                ),
               ),
-            ),
             ],
-    ),
-            SizedBox(height: 20),
-            // Additional rows for small screens
-            Row(
-              children: [
+          ),
+          SizedBox(height: 30),
+          InstructionContainer(),
+          SizedBox(height: 30),
+          Text(
+            'Format of the Question Paper:',
+            style: TextStyle(
+              fontSize: 18,
+              fontFamily: 'Inter',
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            'Go through the under given instructions for better understanding of the examination.',
+            style: TextStyle(fontFamily: 'Inter'),
+          ),
+          SizedBox(height: 20),
+          Row(
+            children: [
+              if (MediaQuery.of(context).size.width > 600) ...[
+                SizedBox(width: 16),
                 Expanded(
                   child: Row(
                     children: [
@@ -614,9 +522,43 @@ class _MainContentState extends State<MainContent> {
                           ),
                           borderRadius: BorderRadius.circular(5),
                         ),
-                        child: Icon(Icons.assignment), // Add icon related to score/details
+                        child: Icon(Icons.timer),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('200 mins', style: TextStyle(fontFamily: 'Inter')),
+                          Text(
+                            'Duration',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.black,
+                            width: 1.0,
+                          ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Icon(Icons.assignment),
+                      ),
+                      SizedBox(width: 8),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -637,11 +579,7 @@ class _MainContentState extends State<MainContent> {
                     ],
                   ),
                 ),
-              ],
-            ),
-            SizedBox(height: 20),
-            Row(
-              children: [
+                SizedBox(width: 16),
                 Expanded(
                   child: Row(
                     children: [
@@ -655,16 +593,13 @@ class _MainContentState extends State<MainContent> {
                           ),
                           borderRadius: BorderRadius.circular(5),
                         ),
-                        child: Icon(Icons.language), // Add icon related to language
+                        child: Icon(Icons.language),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'English',
-                            style: TextStyle(fontFamily: 'Inter'),
-                          ),
+                          Text('English', style: TextStyle(fontFamily: 'Inter')),
                           Text(
                             'Language',
                             style: TextStyle(
@@ -679,11 +614,131 @@ class _MainContentState extends State<MainContent> {
                   ),
                 ),
               ],
-            ),
-          ],
-    ],
-    ),
-          SizedBox(height: 30,),
+              if (MediaQuery.of(context).size.width <= 600) ...[
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.black,
+                            width: 1.0,
+                          ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Icon(Icons.timer),
+                      ),
+                      SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('200 mins', style: TextStyle(fontFamily: 'Inter')),
+                          Text(
+                            'Duration',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.black,
+                            width: 1.0,
+                          ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Icon(Icons.assignment),
+                      ),
+                      SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '200 Questions - 800 Marks',
+                            style: TextStyle(fontFamily: 'Inter'),
+                          ),
+                          Text(
+                            'Score details',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.black,
+                            width: 1.0,
+                          ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Icon(Icons.language),
+                      ),
+                      SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('English', style: TextStyle(fontFamily: 'Inter')),
+                          Text(
+                            'Language',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+          SizedBox(height: 16),
+          CouponScreen(
+            isLargeScreen: widget.isLargeScreen,
+            onDiscountChanged: (value) {
+              setState(() {
+
+                discount = value;
+                print("Discount updated: $discount");
+              });
+            },
+            oncodechanged:(value){
+              setState(() {
+                code1=value;
+              });
+            }
+          ),
+          SizedBox(height: 30),
           Row(
             children: [
               Checkbox(
@@ -691,16 +746,16 @@ class _MainContentState extends State<MainContent> {
                 onChanged: widget.onCheckboxChanged,
                 activeColor: Colors.black,
               ),
-              const Text(
+              Text(
                 'I have read all the instructions',
                 style: TextStyle(fontFamily: 'Inter'),
               ),
             ],
           ),
-          SizedBox(height: 20,),
+          SizedBox(height: 20),
           Center(
             child: Container(
-              color: const Color(0xFFFFFFFF),
+              color: Colors.white,
               child: SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: Container(
@@ -712,51 +767,55 @@ class _MainContentState extends State<MainContent> {
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   child: ElevatedButton(
-                    onPressed:
-                      widget.hasReadInstructions
-                          ? () async {
-                        SharedPreferences prefs = await SharedPreferences.getInstance();
-                        String? phoneNumber = prefs.getString('phoneNumber');
-                        if (phoneNumber != null) {
-                          await  widget.onTakeTest(phoneNumber);
-
-                        } else {
-                          Fluttertoast.showToast(
-                            msg: "Phone number not found. Please login again.",
-                            toastLength: Toast.LENGTH_SHORT,
-                            gravity: ToastGravity.BOTTOM,
-                            timeInSecForIosWeb: 1,
-                            backgroundColor: Colors.red,
-                            textColor: Colors.white,
-                            fontSize: 16.0,
-                          );
-                        }
-                      }
-
-
-                        : () {
-                          Fluttertoast.showToast(
-                          msg: "Please click on the checkbox to proceed",
-                           toastLength: Toast.LENGTH_SHORT,
+                    onPressed: widget.hasReadInstructions
+                        ? () async {
+                      SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                      String? phoneNumber =
+                      prefs.getString('phoneNumber');
+                      if (phoneNumber != null) {
+                        print("Discount when taking test: $discount");
+                        await widget.onTakeTest(phoneNumber, discount,code1);
+                      } else {
+                        Fluttertoast.showToast(
+                          msg:
+                          "Phone number not found. Please login again.",
+                          toastLength: Toast.LENGTH_SHORT,
                           gravity: ToastGravity.BOTTOM,
-                            backgroundColor: Colors.black,
+                          backgroundColor: Colors.red,
                           textColor: Colors.white,
                           fontSize: 16.0,
-                          );
-                      },
+                        );
+                      }
+                    }
+                        : () {
+                      Fluttertoast.showToast(
+                        msg:
+                        "Please click on the checkbox to proceed",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        backgroundColor: Colors.black,
+                        textColor: Colors.white,
+                        fontSize: 16.0,
+                      );
+                    },
                     style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(Colors.white),
+                      backgroundColor:
+                      MaterialStateProperty.all(Colors.white),
                       shape: MaterialStateProperty.all(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         ),
                       ),
                     ),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
                       child: Text(
                         'START EXAMINATION',
-                        style: TextStyle(fontFamily: 'Inter', color: Colors.black),
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          color: Colors.black,
+                        ),
                       ),
                     ),
                   ),
@@ -768,11 +827,183 @@ class _MainContentState extends State<MainContent> {
       ),
     );
   }
+}
 
+class CouponScreen extends StatefulWidget {
+  final bool isLargeScreen;
+  final Function(int) onDiscountChanged;
+  final Function (String) oncodechanged;
 
+  CouponScreen({required this.isLargeScreen, required this.onDiscountChanged,required this.oncodechanged});
 
-    // Update phone number
+  @override
+  _CouponScreenState createState() => _CouponScreenState();
+}
 
+class _CouponScreenState extends State<CouponScreen> {
+
+  String? selectedCoupon;
+  List<String> coupons = [];
+  int discount = 0;
+  String? phoneNumber;
+
+  Future<List<String>> fetchCoupons() async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('Coupons').get();
+    return querySnapshot.docs.map((doc) => doc['code'] as String).toList();
+  }
+  Future<void> fetchPhoneNumber() async {
+    String? number = await fetchPhoneNumberFromLocalStorage();
+    setState(() {
+      phoneNumber = number;
+    });
+  }
+  Future<String?> fetchPhoneNumberFromLocalStorage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? phoneNumber = prefs.getString('phoneNumber');
+    return phoneNumber;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPhoneNumber();
+    fetchCoupons().then((fetchedCoupons) {
+      setState(() {
+        coupons = fetchedCoupons;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                flex: widget.isLargeScreen ? 2 : 3,
+                child: DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Select Coupon',
+                    border: OutlineInputBorder(),
+                  ),
+                  value: selectedCoupon,
+                  items: coupons.map((coupon) {
+                    return DropdownMenuItem<String>(
+                      value: coupon,
+                      child: Text(coupon),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedCoupon = value;
+                    });
+                  },
+                ),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                flex: 1,
+                child: ElevatedButton(
+                  onPressed: () {
+                    applyCoupon(selectedCoupon);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    minimumSize: Size.fromHeight(55),
+                  ),
+                  child: Text(
+                    'Apply',
+                    style: TextStyle(fontFamily: 'Inter', color: Colors.black),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  void applyCoupon(String? couponCode) {
+    if (couponCode != null) {
+      FirebaseFirestore.instance.collection('Coupons').where('code', isEqualTo: couponCode).get().then((querySnapshot) {
+        if (querySnapshot.docs.isNotEmpty) {
+          var couponDoc = querySnapshot.docs.first;
+
+          // Extract fields from the document
+          int discount = couponDoc['discount'];
+          String aboutMessage = couponDoc['about'];
+
+          // Check if the coupon code is already used by the user
+          FirebaseFirestore.instance.collection('CouponUsed').doc(phoneNumber).get().then((couponUsedDoc) {
+            if (couponUsedDoc.exists) {
+              List<dynamic> couponUsedList = couponUsedDoc.data()?['coupon_used'];
+              if (couponUsedList.contains(couponCode)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Coupon with code $couponCode is already used!')),
+                );
+              } else {
+                // Update UI state with the selected coupon
+                setState(() {
+                  this.discount = discount; // Update discount in state
+                  this.selectedCoupon = couponCode; // Update selectedCoupon in state
+                });
+
+                // Notify parent widget about the discount change
+                widget.onDiscountChanged(discount);
+                widget.oncodechanged(selectedCoupon!);
+
+                // Show SnackBar with about message
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(aboutMessage)),
+                );
+              }
+            } else {
+              // If the document doesn't exist, proceed with applying the coupon
+              // Update UI state with the selected coupon
+              setState(() {
+                this.discount = discount; // Update discount in state
+                this.selectedCoupon = couponCode; // Update selectedCoupon in state
+              });
+
+              // Notify parent widget about the discount change
+              widget.onDiscountChanged(discount);
+              widget.oncodechanged(selectedCoupon!);
+
+              // Show SnackBar with about message
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(aboutMessage)),
+              );
+            }
+          }).catchError((error) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to check coupon usage: $error')),
+            );
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Coupon with code $couponCode not found!')),
+          );
+        }
+      }).catchError((error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to fetch coupon: $error')),
+        );
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please select a coupon!')),
+      );
+    }
+  }
 
 }
 

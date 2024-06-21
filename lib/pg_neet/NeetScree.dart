@@ -310,6 +310,15 @@ class _QuizSection2State extends State<QuizSection2> {
                                   state:"Terminated",
                                   Color1:Colors.grey,
                                   onTap: (questionId) {
+                                    Navigator.pushReplacementNamed(
+                                        context,
+                                        '/examdetails?examId=$questionId',
+                                        arguments: {
+                                          'title': quiz.title,
+                                          'quizId': questionId,
+                                          'dueDate': quiz.to.toString(),
+                                        },
+                                    );
                                     Fluttertoast.showToast(
                                       msg: "These tests are terminated",
                                       toastLength: Toast.LENGTH_SHORT,
@@ -630,7 +639,7 @@ class _QuizSectionState extends State<QuizSection> {
                                   path: "assets/image/liveadapter.png",
                                   Color1:Colors.red,
                                   onTap: (questionId) {
-                                    Navigator.pushNamed(
+                                    Navigator.pushReplacementNamed(
                                       context,
                                       '/examdetails?examId=$questionId',
                                       arguments: {

@@ -38,14 +38,14 @@ class RecommendedGrandTest extends StatelessWidget {
           Text(
             'Recommended Grand Test',
             style: TextStyle(
-              fontSize: isMobile ? screenWidth * 0.03 : screenWidth * 0.015, // Adjusted font size for mobile
+              fontSize: isMobile ? screenWidth * 0.05 : screenWidth * 0.015, // Adjusted font size for mobile
               fontFamily: 'Inter',
             ),
           ),
           Text(
             'Go through these examinations for better preparation & get ready for the final buzz!',
             style: TextStyle(
-              fontSize: isMobile ? screenWidth * 0.025 : screenWidth * 0.012, // Adjusted font size for mobile
+              fontSize: isMobile ? screenWidth * 0.045 : screenWidth * 0.012, // Adjusted font size for mobile
               color: Colors.grey,
               fontFamily: 'Inter',
             ),

@@ -19,6 +19,11 @@ import 'pg_neet/ExamPaymentScreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.dumpErrorToConsole(details);
+    // Optionally report errors to a monitoring service
+  };
+
   setPathUrlStrategy();
   await Firebase.initializeApp(
     options: const FirebaseOptions(
@@ -82,6 +87,14 @@ class MyApp extends StatelessWidget {
             '/homescreen': (context) => HomeScreen2(),
             '/pgneet': (context) => PgNeet(),
             '/profile': (context) => const ProfileScreen(),
+            '/examdetails?examid=:examid': (context) {
+              final Map<String, dynamic> args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+              final String title = args['title'] ?? '';
+              final String quizId = args['quizId'] ?? '';
+              final String dueDate = args['dueDate'] ?? '';
+
+              return PgNeetPayment(title: title, quizId: quizId, dueDate: dueDate);
+            },
 
           },
             onGenerateRoute: (settings) {

@@ -25,6 +25,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 // Import your UserDetailsFetcher class
 
 class ProfileScreen extends StatefulWidget {
@@ -1384,129 +1385,49 @@ class PaymentPublicationActivity extends StatefulWidget {
 }
 
 class _PaymentPublicationActivityState extends State<PaymentPublicationActivity> {
+  bool _isLoading = true;
+  bool _isError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUrl();
+  }
+
+  void _loadUrl() {
+    try {
+      html.window.open('https://admin.mymedicos.in/checkout/${widget.orderCode}', '_self');
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading URL: $e');
+      setState(() {
+        _isError = true;
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    Uri apiUrl = Uri.parse("https://admin.mymedicos.in/checkout/${widget.orderCode}");
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Payment Publication Activity'),
       ),
       body: Center(
-        child: ElevatedButton(
-          onPressed: () => _showPaymentDialog(context, apiUrl),
-          child: Text('Open Payment Page'),
-        ),
-      ),
-    );
-  }
-
-  void _showPaymentDialog(BuildContext context, Uri url) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Pay Now'),
-          content: Text('Your order ID is ${widget.orderCode}'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Return to Profile'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.pushNamed(context, '/profile');
-              },
-            ),
-            ElevatedButton(
-              child: Text('Pay'),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await _processPayment(url, context);
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _processPayment(Uri url, BuildContext context) async {
-    try {
-      final response = await http.post(url);
-
-      if (response.statusCode == 200) {
-        // Handle successful response
-        final responseData = json.decode(response.body);
-        // Example: Navigate to a success page
-        Navigator.pushNamed(context, '/payment-success');
-      } else {
-        // Handle error response
-        _showErrorDialog(context, 'Payment failed. Please try again.');
-      }
-    } catch (e) {
-      // Handle any thrown exceptions
-      _showErrorDialog(context, 'An error occurred. Please try again.');
-      // Optionally, print or log the exception for debugging purposes
-      print('Error during payment process: $e');
-    }
-  }
-
-
-  void _showErrorDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Error'),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class PaymentSuccessPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Payment Success'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Icon(
-              Icons.check_circle,
-              color: Colors.green,
-              size: 100,
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Payment Successful!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/');
-              },
-              child: Text('Back to Home'),
-            ),
-          ],
-        ),
+        child: _isLoading
+            ? CircularProgressIndicator()
+            : _isError
+            ? Text(
+          'Failed to load payment page.',
+          style: TextStyle(color: Colors.red),
+        )
+            : SizedBox.shrink(),
       ),
     );
   }
 }
-
 class FeatureCard extends StatelessWidget {
   final String imagePath;
   final String title;
