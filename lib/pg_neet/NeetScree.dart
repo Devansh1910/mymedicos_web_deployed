@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
+import 'dart:html' as html;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -310,15 +310,7 @@ class _QuizSection2State extends State<QuizSection2> {
                                   state:"Terminated",
                                   Color1:Colors.grey,
                                   onTap: (questionId) {
-                                    Navigator.pushReplacementNamed(
-                                        context,
-                                        '/examdetails?examId=$questionId',
-                                        arguments: {
-                                          'title': quiz.title,
-                                          'quizId': questionId,
-                                          'dueDate': quiz.to.toString(),
-                                        },
-                                    );
+
                                     Fluttertoast.showToast(
                                       msg: "These tests are terminated",
                                       toastLength: Toast.LENGTH_SHORT,
@@ -420,6 +412,7 @@ class _QuizSection1State extends State<QuizSection1> {
     // Launch the URL in a browser or the default calendar app
     if (await canLaunch(url)) {
       await launch(url);
+      html.window.open('https://calendar.google.com/calendar/render?action=TEMPLATE&text=$title&dates=$startDate/$endDate&details=$description&location=$location', '_blank');
     } else {
       throw 'Could not launch $url';
     }

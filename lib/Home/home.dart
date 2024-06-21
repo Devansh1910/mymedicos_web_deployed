@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mymedicosweb/Home/components/Recommended.dart';
 import 'package:mymedicosweb/Landing/components/HeroImage.dart';
+import 'package:mymedicosweb/Profile/Usersdetails.dart';
 
 import 'package:mymedicosweb/components/Appbar.dart';
 import 'package:mymedicosweb/components/Credit.dart';
@@ -46,17 +47,40 @@ class _HomeScreen2State extends State<HomeScreen2> {
   // Notify listeners after logging out
   }
 
+
   void _initializeUser() async {
-    UserNotifier userNotifier = UserNotifier();
-    await userNotifier.isInitialized;
-    setState(() {
-      _isLoggedIn = userNotifier.isLoggedIn;
-      _isInitialized = true;
-    });
-    // If the user is not logged in, navigate to the login screen
-    if (!_isLoggedIn) {
-      // You can replace '/login' with the route name of your login screen
-      Navigator.of(context).pushReplacementNamed('/login');
+    try {
+      UserNotifier userNotifier = UserNotifier();
+      await userNotifier.isInitialized;
+
+      setState(() {
+        _isLoggedIn = userNotifier.isLoggedIn;
+        _isInitialized = true;
+      });
+
+      if (_isLoggedIn) {
+        // Fetch user details including profile image URL
+        UserDetailsFetcher userDetailsFetcher = UserDetailsFetcher();
+        Map<String, dynamic> userDetails = await userDetailsFetcher.fetchUserDetails();
+
+        // Extract user details
+        String userName = userDetails['userName'];
+        String userProfileImageUrl = userDetails['userProfileImageUrl'];
+
+        // Store the user information in local storage using SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString('userName', userName);
+        prefs.setString('userProfileImageUrl', userProfileImageUrl);
+      } else {
+        // If the user is not logged in, navigate to the login screen
+        // Replace '/login' with your actual login screen route name
+        Navigator.of(context).pushReplacementNamed('/login');
+      }
+    } catch (error) {
+      print("Error initializing user: $error");
+      // Handle error here (e.g., show error message, navigate to an error screen)
+      // Example:
+      // Navigator.of(context).pushReplacementNamed('/error');
     }
   }
 

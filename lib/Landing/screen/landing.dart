@@ -94,6 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Center(
                     child: GestureDetector(
                       onTap: () {
+                        html.window.open('https://mymedicos.in/contactus/', '_blank');
                         _launchURL("https://mymedicos.in/contactus/");
                       },
                       child: const Text(

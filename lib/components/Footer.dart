@@ -55,7 +55,8 @@ class Footer extends StatelessWidget {
 
               GestureDetector(
                 onTap: () {
-                  _launchURL('https://yourwebsite.com/about'); // Replace with actual URL
+                  html.window.open('https://mymedicos.in/about-us/', '_blank');
+                  _launchURL('https://mymedicos.in/about-us/'); // Replace with actual URL
                 },
                 child: const Text(
                   'About us',
@@ -69,7 +70,8 @@ class Footer extends StatelessWidget {
               SizedBox(height: 10),
               GestureDetector(
                 onTap: () {
-                  _launchURL('https://yourwebsite.com/contact'); // Replace with actual URL
+                  html.window.open('https://mymedicos.in/contactus/', '_blank');
+                  _launchURL('https://mymedicos.in/contactus/');  // Replace with actual URL
                 },
                 child: const Text(
                   'Contact Us',
@@ -83,7 +85,8 @@ class Footer extends StatelessWidget {
               SizedBox(height: 30),
               GestureDetector(
                 onTap: () {
-                  _launchURL('https://yourwebsite.com/privacy-policy'); // Replace with actual URL
+                  html.window.open('https://mymedicos.in/privacy-policy/', '_blank');
+                  _launchURL('https://mymedicos.in/privacy-policy/'); // Replace with actual URL
                 },
                 child: const Text(
                   'Privacy Policy',
@@ -95,23 +98,10 @@ class Footer extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 5),
-              GestureDetector(
-                onTap: () {
-                  _launchURL('https://yourwebsite.com/terms-conditions'); // Replace with actual URL
-                },
-                child: const Text(
-                  'Terms & Conditions',
-                  style: TextStyle(
-                    color: Color(0xFF6A6A6A),
-                    fontFamily: 'Inter',
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
+
 
         const SizedBox(height: 5),
-        const Text('FAQ\'s',
-            style: TextStyle(color: Color(0XFF6A6A6A), fontFamily: 'Inter')),
+
       ],
     );
   }
@@ -176,7 +166,8 @@ class Footer extends StatelessWidget {
             const SizedBox(height: 60),
             GestureDetector(
               onTap: () {
-                _launchURL(''); // Replace with actual URL
+                html.window.open('https://mymedicos.in/privacy-policy/', '_blank');
+                _launchURL('https://mymedicos.in/privacy-policy/'); // Replace with actual URL
               },
               child: const Text(
                 'Privacy Policy',
@@ -186,32 +177,7 @@ class Footer extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 5),
-            GestureDetector(
-              onTap: () {
-                _launchURL(''); // Replace with actual URL
-              },
-              child: const Text(
-                'Terms & Conditions',
-                style: TextStyle(
-                  color: Color(0xFF6A6A6A),
-                  fontFamily: 'Inter',
-                ),
-              ),
-            ),
-            const SizedBox(height: 5),
-            GestureDetector(
-              onTap: () {
-                _launchURL(''); // Replace with actual URL
-              },
-              child: const Text(
-                'FAQ\'s',
-                style: TextStyle(
-                  color: Color(0xFF6A6A6A),
-                  fontFamily: 'Inter',
-                ),
-              ),
-            ),
+
             const SizedBox(height: 30),
           ],
         ),

@@ -92,6 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         elevation: 0,
 
       ),
+      drawer: isLargeScreen? null:AppDrawer(initialIndex: 3),
 
       body: Column(
         children: [
@@ -767,7 +768,7 @@ class AdManager {
 class AdWatchButton extends StatelessWidget {
   final int coinValue;
 
-  const AdWatchButton({super.key, required this.coinValue});
+  const AdWatchButton({Key? key, required this.coinValue}) : super(key: key);
 
   void watchAd(BuildContext context) {
     RewardedAd? ad = AdManager.rewardedAd;
@@ -809,57 +810,59 @@ class AdWatchButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    final double containerWidth = isMobile ? screenWidth * 0.9 : 400; // Adjust width for web view
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10),
       child: Container(
-        height: 70,
         width: double.infinity,
+        constraints: BoxConstraints(maxWidth: screenWidth), // Limit width for larger screens
         decoration: BoxDecoration(
           border: Border.all(color: Colors.black, width: 1), // Border color and width
           borderRadius: BorderRadius.circular(9.0), // Border radius
         ),
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFF9F1E7), // Background color
-              padding: const EdgeInsets.all(15),
-              textStyle: const TextStyle(fontSize: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(9.0), // Button radius
-              ),
-              elevation: 0
+            backgroundColor: const Color(0xFFF9F1E7), // Background color
+            padding: const EdgeInsets.all(15),
+            textStyle: const TextStyle(fontSize: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(9.0), // Button radius
+            ),
+            elevation: 0,
           ),
           onPressed: () {
-            print("button preseed");
+            print("Button pressed");
             // Call the watchAd function when the button is pressed
             watchAd(context);
-
           },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text('Get $coinValue Coins in your MedWallet',style: const TextStyle(color:Colors.grey,fontSize:17,fontFamily: 'Inter'),),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Watch an Ad and get $coinValue coins instantly in your account.',
-                    style: const TextStyle(fontSize: 17, color: Colors.grey,fontFamily: 'Inter'),
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text('Get $coinValue Coins in your MedWallet', style: const TextStyle(color: Colors.grey, fontSize: 17, fontFamily: 'Inter')),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Watch an Ad and get $coinValue coins instantly in your account.',
+                      style: const TextStyle(fontSize: 17, color: Colors.grey, fontFamily: 'Inter'),
+                    ),
+                  ],
+                ),
               ),
-              const Text('Watch',style: TextStyle(fontFamily: 'Inter'),),
+              isMobile ? const Text('Watch', style: TextStyle(fontFamily: 'Inter')) : const SizedBox(child:Text('Watch', style: TextStyle(fontFamily: 'Inter'))), // Show 'Watch' text only on mobile
             ],
           ),
         ),
       ),
     );
   }
-
 }
-
-
 
 //
 // @override
@@ -948,13 +951,10 @@ class AdWatchButton extends StatelessWidget {
 //     );
 //   }
 
-
 class ProvenEffectiveContent extends StatelessWidget {
   final double screenWidth;
 
   const ProvenEffectiveContent({super.key, required this.screenWidth});
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -988,52 +988,22 @@ class ProvenEffectiveContent extends StatelessWidget {
             builder: (context, constraints) {
               if (constraints.maxWidth < 600) {
                 return Column(
-                  children:  [
-                    FeatureCard(
-                      imagePath: 'assets/top_quality_content.png',
-                      title: 'At 99',
-                      description: ' Get 99 Base Credit Points + 41 Bonus',
-                      onTap: () =>  processCreditsOrderPackage1(context),
-                    ),
-                    FeatureCard(
-                      imagePath: 'assets/learn_anytime_anywhere.png',
-                      title: 'At 129',
-                      description: 'Get 129 Base Credit Points + 71 Bonus',
-                      onTap: () => processCreditsOrderPackage2(context),
-                    ),
-                    FeatureCard(
-                      imagePath: 'assets/in_depth_analytics.png',
-                      title: 'At 199',
-                      description: 'Get 199 Base Credit Points + 151 Bonus.',
-                      onTap: () =>  processCreditsOrderPackage3(context),
-                    ),
+                  children: [
+                    _buildFeatureButtonmobile(context, 'Get 99 Coins in your MedWallet', 'Pay ₹ 99 and get 99 base credits + 41 bonus credits.', 99, () => processCreditsOrderPackage1(context)),
+                    _buildFeatureButtonmobile(context, 'Get 129 Coins in your MedWallet', 'Pay ₹129 and get 129 base credits + 71 bonus credits.', 129, () => processCreditsOrderPackage2(context)),
+                    _buildFeatureButtonmobile(context, 'Get 199 Coins in your MedWallet', 'Pay ₹199 and get 199 base credits + 151 bonus credits.', 199, () => processCreditsOrderPackage3(context)),
                   ],
                 );
               } else {
                 return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
+
                   child: Wrap(
                     spacing: 16.0,
                     runSpacing: 16.0,
-                    children:  [
-                      FeatureCard(
-                        imagePath: 'assets/top_quality_content.png',
-                        title: 'At 99',
-                        description: ' Get 99 Base Credit Points + 41 Bonus',
-                        onTap: () =>  processCreditsOrderPackage1(context),
-                      ),
-                      FeatureCard(
-                        imagePath: 'assets/learn_anytime_anywhere.png',
-                        title: 'At 129',
-                        description: 'Get 129 Base Credit Points + 71 Bonus',
-                        onTap: () => processCreditsOrderPackage2(context),
-                      ),
-                      FeatureCard(
-                        imagePath: 'assets/in_depth_analytics.png',
-                        title: 'At 199',
-                        description: 'Get 199 Base Credit Points + 151 Bonus.',
-                        onTap: () =>  processCreditsOrderPackage3(context),
-                      ),
+                    children: [
+                      _buildFeatureButton(context, 'Get 140 Coins in your MedWallet', 'Pay ₹99 and get 99 base credits + 41 bonus credits.', 99, () => processCreditsOrderPackage1(context)),
+                      _buildFeatureButton(context, 'Get 200 Coins in your MedWallet', 'Pay ₹129 and get 129 base credits + 71 bonus credits.', 129, () => processCreditsOrderPackage2(context)),
+                      _buildFeatureButton(context, 'Get 350 Coins in your MedWallet', 'Pay ₹199 and get 199 base credits + 151 bonus credits.', 199, () => processCreditsOrderPackage3(context)),
                     ],
                   ),
                 );
@@ -1044,8 +1014,106 @@ class ProvenEffectiveContent extends StatelessWidget {
       ),
     );
   }
+  Widget _buildFeatureButtonmobile(BuildContext context, String title, String description, int coinValue, VoidCallback onTap) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    final double containerWidth = isMobile ? screenWidth * 0.9 : screenWidth / 3 - 24;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10),
+      child: Container(
+        width: containerWidth,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black, width: 1),
+          borderRadius: BorderRadius.circular(9.0),
+        ),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFF9F1E7), // Background color
+            padding: const EdgeInsets.all(15),
+            textStyle: const TextStyle(fontSize: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(9.0),
+            ),
+            elevation: 0,
+          ),
+          onPressed: onTap,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                title,
+                style: const TextStyle(color: Colors.grey, fontSize: 17, fontFamily: 'Inter'),
+                maxLines: isMobile ? 2 : 1, // Adjust max lines for smaller screens
+                overflow: TextOverflow.ellipsis, // Handle overflow gracefully
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: const TextStyle(fontSize: 17, color: Colors.grey, fontFamily: 'Inter'),
+                maxLines: isMobile ? 3 : 2, // Adjust max lines for smaller screens
+                overflow: TextOverflow.ellipsis, // Handle overflow gracefully
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  const Text(
+                    '₹', // Rupee symbol
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  const Text(' Pay', style: TextStyle(fontFamily: 'Inter')),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
 
+  Widget _buildFeatureButton(BuildContext context, String title, String description, int coinValue, VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10),
+      child: Container(
+        height: 70,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black, width: 1),
+          borderRadius: BorderRadius.circular(9.0),
+        ),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFF9F1E7),
+            padding: const EdgeInsets.all(15),
+            textStyle: const TextStyle(fontSize: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(9.0),
+            ),
+            elevation: 0,
+          ),
+          onPressed: onTap,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(title, style: const TextStyle(color: Colors.grey, fontSize: 17, fontFamily: 'Inter')),
+                  const SizedBox(height: 4),
+                  Text(description, style: const TextStyle(fontSize: 17, color: Colors.grey, fontFamily: 'Inter')),
+                ],
+              ),
+              const Text('Pay', style: TextStyle(fontFamily: 'Inter')),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 Future<void> processCreditsOrderPackage1(BuildContext context) async {
@@ -1428,6 +1496,7 @@ class _PaymentPublicationActivityState extends State<PaymentPublicationActivity>
     );
   }
 }
+
 class FeatureCard extends StatelessWidget {
   final String imagePath;
   final String title;
