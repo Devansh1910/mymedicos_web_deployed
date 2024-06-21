@@ -968,7 +968,7 @@ class ProvenEffectiveContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Proven Effective Content',
+            'Medicos Package',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -977,7 +977,7 @@ class ProvenEffectiveContent extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Concise, high yield, highly effective content that yields results. The strike rate proves it.',
+            'Affordable Plans for Every Need',
             style: TextStyle(
               fontSize: 16,
             ),
@@ -991,20 +991,20 @@ class ProvenEffectiveContent extends StatelessWidget {
                   children:  [
                     FeatureCard(
                       imagePath: 'assets/top_quality_content.png',
-                      title: 'Top Quality Content',
-                      description: 'Enrich your knowledge with highly informative, engaging content crafted by the Dream Team.',
+                      title: 'At 99',
+                      description: ' Get 99 Base Credit Points + 41 Bonus',
                       onTap: () =>  processCreditsOrderPackage1(context),
                     ),
                     FeatureCard(
                       imagePath: 'assets/learn_anytime_anywhere.png',
-                      title: 'Learn Anytime, Anywhere',
-                      description: 'Access the best quality content and turn any place into a classroom whenever you want.',
+                      title: 'At 129',
+                      description: 'Get 129 Base Credit Points + 71 Bonus',
                       onTap: () => processCreditsOrderPackage2(context),
                     ),
                     FeatureCard(
                       imagePath: 'assets/in_depth_analytics.png',
-                      title: 'In-Depth Analytics',
-                      description: 'Evaluate your strengths and shortcomings with the help of performance graphs.',
+                      title: 'At 199',
+                      description: 'Get 199 Base Credit Points + 151 Bonus.',
                       onTap: () =>  processCreditsOrderPackage3(context),
                     ),
                   ],
@@ -1018,20 +1018,20 @@ class ProvenEffectiveContent extends StatelessWidget {
                     children:  [
                       FeatureCard(
                         imagePath: 'assets/top_quality_content.png',
-                        title: 'Top Quality Content',
-                        description: 'Enrich your knowledge with highly informative, engaging content crafted by the Dream Team.',
-                        onTap: () => processCreditsOrderPackage1(context),
+                        title: 'At 99',
+                        description: ' Get 99 Base Credit Points + 41 Bonus',
+                        onTap: () =>  processCreditsOrderPackage1(context),
                       ),
                       FeatureCard(
                         imagePath: 'assets/learn_anytime_anywhere.png',
-                        title: 'Learn Anytime, Anywhere',
-                        description: 'Access the best quality content and turn any place into a classroom whenever you want.',
-                        onTap: () =>  processCreditsOrderPackage2(context),
+                        title: 'At 129',
+                        description: 'Get 129 Base Credit Points + 71 Bonus',
+                        onTap: () => processCreditsOrderPackage2(context),
                       ),
                       FeatureCard(
                         imagePath: 'assets/in_depth_analytics.png',
-                        title: 'In-Depth Analytics',
-                        description: 'Evaluate your strengths and shortcomings with the help of performance graphs.',
+                        title: 'At 199',
+                        description: 'Get 199 Base Credit Points + 151 Bonus.',
                         onTap: () =>  processCreditsOrderPackage3(context),
                       ),
                     ],

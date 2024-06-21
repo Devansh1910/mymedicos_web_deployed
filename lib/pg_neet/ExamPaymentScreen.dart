@@ -738,7 +738,7 @@ class _MainContentState extends State<MainContent> {
               });
             }
           ),
-          SizedBox(height: 30),
+          SizedBox(height: 16),
           Row(
             children: [
               Checkbox(
