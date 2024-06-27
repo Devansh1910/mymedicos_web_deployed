@@ -10,7 +10,7 @@ import 'package:mymedicosweb/Home/home.dart';
 
 import 'package:universal_html/html.dart' as html;
 
-class QuizResultScreen extends StatefulWidget {
+class FmgeQuizResultScreen extends StatefulWidget {
   final List<Map<String, dynamic>> questions;
   final List<int?> selectedAnswers;
   final int remainingTime;
@@ -19,7 +19,7 @@ class QuizResultScreen extends StatefulWidget {
   final String dueDate;
 
 
-  QuizResultScreen({
+  FmgeQuizResultScreen({
     required this.questions,
     required this.selectedAnswers,
     required this.remainingTime,
@@ -30,10 +30,10 @@ class QuizResultScreen extends StatefulWidget {
   });
 
   @override
-  _QuizResultScreenState createState() => _QuizResultScreenState();
+  _FmgeQuizResultScreenState createState() => _FmgeQuizResultScreenState();
 }
 
-class _QuizResultScreenState extends State<QuizResultScreen> {
+class _FmgeQuizResultScreenState extends State<FmgeQuizResultScreen> {
   int currentQuestionIndex = 0;
 
   int correctAnswers = 0;
@@ -262,13 +262,13 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                         totalMarks:totalMarks,
                       ):
                       HeaderSection(
-                      timeTaken: widget.remainingTime, // Assuming remainingTime represents time taken in seconds
-                      totalQuestions: 200, // Assuming totalQuestions is the total number of questions
-                      correctAnswers: correctAnswers,
-                      incorrectAnswers: incorrectAnswers,
-                      skippedQuestions: skippedQuestions,
-                      totalMarks: totalMarks,
-                    ),
+                        timeTaken: widget.remainingTime, // Assuming remainingTime represents time taken in seconds
+                        totalQuestions: 200, // Assuming totalQuestions is the total number of questions
+                        correctAnswers: correctAnswers,
+                        incorrectAnswers: incorrectAnswers,
+                        skippedQuestions: skippedQuestions,
+                        totalMarks: totalMarks,
+                      ),
 
                       SizedBox(height: 50,),
                       Container(
@@ -302,7 +302,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
               ),
               if (!isMobile)
                 Container(
-                  width: 400,
+                  width: 480,
                   // Adjust the width as needed
                   color: Colors.white,
                   // Background color for the side panel
@@ -730,16 +730,16 @@ class HeaderSection extends StatelessWidget {
         children: [
 
           Padding(
-              padding: EdgeInsets.only(left: 20.0), // Add padding to the left
-              child: Text(
-                'NEET PG/Quiz Result:', // The heading
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Inter',
-                ),
+            padding: EdgeInsets.only(left: 20.0), // Add padding to the left
+            child: Text(
+              'NEET PG/Quiz Result:', // The heading
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Inter',
               ),
             ),
+          ),
 
           SizedBox(height: 20), // Space between the heading and the content
           Row(
@@ -767,32 +767,32 @@ class HeaderSection extends StatelessWidget {
                     SizedBox(height: 10),
 
 
-                        _buildInfoBox(
-                          icon: Icons.access_time,
-                          title: 'Time Taken',
-                          subtitle: '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
-                        ),
-                        SizedBox(width: 10), // Adjusted width between columns
-                        _buildInfoBox(
-                          icon: Icons.check_circle,
-                          title: 'Correct Answers',
-                          subtitle: '$correctAnswers / $totalQuestions',
-                        ),
+                    _buildInfoBox(
+                      icon: Icons.access_time,
+                      title: 'Time Taken',
+                      subtitle: '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+                    ),
+                    SizedBox(width: 10), // Adjusted width between columns
+                    _buildInfoBox(
+                      icon: Icons.check_circle,
+                      title: 'Correct Answers',
+                      subtitle: '$correctAnswers / $totalQuestions',
+                    ),
 
 
                     SizedBox(height: 5),
 
-                        _buildInfoBox(
-                          icon: Icons.cancel,
-                          title: 'Incorrect Answers',
-                          subtitle: '$incorrectAnswers / $totalQuestions',
-                        ),
-                        SizedBox(width: 10), // Adjusted width between columns
-                        _buildInfoBox(
-                          icon: Icons.not_interested,
-                          title: 'Skipped Questions',
-                          subtitle: '$skippedQuestions / $totalQuestions',
-                        ),
+                    _buildInfoBox(
+                      icon: Icons.cancel,
+                      title: 'Incorrect Answers',
+                      subtitle: '$incorrectAnswers / $totalQuestions',
+                    ),
+                    SizedBox(width: 10), // Adjusted width between columns
+                    _buildInfoBox(
+                      icon: Icons.not_interested,
+                      title: 'Skipped Questions',
+                      subtitle: '$skippedQuestions / $totalQuestions',
+                    ),
 
                     SizedBox(height: 5),
                     _buildInfoBox(
@@ -806,72 +806,72 @@ class HeaderSection extends StatelessWidget {
               SizedBox(width: 30,),
 
               Container(
-                   width: 500,
-                    height: 400,
-               padding: EdgeInsets.all(12),
-               decoration: BoxDecoration(
-                 border: Border.all(color: Colors.grey, width: 1.0),
-               borderRadius: BorderRadius.circular(8.0),
-               ),
-             child: Column(
-               crossAxisAlignment: CrossAxisAlignment.center,
-             mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-             Text(
-                 'Analytics:',
-               style: TextStyle(
-             fontSize: 20,
-             fontWeight: FontWeight.bold,
-           fontFamily: 'Inter',
-               ),
-           ),
-         SizedBox(height: 10),
-    Container(
-    width: 250,
-    height: 250,
-    child: AspectRatio(
-    aspectRatio: 1,
-    child: PieChart(
-    PieChartData(
-    sections: [
-    PieChartSectionData(
-    color: Colors.green,
-    value: correctAnswers.toDouble(),
-    title: 'Correct',
-    radius: 50,
-    ),
-    PieChartSectionData(
-    color: Colors.red,
-    value: incorrectAnswers.toDouble(),
-    title: 'Incorrect',
-    radius: 50,
-    ),
-    PieChartSectionData(
-    color: Colors.grey,
-    value: skippedQuestions.toDouble(),
-    title: 'Skipped',
-    radius: 50,
-    ),
-    ],
-    sectionsSpace: 0,
-    centerSpaceRadius: 40,
-    borderData: FlBorderData(show: false),
-    ),
-    ),
-    ),
-    ),
-    SizedBox(height: 20),
-    Row(
-    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-    children: [
-    _buildPercentageText('Correct:', correctAnswers, totalQuestions),
-    _buildPercentageText('Incorrect:', incorrectAnswers, totalQuestions),
-    _buildPercentageText('Skipped:', skippedQuestions, totalQuestions),
-    ],
-    ),
-    ],
-    ),
-    ),
+                width: 500,
+                height: 400,
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey, width: 1.0),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Analytics:',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Inter',
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Container(
+                      width: 250,
+                      height: 250,
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: PieChart(
+                          PieChartData(
+                            sections: [
+                              PieChartSectionData(
+                                color: Colors.green,
+                                value: correctAnswers.toDouble(),
+                                title: 'Correct',
+                                radius: 50,
+                              ),
+                              PieChartSectionData(
+                                color: Colors.red,
+                                value: incorrectAnswers.toDouble(),
+                                title: 'Incorrect',
+                                radius: 50,
+                              ),
+                              PieChartSectionData(
+                                color: Colors.grey,
+                                value: skippedQuestions.toDouble(),
+                                title: 'Skipped',
+                                radius: 50,
+                              ),
+                            ],
+                            sectionsSpace: 0,
+                            centerSpaceRadius: 40,
+                            borderData: FlBorderData(show: false),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildPercentageText('Correct:', correctAnswers, totalQuestions),
+                        _buildPercentageText('Incorrect:', incorrectAnswers, totalQuestions),
+                        _buildPercentageText('Skipped:', skippedQuestions, totalQuestions),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ],
@@ -1105,7 +1105,7 @@ class NavigationButtons extends StatelessWidget {
 
 
 
-           // Adjust spacing between the two sets of buttons
+            // Adjust spacing between the two sets of buttons
 
             _customButton(
               onPressed: onPreviousPressed,
@@ -1307,34 +1307,34 @@ class QuestionNavigationPanel extends StatelessWidget {
     String heading="Navigate and Review :";
     return  SingleChildScrollView(
       child:Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: Column( // Wrap the GridView.builder inside a Column
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 2.0),
-            child: Text(
-              heading, // Display the heading
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Inter'
+        padding: const EdgeInsets.all(4.0),
+        child: Column( // Wrap the GridView.builder inside a Column
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2.0),
+              child: Text(
+                heading, // Display the heading
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Inter'
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Text(
-              " Assure yourself navigate from anywhere", // Display the heading
-              style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                  fontFamily: 'Inter'
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                " Assure yourself navigate from anywhere", // Display the heading
+                style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                    fontFamily: 'Inter'
+                ),
               ),
             ),
-          ),
 
-           Column(
+            Column(
               children: [
                 GridView.builder(
                   shrinkWrap: true,
@@ -1382,8 +1382,8 @@ class QuestionNavigationPanel extends StatelessWidget {
               ],
             ),
 
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }

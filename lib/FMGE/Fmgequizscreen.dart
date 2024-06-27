@@ -12,31 +12,31 @@ import 'package:mymedicosweb/pg_neet/ResultScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_html/html.dart' as html;
 
-class QuizPage extends StatefulWidget {
+class FmgeQuizPage extends StatefulWidget {
   final String quizId;
   final String title;
   final String duedate;
   final int discount;
 
-  QuizPage(
+  FmgeQuizPage(
       {Key? key,
-      required this.quizId,
-      required this.title,
-      required this.duedate,
-      required this.discount})
+        required this.quizId,
+        required this.title,
+        required this.duedate,
+        required this.discount})
       : super(key: key);
 
   @override
-  _QuizPageState createState() => _QuizPageState();
+  _FmgeQuizPageState createState() => _FmgeQuizPageState();
 }
 
-class _QuizPageState extends State<QuizPage> {
+class _FmgeQuizPageState extends State<FmgeQuizPage> {
   int currentQuestionIndex = 0;
   List<Map<String, dynamic>> questions = [];
   List<int?> selectedAnswers = [];
   List<bool> questionsMarkedForReview = [];
   late Timer _timer;
-  int _remainingTime = 12600; // Time in seconds (210 minutes)
+  int _remainingTime = 9000; // Time in seconds (210 minutes)
   bool _timeUp = false;
   bool _isLoading = true;
 
@@ -56,9 +56,9 @@ class _QuizPageState extends State<QuizPage> {
   }
   void exitFullscreenAfterDelay() {
 
-      if (html.document.fullscreenElement != null) {
-        html.document.exitFullscreen();
-      }
+    if (html.document.fullscreenElement != null) {
+      html.document.exitFullscreen();
+    }
 
   }
 
@@ -126,7 +126,7 @@ class _QuizPageState extends State<QuizPage> {
   Future<void> _fetchQuizData() async {
     try {
       CollectionReference quizCollection = FirebaseFirestore.instance
-          .collection("PGupload")
+          .collection("Fmge")
           .doc("Weekley")
           .collection("Quiz");
 
@@ -181,7 +181,7 @@ class _QuizPageState extends State<QuizPage> {
   void toggleMarkForReview() {
     setState(() {
       questionsMarkedForReview[currentQuestionIndex] =
-          !questionsMarkedForReview[currentQuestionIndex];
+      !questionsMarkedForReview[currentQuestionIndex];
     });
   }
 
@@ -228,8 +228,9 @@ class _QuizPageState extends State<QuizPage> {
       skip: skip,
     );
     exitFullscreenAfterDelay();
+
     context.go(
-      '/examdetails/examscreen/resultscreen',
+      '/fmge/examdetails/examscreen/resultscreen',
       extra: {
         'quizId': widget.quizId,
         'quizTitle': widget.title,
@@ -240,23 +241,6 @@ class _QuizPageState extends State<QuizPage> {
       },
     );
 
-
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => QuizResultScreen(
-    //       quizId: widget.quizId,
-    //       quizTitle: widget.title,
-    //       questions: questions,
-    //       selectedAnswers: selectedAnswers,
-    //       remainingTime: _remainingTime,
-    //       dueDate: widget.duedate,
-    //     ),
-    //   ),
-    // ).then((_) {
-    //   // Exit fullscreen after navigating
-    //   exitFullscreenAfterDelay();
-    // });
   }
 
   void clearSelection() {
@@ -399,50 +383,50 @@ class _QuizPageState extends State<QuizPage> {
           drawer: isMobile
               ? Drawer(
             backgroundColor: Colors.white,
-                  child: Column(
-                    children: [
-                      InstructionPanel(
-                        notVisited:
-                            selectedAnswers.where((a) => a == null).length,
-                        notAnswered:
-                            selectedAnswers.where((a) => a == null).length,
-                        answered:
-                            selectedAnswers.where((a) => a != null).length,
-                        markedForReview:
-                            questionsMarkedForReview.where((r) => r).length,
-                        // answeredAndMarkedForReview: selectedAnswers
-                        //     .asMap()
-                        //     .entries
-                        //     .where((entry) =>
-                        // entry.value != null &&
-                        //     questionsMarkedForReview[entry.key])
-                        //     .length,
-                      ),
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                                color: Colors.black,
-                                width: 2.0), // Border styling
-                            borderRadius: BorderRadius.circular(
-                                0.0), // Optional: rounded corners
-                          ),
-                          child: QuestionNavigationPanel(
-                            questionCount: questions.length,
-                            currentQuestionIndex: currentQuestionIndex,
-                            questionsMarkedForReview: questionsMarkedForReview,
-                            selectedAnswers: selectedAnswers,
-                            onSelectQuestion: (index) {
-                              setState(() {
-                                currentQuestionIndex = index;
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
+            child: Column(
+              children: [
+                InstructionPanel(
+                  notVisited:
+                  selectedAnswers.where((a) => a == null).length,
+                  notAnswered:
+                  selectedAnswers.where((a) => a == null).length,
+                  answered:
+                  selectedAnswers.where((a) => a != null).length,
+                  markedForReview:
+                  questionsMarkedForReview.where((r) => r).length,
+                  // answeredAndMarkedForReview: selectedAnswers
+                  //     .asMap()
+                  //     .entries
+                  //     .where((entry) =>
+                  // entry.value != null &&
+                  //     questionsMarkedForReview[entry.key])
+                  //     .length,
+                ),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.black,
+                          width: 2.0), // Border styling
+                      borderRadius: BorderRadius.circular(
+                          0.0), // Optional: rounded corners
+                    ),
+                    child: QuestionNavigationPanel(
+                      questionCount: questions.length,
+                      currentQuestionIndex: currentQuestionIndex,
+                      questionsMarkedForReview: questionsMarkedForReview,
+                      selectedAnswers: selectedAnswers,
+                      onSelectQuestion: (index) {
+                        setState(() {
+                          currentQuestionIndex = index;
+                        });
+                      },
+                    ),
                   ),
-                )
+                ),
+              ],
+            ),
+          )
               : null,
           body: Row(
             children: [
@@ -473,7 +457,7 @@ class _QuizPageState extends State<QuizPage> {
                       onPreviousPressed: goToPreviousQuestion,
                       onMarkForReviewPressed: toggleMarkForReview,
                       isMarkedForReview: questionsMarkedForReview[
-                          currentQuestionIndex], // Assuming questionsMarkedForReview is a list of booleans
+                      currentQuestionIndex], // Assuming questionsMarkedForReview is a list of booleans
                     ),
                   ],
                 ),
@@ -488,13 +472,13 @@ class _QuizPageState extends State<QuizPage> {
                     children: [
                       InstructionPanel(
                         notVisited:
-                            selectedAnswers.where((a) => a == null).length,
+                        selectedAnswers.where((a) => a == null).length,
                         notAnswered:
-                            selectedAnswers.where((a) => a == null).length,
+                        selectedAnswers.where((a) => a == null).length,
                         answered:
-                            selectedAnswers.where((a) => a != null).length,
+                        selectedAnswers.where((a) => a != null).length,
                         markedForReview:
-                            questionsMarkedForReview.where((r) => r).length,
+                        questionsMarkedForReview.where((r) => r).length,
                       ),
                       Expanded(
                         child: Container(
@@ -860,67 +844,67 @@ class NavigationButtons extends StatelessWidget {
 
         return isMobile
             ? Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: _checkbox(
-                          onPressed: onMarkForReviewPressed,
-                          label: 'Mark for Review',
-                          isChecked: isMarkedForReview,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                      height:
-                          16), // Adjust spacing between the two rows of buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: _customButton(
-                          onPressed: onPreviousPressed,
-                          label: 'Previous',
-                        ),
-                      ),
-                      Expanded(
-                        child: _customButton(
-                          onPressed: onNextPressed,
-                          label: 'Next',
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  const SizedBox(width: 15),
-                  _checkbox(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: _checkbox(
                     onPressed: onMarkForReviewPressed,
                     label: 'Mark for Review',
                     isChecked: isMarkedForReview,
                   ),
-                  const SizedBox(
-                      width:
-                          500), // Adjust spacing between the two sets of buttons
-                  _customButton(
+                ),
+              ],
+            ),
+            const SizedBox(
+                height:
+                16), // Adjust spacing between the two rows of buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: _customButton(
                     onPressed: onPreviousPressed,
                     label: 'Previous',
-                    buttonColor: Colors.grey,
                   ),
-                  const SizedBox(width: 40,),
-                  _customButton(
+                ),
+                Expanded(
+                  child: _customButton(
                     onPressed: onNextPressed,
                     label: 'Next',
-                    buttonColor: Colors.black,
                   ),
-                  const SizedBox(width: 10),
-                ],
-              );
+                ),
+              ],
+            ),
+          ],
+        )
+            : Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const SizedBox(width: 15),
+            _checkbox(
+              onPressed: onMarkForReviewPressed,
+              label: 'Mark for Review',
+              isChecked: isMarkedForReview,
+            ),
+            const SizedBox(
+                width:
+                500), // Adjust spacing between the two sets of buttons
+            _customButton(
+              onPressed: onPreviousPressed,
+              label: 'Previous',
+              buttonColor: Colors.grey,
+            ),
+            const SizedBox(width: 40,),
+            _customButton(
+              onPressed: onNextPressed,
+              label: 'Next',
+              buttonColor: Colors.black,
+            ),
+            const SizedBox(width: 10),
+          ],
+        );
       },
     );
   }
@@ -984,8 +968,8 @@ class NavigationButtons extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontSize: 18,
-              fontFamily: 'Inter'
+                fontSize: 18,
+                fontFamily: 'Inter'
             ),
           ),
         ],
@@ -1082,7 +1066,7 @@ class InstructionTile extends StatelessWidget {
                 color: Colors.white, // Inside color
                 border: Border.all(color: color, width: 2),
                 borderRadius:
-                    BorderRadius.circular(10), // Slightly rounded corners
+                BorderRadius.circular(10), // Slightly rounded corners
               ),
               child: Center(
                 child: Text(
@@ -1134,82 +1118,82 @@ class QuestionNavigationPanel extends StatelessWidget {
       SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child:Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: Column(
-        // Wrap the GridView.builder inside a Column
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 2.0),
-            child: Text(
-              heading, // Display the heading
-              style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Inter'),
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(bottom: 8.0),
-            child: Text(
-              " Assure yourself navigate from anywhere", // Display the heading
-              style: TextStyle(
-                  fontSize: 14, color: Colors.grey, fontFamily: 'Inter'),
-            ),
-          ),
+          padding: const EdgeInsets.all(4.0),
+          child: Column(
+            // Wrap the GridView.builder inside a Column
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2.0),
+                child: Text(
+                  heading, // Display the heading
+                  style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Inter'),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  " Assure yourself navigate from anywhere", // Display the heading
+                  style: TextStyle(
+                      fontSize: 14, color: Colors.grey, fontFamily: 'Inter'),
+                ),
+              ),
 
 
-             Column(
-              children: [
-                GridView.builder(
-                  shrinkWrap: true,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 6,
-                    crossAxisSpacing: 4.0,
-                    mainAxisSpacing: 4.0,
-                  ),
-                  itemCount: questionCount,
-                  itemBuilder: (context, index) {
-                    bool markedForReview = questionsMarkedForReview[index];
-                    bool hasSelectedAnswer = selectedAnswers[index] != null;
+              Column(
+                children: [
+                  GridView.builder(
+                    shrinkWrap: true,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 6,
+                      crossAxisSpacing: 4.0,
+                      mainAxisSpacing: 4.0,
+                    ),
+                    itemCount: questionCount,
+                    itemBuilder: (context, index) {
+                      bool markedForReview = questionsMarkedForReview[index];
+                      bool hasSelectedAnswer = selectedAnswers[index] != null;
 
-                    Color borderColor = Colors.grey;
-                    if (markedForReview) {
-                      borderColor = Colors.purple;
-                    } else if (hasSelectedAnswer) {
-                      borderColor = Colors.green;
-                    } else if (currentQuestionIndex == index) {
-                      borderColor = Colors.blue;
-                    }
+                      Color borderColor = Colors.grey;
+                      if (markedForReview) {
+                        borderColor = Colors.purple;
+                      } else if (hasSelectedAnswer) {
+                        borderColor = Colors.green;
+                      } else if (currentQuestionIndex == index) {
+                        borderColor = Colors.blue;
+                      }
 
-                    return GestureDetector(
-                      onTap: () => onSelectQuestion(index),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: borderColor, width: 2),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Center(
-                          child: Text(
-                            (index + 1).toString(),
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: borderColor,
+                      return GestureDetector(
+                        onTap: () => onSelectQuestion(index),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(color: borderColor, width: 2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Center(
+                            child: Text(
+                              (index + 1).toString(),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: borderColor,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                      );
+                    },
+                  ),
+                ],
 
+              ),
+            ],
           ),
-        ],
-      ),
-      ),
-    );
+        ),
+      );
   }
 }
 
@@ -1230,7 +1214,7 @@ class QuizResultUploader {
       if (userId != null) {
         // Reference to the user's quiz results collection
         CollectionReference<Map<String, dynamic>> userResultsRef =
-            _firestore.collection('QuizResults').doc(userId).collection('Exam');
+        _firestore.collection('QuizResults').doc(userId).collection('Exam');
 
         // Create a map with the quiz result data
         Map<String, dynamic> resultData = {

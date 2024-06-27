@@ -6,24 +6,20 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:mymedicosweb/Profile/profile.dart';
 import 'package:mymedicosweb/login/components/login_check.dart';
-import 'package:mymedicosweb/login/login_screen.dart';
-import 'package:mymedicosweb/pg_neet/QuizScreen.dart';
 import 'package:mymedicosweb/components/drawer/sideDrawer.dart';
 import 'package:mymedicosweb/components/Appbar.dart';
 import 'package:mymedicosweb/components/drawer/app_drawer.dart';
-import 'package:mymedicosweb/pg_neet/NeetScree.dart';
-import 'package:mymedicosweb/components/Credit.dart';
+
 
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_svg/svg.dart';
-class PgNeetPayment extends StatefulWidget {
+
+class Fmgepaymentscreen extends StatefulWidget {
   final String title;
   final String quizId;
   final String dueDate;
 
-  PgNeetPayment({
+  Fmgepaymentscreen({
     Key? key,
     required this.title,
     required this.quizId,
@@ -31,10 +27,10 @@ class PgNeetPayment extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _PgNeetPaymentState createState() => _PgNeetPaymentState();
+  _FmgepaymentscreenState createState() => _FmgepaymentscreenState();
 }
 
-class _PgNeetPaymentState extends State<PgNeetPayment> {
+class _FmgepaymentscreenState extends State<Fmgepaymentscreen> {
   bool hasReadInstructions = false;
   bool _isLoggedIn = false;
   bool _isLoading = false;
@@ -81,7 +77,7 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
       }
 
       // After updating or creating the coupon list, start the test or perform any other action
-     // Replace with your actual test initiation logic
+      // Replace with your actual test initiation logic
     } catch (e) {
       print('Error adding coupon and starting test: $e');
       // Handle error as per your application's requirement
@@ -121,6 +117,9 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
     setState(() {
       _isLoading = true;
     });
+    if(code.isEmpty){
+      code="null";
+    }
     DatabaseReference databaseReference = FirebaseDatabase.instance.reference();
     DataSnapshot snapshot =
     await databaseReference.child('profiles').child(phoneNumber).child('coins').get();
@@ -153,7 +152,7 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
                     addCouponToUsedListAndStartTest(phoneNumber,code);
                     Navigator.of(context).pop(); // Close the dialog
                     context.go(
-                      '/examdetails/examscreen',
+                      '/fmge/examdetails/examscreen',
                       extra: {
                         'title': widget.title,
                         'quizId': widget.quizId,
@@ -291,6 +290,7 @@ class _PgNeetPaymentState extends State<PgNeetPayment> {
     );
   }
 }
+
 class MainContent extends StatefulWidget {
   final bool isLargeScreen;
   final bool hasReadInstructions;
@@ -319,7 +319,7 @@ class _MainContentState extends State<MainContent> {
   late DatabaseReference databaseReference;
   bool _isLoading = true;
   User? currentUser;
-  late String code1;
+  late String code1="null";
   int discount = 0; // State variable for discount
 
   @override
@@ -411,7 +411,10 @@ class _MainContentState extends State<MainContent> {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
+    double screenWidth = MediaQuery
+        .of(context)
+        .size
+        .width;
 
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -501,7 +504,10 @@ class _MainContentState extends State<MainContent> {
           SizedBox(height: 20),
           Row(
             children: [
-              if (MediaQuery.of(context).size.width > 600) ...[
+              if (MediaQuery
+                  .of(context)
+                  .size
+                  .width > 600) ...[
                 SizedBox(width: 16),
                 Expanded(
                   child: Row(
@@ -522,7 +528,8 @@ class _MainContentState extends State<MainContent> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('200 mins', style: TextStyle(fontFamily: 'Inter')),
+                          Text('150 mins', style: TextStyle(
+                              fontFamily: 'Inter')),
                           Text(
                             'Duration',
                             style: TextStyle(
@@ -557,7 +564,7 @@ class _MainContentState extends State<MainContent> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '200 Questions - 800 Marks',
+                            '150 Questions - 150 Marks',
                             style: TextStyle(fontFamily: 'Inter'),
                           ),
                           Text(
@@ -593,7 +600,8 @@ class _MainContentState extends State<MainContent> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('English', style: TextStyle(fontFamily: 'Inter')),
+                          Text('English', style: TextStyle(
+                              fontFamily: 'Inter')),
                           Text(
                             'Language',
                             style: TextStyle(
@@ -608,7 +616,10 @@ class _MainContentState extends State<MainContent> {
                   ),
                 ),
               ],
-              if (MediaQuery.of(context).size.width <= 600) ...[
+              if (MediaQuery
+                  .of(context)
+                  .size
+                  .width <= 600) ...[
                 Expanded(
                   child: Row(
                     children: [
@@ -628,7 +639,8 @@ class _MainContentState extends State<MainContent> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('200 mins', style: TextStyle(fontFamily: 'Inter')),
+                          Text('150 mins', style: TextStyle(
+                              fontFamily: 'Inter')),
                           Text(
                             'Duration',
                             style: TextStyle(
@@ -663,7 +675,7 @@ class _MainContentState extends State<MainContent> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '200 Questions - 800 Marks',
+                            '150 Questions - 150 Marks',
                             style: TextStyle(fontFamily: 'Inter'),
                           ),
                           Text(
@@ -699,7 +711,8 @@ class _MainContentState extends State<MainContent> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('English', style: TextStyle(fontFamily: 'Inter')),
+                          Text('English', style: TextStyle(
+                              fontFamily: 'Inter')),
                           Text(
                             'Language',
                             style: TextStyle(
@@ -718,19 +731,21 @@ class _MainContentState extends State<MainContent> {
           ),
           SizedBox(height: 16),
           CouponScreen(
-            isLargeScreen: widget.isLargeScreen,
-            onDiscountChanged: (value) {
-              setState(() {
-
-                discount = value;
-                print("Discount updated: $discount");
-              });
-            },
-            oncodechanged:(value){
-              setState(() {
-                code1=value;
-              });
-            }
+              isLargeScreen: widget.isLargeScreen,
+              quizId:widget.qid,
+              dueDate:widget.dueDate,
+              Title:widget.title,
+              onDiscountChanged: (value) {
+                setState(() {
+                  discount = value;
+                  print("Discount updated: $discount");
+                });
+              },
+              oncodechanged: (value) {
+                setState(() {
+                  code1 = value;
+                });
+              }
           ),
           SizedBox(height: 16),
           Row(
@@ -751,7 +766,10 @@ class _MainContentState extends State<MainContent> {
             child: Container(
               color: Colors.white,
               child: SizedBox(
-                width: MediaQuery.of(context).size.width,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width,
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
@@ -763,17 +781,27 @@ class _MainContentState extends State<MainContent> {
                   child: ElevatedButton(
                     onPressed: widget.hasReadInstructions
                         ? () async {
-                      SharedPreferences prefs =
-                      await SharedPreferences.getInstance();
-                      String? phoneNumber =
-                      prefs.getString('phoneNumber');
+                      SharedPreferences prefs = await SharedPreferences
+                          .getInstance();
+                      String? phoneNumber = prefs.getString('phoneNumber');
+
                       if (phoneNumber != null) {
-                        print("Discount when taking test: $discount");
-                        await widget.onTakeTest(phoneNumber, discount,code1);
+                        if (code1 != null) {
+                          print("Discount when taking test: $discount");
+                           widget.onTakeTest(phoneNumber, discount, code1);
+                        } else {
+                          Fluttertoast.showToast(
+                            msg: "Please select a coupon code.",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
+                            fontSize: 16.0,
+                          );
+                        }
                       } else {
                         Fluttertoast.showToast(
-                          msg:
-                          "Phone number not found. Please login again.",
+                          msg: "Phone number not found. Please login again.",
                           toastLength: Toast.LENGTH_SHORT,
                           gravity: ToastGravity.BOTTOM,
                           backgroundColor: Colors.red,
@@ -784,8 +812,7 @@ class _MainContentState extends State<MainContent> {
                     }
                         : () {
                       Fluttertoast.showToast(
-                        msg:
-                        "Please click on the checkbox to proceed",
+                        msg: "Please click on the checkbox to proceed",
                         toastLength: Toast.LENGTH_SHORT,
                         gravity: ToastGravity.BOTTOM,
                         backgroundColor: Colors.black,
@@ -794,8 +821,7 @@ class _MainContentState extends State<MainContent> {
                       );
                     },
                     style: ButtonStyle(
-                      backgroundColor:
-                      MaterialStateProperty.all(Colors.white),
+                      backgroundColor: MaterialStateProperty.all(Colors.white),
                       shape: MaterialStateProperty.all(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0),
@@ -825,36 +851,41 @@ class _MainContentState extends State<MainContent> {
 
 class CouponScreen extends StatefulWidget {
   final bool isLargeScreen;
-  final Function(int) onDiscountChanged;
-  final Function (String) oncodechanged;
+  final String quizId;
+  final String dueDate;
+  final String Title;
 
-  CouponScreen({required this.isLargeScreen, required this.onDiscountChanged,required this.oncodechanged});
+  final Function(int) onDiscountChanged;
+  final Function(String) oncodechanged;
+
+  CouponScreen({required this.isLargeScreen, required this.onDiscountChanged,required this.quizId,required this.dueDate,required this.Title, required this.oncodechanged});
 
   @override
   _CouponScreenState createState() => _CouponScreenState();
 }
 
 class _CouponScreenState extends State<CouponScreen> {
-
   String? selectedCoupon;
   List<String> coupons = [];
   int discount = 0;
   String? phoneNumber;
+  bool _isLoading = false;
 
   Future<List<String>> fetchCoupons() async {
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('Coupons').get();
     return querySnapshot.docs.map((doc) => doc['code'] as String).toList();
   }
+
   Future<void> fetchPhoneNumber() async {
     String? number = await fetchPhoneNumberFromLocalStorage();
     setState(() {
       phoneNumber = number;
     });
   }
+
   Future<String?> fetchPhoneNumberFromLocalStorage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? phoneNumber = prefs.getString('phoneNumber');
-    return phoneNumber;
+    return prefs.getString('phoneNumber');
   }
 
   @override
@@ -885,19 +916,26 @@ class _CouponScreenState extends State<CouponScreen> {
                     border: OutlineInputBorder(),
                   ),
                   value: selectedCoupon,
-                  items: coupons.map((coupon) {
-                    return DropdownMenuItem<String>(
-                      value: coupon,
-                      child: Text(coupon),
-                    );
-                  }).toList(),
+                  items: [
+                    DropdownMenuItem<String>(
+                      value: null, // Set the value of the default item to null
+                      child: Text('Select Coupon'), // Display "Select Coupon" as the default option
+                    ),
+                    ...coupons.map((coupon) {
+                      return DropdownMenuItem<String>(
+                        value: coupon,
+                        child: Text(coupon),
+                      );
+                    }),
+                  ],
                   onChanged: (value) {
                     setState(() {
-                      selectedCoupon = value;
+                      selectedCoupon = value!;
                     });
                   },
                 ),
               ),
+
               SizedBox(width: 8),
               Expanded(
                 flex: 1,
@@ -995,10 +1033,20 @@ class _CouponScreenState extends State<CouponScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please select a coupon!')),
-      );
+      ).closed.then((reason) {
+        // Navigate to the next activity after dismissing the SnackBar
+        context.go(
+          '/fmge/examdetails/examscreen',
+          extra: {
+            'title': widget.Title,
+            'quizId': widget.quizId,
+            'dueDate': widget.dueDate,
+            'discount': discount,
+          },
+        );
+      });
     }
   }
-
 }
 
 class InstructionContainer extends StatelessWidget {
@@ -1023,7 +1071,7 @@ class InstructionContainer extends StatelessWidget {
           ),
           SizedBox(height: 8),
           Text(
-            'This is the examination based quiz on the NEET 2023 pattern with more predictable questions.',
+            'This is the examination based quiz on the FMGE 2023 pattern with more predictable questions.',
             style: TextStyle(fontSize: 16, fontFamily: 'Inter'),
           ),
           SizedBox(height: 20),
@@ -1031,7 +1079,7 @@ class InstructionContainer extends StatelessWidget {
             children: [
               Icon(Icons.circle, color: Colors.green, size: 12),
               SizedBox(width: 8),
-              Text('+4 for correct', style: TextStyle(fontFamily: 'Inter')),
+              Text('+1 for correct', style: TextStyle(fontFamily: 'Inter')),
             ],
           ),
           SizedBox(height: 8),
@@ -1039,7 +1087,7 @@ class InstructionContainer extends StatelessWidget {
             children: [
               Icon(Icons.circle, color: Colors.red, size: 12),
               SizedBox(width: 8),
-              Text('-1 for wrong', style: TextStyle(fontFamily: 'Inter')),
+              Text('0 for wrong', style: TextStyle(fontFamily: 'Inter')),
             ],
           ),
           SizedBox(height: 8),

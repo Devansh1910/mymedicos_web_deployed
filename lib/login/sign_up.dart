@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mymedicosweb/login/login_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -201,10 +202,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           });
 
           Fluttertoast.showToast(msg: "Registration successful! Please verify your email.");
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => LoginScreen()),
-          );
+          context.go('/login');
         }
       } catch (e) {
         Fluttertoast.showToast(msg: e.toString());

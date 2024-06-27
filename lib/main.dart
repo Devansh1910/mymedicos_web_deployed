@@ -2,12 +2,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:mymedicosweb/FMGE/FmgeResultScreen.dart';
+import 'package:mymedicosweb/FMGE/Fmgepaymentscreen.dart';
+import 'package:mymedicosweb/FMGE/Fmgequizscreen.dart';
+import 'package:mymedicosweb/FMGE/fmge.dart';
 import 'package:mymedicosweb/login/components/login_check.dart';
+import 'package:mymedicosweb/pg_neet/QuizScreen.dart';
+import 'package:mymedicosweb/pg_neet/ResultScreen.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+import 'package:url_strategy/url_strategy.dart';
 
 import 'models/theme_notifier.dart';
 import 'models/locale_notifier.dart';
-import 'package:url_strategy/url_strategy.dart';
+ // Assuming you have a UserNotifier model
 import 'login/login_screen.dart';
 import 'login/sign_up.dart';
 import 'Home/home.dart';
@@ -53,6 +61,258 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
+  @override
+  Widget build(BuildContext context) {
+    final UserNotifier userNotifier = Provider.of<UserNotifier>(context, listen: false);
+    final bool loggedIn = userNotifier.isLoggedIn;
+    final GoRouter router = GoRouter(
+      initialLocation: !loggedIn?'/':'/homescreen',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const HomeScreen(title: 'Mymedicos'),
+        ),
+        GoRoute(
+          path: '/settings',
+          builder: (context, state) => const SettingsScreen(),
+        ),
+        GoRoute(
+          path: '/login',
+          builder: (context, state) => const LoginScreen(),
+        ),
+        GoRoute(
+          path: '/register',
+          builder: (context, state) => const SignUpScreen(),
+        ),
+        GoRoute(
+          path: '/homescreen',
+          builder: (context, state) => HomeScreen2(),
+        ),
+        GoRoute(
+          path: '/fmge',
+          builder: (context, state) => Fmge(),
+        ),
+        GoRoute(
+          path: '/pgneet',
+          builder: (context, state) => PgNeet(),
+        ),
+        GoRoute(
+          path: '/profile',
+          builder: (context, state) => const ProfileScreen(),
+        ),
+        GoRoute(
+          path: '/fmge/examdetails',
+          builder: (context, state) {
+            final examId = state.uri.queryParameters['examId']!;
+            final extra = state.extra as Map<String, dynamic>?;
+            final title = extra?['title'] ?? 'null';
+            final dueDate = extra?['dueDate'] ?? '2024-06-21 00:00:00.000';
+
+            if (title == 'null') {
+              return FutureBuilder<DocumentSnapshot>(
+                future: fetchQuizDetails(examId),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Scaffold(
+                      body: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return Scaffold(
+                      body: Center(
+                        child: Text('Error loading quiz details'),
+                      ),
+                    );
+                  }
+
+                  final document = snapshot.data!;
+                  final quizTitle = document.get('title');
+                  final Timestamp toTimestamp = document.get('to');
+                  final dueDate = toTimestamp.toDate().toString();
+
+                  return Fmgepaymentscreen(
+                    quizId: examId,
+                    title: quizTitle,
+                    dueDate: dueDate,
+                  );
+                },
+              );
+            }
+
+            return Fmgepaymentscreen(
+              quizId: examId,
+              title: title,
+              dueDate: dueDate,
+            );
+          },
+        ),
+        GoRoute(
+          path: '/examdetails',
+          builder: (context, state) {
+            final examId = state.uri.queryParameters['examId']!;
+            final extra = state.extra as Map<String, dynamic>?;
+            final title = extra?['title'] ?? 'null';
+            final dueDate = extra?['dueDate'] ?? '2024-06-21 00:00:00.000';
+
+            if (title == 'null') {
+              return FutureBuilder<DocumentSnapshot>(
+                future: fetchQuizDetails(examId),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Scaffold(
+                      body: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return Scaffold(
+                      body: Center(
+                        child: Text('Error loading quiz details'),
+                      ),
+                    );
+                  }
+
+                  final document = snapshot.data!;
+                  final quizTitle = document.get('title');
+                  final Timestamp toTimestamp = document.get('to');
+                  final dueDate = toTimestamp.toDate().toString();
+
+                  return PgNeetPayment(
+                    quizId: examId,
+                    title: quizTitle,
+                    dueDate: dueDate,
+                  );
+                },
+              );
+            }
+
+            return PgNeetPayment(
+              quizId: examId,
+              title: title,
+              dueDate: dueDate,
+            );
+          },
+        ),
+              GoRoute(
+            path: '/examdetails/examscreen',
+           builder: (context, state) {
+
+           final extra = state.extra as Map<String, dynamic>?;
+           final examId = extra?['quizId']!;
+           final title = extra?['title'];
+           final dueDate = extra?['dueDate'];
+            final discount = extra?['discount'];
+
+            return QuizPage(
+             quizId: examId,
+            title: title,
+           duedate: dueDate,
+             discount: discount,
+            );
+              },
+           ),
+        GoRoute(
+          path: '/fmge/examdetails/examscreen',
+          builder: (context, state) {
+
+            final extra = state.extra as Map<String, dynamic>?;
+            final examId = extra?['quizId']!;
+            final title = extra?['title'];
+            final dueDate = extra?['dueDate'];
+            final discount = extra?['discount'];
+
+            return FmgeQuizPage(
+              quizId: examId,
+              title: title,
+              duedate: dueDate,
+              discount: discount,
+            );
+          },
+        ),
+        GoRoute(
+          path: '/fmge/examdetails/examscreen/resultscreen',
+          builder: (context, state) {
+
+            final extra = state.extra as Map<String, dynamic>?;
+            final examId = extra?['quizId']!;
+            final title = extra?['quizTitle'];
+            final dueDate = extra?['dueDate'];
+            final remainingTime = extra?['remainingTime'];
+            final selectedAnswers = extra?['selectedAnswers'];
+            final questions = extra?['questions'];
+
+            return FmgeQuizResultScreen(
+              quizId: examId,
+              quizTitle: title,
+              dueDate: dueDate,
+              remainingTime: remainingTime,
+              selectedAnswers:selectedAnswers,
+              questions:questions,
+            );
+          },
+        ),
+        GoRoute(
+          path: '/examdetails/examscreen/resultscreen',
+          builder: (context, state) {
+
+            final extra = state.extra as Map<String, dynamic>?;
+            final examId = extra?['quizId']!;
+            final title = extra?['quizTitle'];
+            final dueDate = extra?['dueDate'];
+            final remainingTime = extra?['remainingTime'];
+            final selectedAnswers = extra?['selectedAnswers'];
+            final questions = extra?['questions'];
+
+            return QuizResultScreen(
+              quizId: examId,
+              quizTitle: title,
+              dueDate: dueDate,
+              remainingTime: remainingTime,
+                selectedAnswers:selectedAnswers,
+                questions:questions,
+            );
+          },
+        ),
+
+      ],
+      redirect: (context, state) {
+        final UserNotifier userNotifier = Provider.of<UserNotifier>(context, listen: false);
+        final bool loggedIn = userNotifier.isLoggedIn;
+        final bool loggingIn = state.uri.toString() == '/login';
+
+        // If the user is not logged in and tries to access a protected route, redirect to login
+        if (!loggedIn && !loggingIn) return '/login';
+
+        // If the user is logged in and tries to access the login or register page, redirect to home
+        if (loggedIn && (state.uri.toString() == '/login' || state.uri.toString() == '/register')) return '/';
+
+        return null;
+      },
+      errorBuilder: (context, state) => const Scaffold(
+        body: Center(
+          child: Text('Page not found'),
+        ),
+      ),
+    );
+
+    return Consumer3<ThemeNotifier, LocaleNotifier, UserNotifier>(
+      builder: (context, themeNotifier, localeNotifier, userNotifier, child) {
+        if (!userNotifier.isInitialized) {
+          return const LoadingScreen(); // Show loading screen while initializing
+        }
+
+        return MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          theme: themeNotifier.currentTheme,
+          locale: localeNotifier.currentLocale,
+          routerConfig: router,
+        );
+      },
+    );
+  }
 
   Future<DocumentSnapshot> fetchQuizDetails(String examId) async {
     final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -65,107 +325,11 @@ class MyApp extends StatelessWidget {
       throw Exception('Quiz not found');
     }
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer3<ThemeNotifier, LocaleNotifier, UserNotifier>(
-      builder: (context, themeNotifier, localeNotifier, userNotifier, child) {
-        if (!userNotifier.isInitialized) {
-          return LoadingScreen(); // Show loading screen while initializing
-        }
-
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: themeNotifier.currentTheme,
-          locale: localeNotifier.currentLocale,
-          initialRoute: userNotifier.isLoggedIn ? '/homescreen' : '/',
-          routes: {
-            '/': (context) => const HomeScreen(title: 'Mymedicos'),
-            '/settings': (context) => const SettingsScreen(),
-            '/login': (context) => const LoginScreen(),
-            '/register': (context) => const SignUpScreen(),
-            '/homescreen': (context) => HomeScreen2(),
-            '/pgneet': (context) => PgNeet(),
-            '/profile': (context) => const ProfileScreen(),
-            '/examdetails?examid=:examid': (context) {
-              final Map<String, dynamic> args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-              final String title = args['title'] ?? '';
-              final String quizId = args['quizId'] ?? '';
-              final String dueDate = args['dueDate'] ?? '';
-
-              return PgNeetPayment(title: title, quizId: quizId, dueDate: dueDate);
-            },
-
-          },
-            onGenerateRoute: (settings) {
-              final Uri uri = Uri.parse(settings.name!);
-              if (uri.path == '/examdetails' && uri.queryParameters.containsKey('examId')) {
-                final String examId = uri.queryParameters['examId']!;
-                final Map<String, dynamic> args = settings.arguments as Map<String, dynamic>? ?? {};
-                String title = args['title'] ?? 'null';
-                String dueDate = args['dueDate'] ?? '2024-06-21 00:00:00.000';
-
-                print("duedatemain: $dueDate");
-                print("titlemain: $title");
-
-                if (title.compareTo('null')==0) {
-                  return MaterialPageRoute(
-                    builder: (context) {
-                      return FutureBuilder<DocumentSnapshot>(
-                        future: fetchQuizDetails(examId),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return Container(
-                              height: 200,
-                              width: 200,
-                              child: CircularProgressIndicator(),
-                            ) ;
-                          }
-                          if (snapshot.hasError || !snapshot.hasData) {
-                            // return ErrorPage(); // Handle error appropriately
-                          }
-
-                          final DocumentSnapshot document = snapshot.data!;
-                          title = document.get('title');
-                          Timestamp toTimestamp = document.get('to');
-                          DateTime to = toTimestamp.toDate();
-                          dueDate = to.toString();
-
-                          print("duedatemain: $dueDate");
-                          print("titlemain: $title");
-
-                          return PgNeetPayment(
-                            quizId: examId,
-                            title: title,
-                            dueDate: dueDate,
-                          );
-                        },
-                      );
-                    },
-                  );
-                }
-
-                return MaterialPageRoute(
-                  builder: (context) {
-                    return PgNeetPayment(
-                      quizId: examId,
-                      title: title,
-                      dueDate: dueDate,
-                    );
-                  },
-                );
-              }
-              return null; // Return null for unknown routes, can also return a 404 page here
-            },
-
-
-        );
-      },
-    );
-  }
 }
 
 class LoadingScreen extends StatelessWidget {
+  const LoadingScreen({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return const Scaffold(

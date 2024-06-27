@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:html' as html;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -1442,7 +1443,6 @@ Future<void> processCreditsOrderPackage3(BuildContext context) async {
   }
 }
 
-
 class PaymentPublicationActivity extends StatefulWidget {
   final String orderCode;
 
@@ -1455,6 +1455,7 @@ class PaymentPublicationActivity extends StatefulWidget {
 class _PaymentPublicationActivityState extends State<PaymentPublicationActivity> {
   bool _isLoading = true;
   bool _isError = false;
+  final Dio _dio = Dio();
 
   @override
   void initState() {
@@ -1462,12 +1463,17 @@ class _PaymentPublicationActivityState extends State<PaymentPublicationActivity>
     _loadUrl();
   }
 
-  void _loadUrl() {
+  void _loadUrl() async {
     try {
-      html.window.open('https://admin.mymedicos.in/checkout/${widget.orderCode}', '_self');
-      setState(() {
-        _isLoading = false;
-      });
+      final response = await _dio.get('https://admin.mymedicos.in/checkout/${widget.orderCode}');
+      if (response.statusCode == 200) {
+        html.window.open('https://admin.mymedicos.in/checkout/${widget.orderCode}', '_self');
+        setState(() {
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load payment page.');
+      }
     } catch (e) {
       print('Error loading URL: $e');
       setState(() {
@@ -1496,7 +1502,6 @@ class _PaymentPublicationActivityState extends State<PaymentPublicationActivity>
     );
   }
 }
-
 class FeatureCard extends StatelessWidget {
   final String imagePath;
   final String title;

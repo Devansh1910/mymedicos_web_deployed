@@ -20,12 +20,12 @@ import 'package:url_launcher/url_launcher.dart';
 
 
 
-class PgNeet extends StatefulWidget {
+class Fmge extends StatefulWidget {
   @override
-  _PgNeetState createState() => _PgNeetState();
+  _FmgeState createState() => _FmgeState();
 }
 
-class _PgNeetState extends State<PgNeet> {
+class _FmgeState extends State<Fmge> {
   bool _isLoggedIn = false;
   bool _isInitialized = false;
 
@@ -46,7 +46,7 @@ class _PgNeetState extends State<PgNeet> {
     // If the user is not logged in, navigate to the login screen
     if (!_isLoggedIn) {
       // You can replace '/login' with the route name of your login screen
-      context.go('/login');
+      Navigator.of(context).pushReplacementNamed('/login');
     }
   }
   @override
@@ -62,27 +62,27 @@ class _PgNeetState extends State<PgNeet> {
     }
 
     return WillPopScope(
-        onWillPop: () async {
-      // Navigate to the home screen when the back button is pressed
-          context.go('/homescreen');
-      return true;
-    },
-    child: LayoutBuilder(
-      builder: (context, constraints) {
-        return Scaffold(appBar: AppBar(
-          automaticallyImplyLeading: !kIsWeb,
-          title: AppBarContent(),
-          backgroundColor: Colors.white,
-          elevation: 0,
-
-        ),
-          drawer: !isLargeScreen ? AppDrawer(initialIndex: 1) : null,
-
-
-          body: MainContent(isLargeScreen: isLargeScreen),
-        );
+      onWillPop: () async {
+        // Navigate to the home screen when the back button is pressed
+        Navigator.pushNamed(context, "/homescreen");
+        return true;
       },
-    ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Scaffold(appBar: AppBar(
+            automaticallyImplyLeading: !kIsWeb,
+            title: AppBarContent(),
+            backgroundColor: Colors.white,
+            elevation: 0,
+
+          ),
+            drawer: !isLargeScreen ? AppDrawer(initialIndex: 1) : null,
+
+
+            body: MainContent(isLargeScreen: isLargeScreen),
+          );
+        },
+      ),
     );
   }
 }
@@ -124,19 +124,19 @@ class MainContent extends StatelessWidget {
                         children: <Widget>[
                           const TopImage(),
                           QuizSection(
-                            title: 'OnGoing Grand Test',
+                            title: 'OnGoing FMGE Test',
                             description: 'Go through these examinations for better preparation & get ready for the final buzz!',
                             quizzes: categorizedQuizzes['Ongoing']!,
                             screenWidth: screenWidth,
                           ),
                           QuizSection1(
-                            title: 'Upcoming Grand Test',
+                            title: 'Upcoming FMGE Test',
                             description: 'Go through these examinations for better preparation & get ready for the final buzz!',
                             quizzes: categorizedQuizzes['Upcoming']!,
                             screenWidth: screenWidth,
                           ),
                           QuizSection2(
-                            title: 'Terminated Grand Test',
+                            title: 'Terminated FMGE Test',
                             description: 'Go through these examinations for better preparation & get ready for the final buzz!',
                             quizzes: categorizedQuizzes['Terminated']!,
                             screenWidth: screenWidth,
@@ -212,41 +212,47 @@ class QuizSection2 extends StatefulWidget {
 }
 
 class _QuizSection2State extends State<QuizSection2> {
-  late ScrollController _scrollController;
+  late ScrollController _scrollControllerA;
+  late ScrollController _scrollControllerB;
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
+    _scrollControllerA = ScrollController();
+    _scrollControllerB = ScrollController();
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scrollControllerA.dispose();
+    _scrollControllerB.dispose();
     super.dispose();
   }
-  void scrollRight() {
+
+  void scrollRight(ScrollController controller) {
     double scrollDistance = MediaQuery.of(context).size.width < 600 ? 250 : 500;
-    _scrollController.animateTo(
-      _scrollController.offset + scrollDistance,
+    controller.animateTo(
+      controller.offset + scrollDistance,
       duration: Duration(milliseconds: 500),
       curve: Curves.ease,
     );
   }
 
-  void scrollLeft() {
+  void scrollLeft(ScrollController controller) {
     double scrollDistance = MediaQuery.of(context).size.width < 600 ? 250 : 500;
-    _scrollController.animateTo(
-      _scrollController.offset - scrollDistance,
+    controller.animateTo(
+      controller.offset - scrollDistance,
       duration: Duration(milliseconds: 500),
       curve: Curves.ease,
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
     bool isMobile = widget.screenWidth < 600;
+
+    List<QuizPG> typeAQuizzes = widget.quizzes.where((quiz) => quiz.type == 'A').toList();
+    List<QuizPG> typeBQuizzes = widget.quizzes.where((quiz) => quiz.type == 'B').toList();
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -269,80 +275,99 @@ class _QuizSection2State extends State<QuizSection2> {
             ),
           ),
           const SizedBox(height: 20),
-          SizedBox(
-            height: 300,
-            width: double.infinity,
-            child: widget.quizzes.isEmpty
-                ? Center(
-              child: Text(
-                'No content available',
-                style: TextStyle(
-                  fontSize: isMobile ? widget.screenWidth * 0.04 : widget.screenWidth * 0.012,
-                  color: Colors.grey,
-                  fontFamily: 'Inter',
-                ),
-              ),
-            )
-                : Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.arrow_back_ios),
-                      onPressed: () {
-                        scrollLeft();
-                      },
-                    ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        controller: _scrollController,
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 16), // Add initial padding
-                            ...widget.quizzes.map((quiz) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 16.0),
-                                child: QuizCard(
-                                  quiz: quiz,
-                                  screenWidth: widget.screenWidth,
-                                  path: "assets/image/past.png",
-                                  state:"Terminated",
-                                  Color1:Colors.grey,
-                                  onTap: (questionId) {
-
-                                    Fluttertoast.showToast(
-                                      msg: "These tests are terminated",
-                                      toastLength: Toast.LENGTH_SHORT,
-                                      gravity: ToastGravity.BOTTOM,
-                                      timeInSecForIosWeb: 1,
-                                      backgroundColor: Colors.red,
-                                      textColor: Colors.white,
-                                      fontSize: 16.0,
-                                    );
-                                    print('Tapped on question with ID: $questionId');
-                                  },
-                                ),
-                              );
-                            }).toList(),
-                          ],
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.arrow_forward_ios),
-                      onPressed: () {
-                        scrollRight();
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          _buildQuizSection('Type A ', typeAQuizzes, isMobile, _scrollControllerA),
+          const SizedBox(height: 20),
+          _buildQuizSection('Type B ', typeBQuizzes, isMobile, _scrollControllerB),
         ],
       ),
+    );
+  }
+
+  Widget _buildQuizSection(String title, List<QuizPG> quizzes, bool isMobile, ScrollController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: isMobile ? widget.screenWidth * 0.05 : widget.screenWidth * 0.015,
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.bold
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 300,
+          width: double.infinity,
+          child: quizzes.isEmpty
+              ? Center(
+            child: Text(
+              'No content available',
+              style: TextStyle(
+                fontSize: isMobile ? widget.screenWidth * 0.04 : widget.screenWidth * 0.012,
+                color: Colors.grey,
+                fontFamily: 'Inter',
+              ),
+            ),
+          )
+              : Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.arrow_back_ios),
+                    onPressed: () {
+                      scrollLeft(controller);
+                    },
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      controller: controller,
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 16), // Add initial padding
+                          ...quizzes.map((quiz) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 16.0),
+                              child: QuizCard(
+                                quiz: quiz,
+                                screenWidth: widget.screenWidth,
+                                path: "assets/image/past.png",
+                                state: "Terminated",
+                                Color1: Colors.grey,
+                                onTap: (questionId) {
+                                  Fluttertoast.showToast(
+                                    msg: "These tests are terminated",
+                                    toastLength: Toast.LENGTH_SHORT,
+                                    gravity: ToastGravity.BOTTOM,
+                                    timeInSecForIosWeb: 1,
+                                    backgroundColor: Colors.red,
+                                    textColor: Colors.white,
+                                    fontSize: 16.0,
+                                  );
+                                  print('Tapped on question with ID: $questionId');
+                                },
+                              ),
+                            );
+                          }).toList(),
+                        ],
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.arrow_forward_ios),
+                    onPressed: () {
+                      scrollRight(controller);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -365,45 +390,47 @@ class QuizSection1 extends StatefulWidget {
 }
 
 class _QuizSection1State extends State<QuizSection1> {
-  late ScrollController _scrollController;
+  late ScrollController _scrollControllerA;
+  late ScrollController _scrollControllerB;
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
+    _scrollControllerA = ScrollController();
+    _scrollControllerB = ScrollController();
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scrollControllerA.dispose();
+    _scrollControllerB.dispose();
     super.dispose();
   }
 
-  void scrollRight() {
+  void scrollRight(ScrollController controller) {
     double scrollDistance = MediaQuery.of(context).size.width < 600 ? 250 : 500;
-    _scrollController.animateTo(
-      _scrollController.offset + scrollDistance,
+    controller.animateTo(
+      controller.offset + scrollDistance,
       duration: Duration(milliseconds: 500),
       curve: Curves.ease,
     );
   }
 
-  void scrollLeft() {
+  void scrollLeft(ScrollController controller) {
     double scrollDistance = MediaQuery.of(context).size.width < 600 ? 250 : 500;
-    _scrollController.animateTo(
-      _scrollController.offset - scrollDistance,
+    controller.animateTo(
+      controller.offset - scrollDistance,
       duration: Duration(milliseconds: 500),
       curve: Curves.ease,
     );
   }
 
-
-  void scheduleEventInCalendar(DateTime startTime,String title1) async {
+  void scheduleEventInCalendar(DateTime startTime, String title1) async {
     // Format the data you want to pass to the calendar event
     String title = title1;
     String description = 'This is a scheduled quiz event on Platform Mymedicos';
     String location = 'Online'; // Example location
-    DateTime endTime = startTime.add(Duration(hours: 3,minutes: 10)); // Example: ends 1 hour after start
+    DateTime endTime = startTime.add(Duration(hours: 3, minutes: 10)); // Example: ends 1 hour after start
 
     String startDate = '${startTime.year}${startTime.month.toString().padLeft(2, '0')}${startTime.day.toString().padLeft(2, '0')}T${startTime.hour.toString().padLeft(2, '0')}${startTime.minute.toString().padLeft(2, '0')}00';
     String endDate = '${endTime.year}${endTime.month.toString().padLeft(2, '0')}${endTime.day.toString().padLeft(2, '0')}T${endTime.hour.toString().padLeft(2, '0')}${endTime.minute.toString().padLeft(2, '0')}00';
@@ -413,7 +440,7 @@ class _QuizSection1State extends State<QuizSection1> {
     // Launch the URL in a browser or the default calendar app
     if (await canLaunch(url)) {
       await launch(url);
-      html.window.open('https://calendar.google.com/calendar/render?action=TEMPLATE&text=$title&dates=$startDate/$endDate&details=$description&location=$location', '_blank');
+      html.window.open(url, '_blank');
     } else {
       throw 'Could not launch $url';
     }
@@ -422,6 +449,9 @@ class _QuizSection1State extends State<QuizSection1> {
   @override
   Widget build(BuildContext context) {
     bool isMobile = widget.screenWidth < 600;
+
+    List<QuizPG> typeAQuizzes = widget.quizzes.where((quiz) => quiz.type == 'A').toList();
+    List<QuizPG> typeBQuizzes = widget.quizzes.where((quiz) => quiz.type == 'B').toList();
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -444,72 +474,91 @@ class _QuizSection1State extends State<QuizSection1> {
             ),
           ),
           const SizedBox(height: 20),
-          SizedBox(
-            height: 300,
-            width: double.infinity,
-            child: widget.quizzes.isEmpty
-                ? Center(
-              child: Text(
-                'No content available',
-                style: TextStyle(
-                  fontSize: isMobile ? widget.screenWidth * 0.04 : widget.screenWidth * 0.012,
-                  color: Colors.grey,
-                  fontFamily: 'Inter',
-                ),
-              ),
-            )
-                : Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.arrow_back_ios),
-                      onPressed: () {
-                        scrollLeft();
-                      },
-                    ),
-                    Expanded(
-                      child: SingleChildScrollView(
-
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 16), // Add initial padding
-                            ...widget.quizzes.map((quiz) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 16.0),
-                                child: QuizCard(
-                                  quiz: quiz,
-                                  state:"Schedule Now",
-                                  screenWidth: widget.screenWidth,
-                                  path: "assets/image/upcoming.png",
-                                  Color1:Colors.greenAccent,
-                                  onTap: (questionId) {
-                                    scheduleEventInCalendar(quiz.to,widget.title);
-
-                                    print('Tapped on question with ID: $questionId');
-                                  },
-                                ),
-                              );
-                            }).toList(),
-                          ],
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.arrow_forward_ios),
-                      onPressed: () {
-                        scrollRight();
-                      },
-                    ),
-
-                  ],
-                ),
-              ],
-            ),
-          ),
+          _buildQuizSection('Type A ', typeAQuizzes, isMobile, _scrollControllerA),
+          const SizedBox(height: 10 ),
+          _buildQuizSection('Type B ', typeBQuizzes, isMobile, _scrollControllerB),
         ],
       ),
+    );
+  }
+
+  Widget _buildQuizSection(String title, List<QuizPG> quizzes, bool isMobile, ScrollController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: isMobile ? widget.screenWidth * 0.05 : widget.screenWidth * 0.015,
+            fontFamily: 'Inter',
+              fontWeight: FontWeight.bold
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 300,
+          width: double.infinity,
+          child: quizzes.isEmpty
+              ? Center(
+            child: Text(
+              'No content available',
+              style: TextStyle(
+                fontSize: isMobile ? widget.screenWidth * 0.04 : widget.screenWidth * 0.012,
+                color: Colors.grey,
+                fontFamily: 'Inter',
+              ),
+            ),
+          )
+              : Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.arrow_back_ios),
+                    onPressed: () {
+                      scrollLeft(controller);
+                    },
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      controller: controller,
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 16), // Add initial padding
+                          ...quizzes.map((quiz) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 16.0),
+                              child: QuizCard(
+                                quiz: quiz,
+                                state: "Schedule Now",
+                                screenWidth: widget.screenWidth,
+                                path: "assets/image/upcoming.png",
+                                Color1: Colors.greenAccent,
+                                onTap: (questionId) {
+                                  scheduleEventInCalendar(quiz.to, widget.title);
+                                  print('Tapped on question with ID: $questionId');
+                                },
+                              ),
+                            );
+                          }).toList(),
+                        ],
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.arrow_forward_ios),
+                    onPressed: () {
+                      scrollRight(controller);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -533,42 +582,47 @@ class QuizSection extends StatefulWidget {
 }
 
 class _QuizSectionState extends State<QuizSection> {
-  late ScrollController _scrollController;
+  late ScrollController _scrollControllerA;
+  late ScrollController _scrollControllerB;
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
+    _scrollControllerA = ScrollController();
+    _scrollControllerB = ScrollController();
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scrollControllerA.dispose();
+    _scrollControllerB.dispose();
     super.dispose();
   }
 
-  void scrollRight() {
+  void scrollRight(ScrollController controller) {
     double scrollDistance = MediaQuery.of(context).size.width < 600 ? 250 : 500;
-    _scrollController.animateTo(
-      _scrollController.offset + scrollDistance,
+    controller.animateTo(
+      controller.offset + scrollDistance,
       duration: Duration(milliseconds: 500),
       curve: Curves.ease,
     );
   }
 
-  void scrollLeft() {
+  void scrollLeft(ScrollController controller) {
     double scrollDistance = MediaQuery.of(context).size.width < 600 ? 250 : 500;
-    _scrollController.animateTo(
-      _scrollController.offset - scrollDistance,
+    controller.animateTo(
+      controller.offset - scrollDistance,
       duration: Duration(milliseconds: 500),
       curve: Curves.ease,
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
     bool isMobile = widget.screenWidth < 600;
+
+    List<QuizPG> typeAQuizzes = widget.quizzes.where((quiz) => quiz.type == 'A').toList();
+    List<QuizPG> typeBQuizzes = widget.quizzes.where((quiz) => quiz.type == 'B').toList();
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -591,90 +645,113 @@ class _QuizSectionState extends State<QuizSection> {
             ),
           ),
           const SizedBox(height: 20),
-          SizedBox(
-            height: 300,
-            width: double.infinity,
-            child: widget.quizzes.isEmpty
-                ? Center(
-              child: Text(
-                'No content available',
-                style: TextStyle(
-                  fontSize: isMobile ? widget.screenWidth * 0.04 : widget.screenWidth * 0.012,
-                  color: Colors.grey,
-                  fontFamily: 'Inter',
-                ),
+          _buildQuizSection('Type A', typeAQuizzes, isMobile, _scrollControllerA),
+          const SizedBox(height: 10),
+          _buildQuizSection('Type B', typeBQuizzes, isMobile, _scrollControllerB),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuizSection(String title, List<QuizPG> quizzes, bool isMobile, ScrollController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: isMobile ? widget.screenWidth * 0.05 : widget.screenWidth * 0.015,
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.bold
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 300,
+          width: double.infinity,
+          child: quizzes.isEmpty
+              ? Center(
+            child: Text(
+              'No content available',
+              style: TextStyle(
+                fontSize: isMobile ? widget.screenWidth * 0.04 : widget.screenWidth * 0.012,
+                color: Colors.grey,
+                fontFamily: 'Inter',
               ),
-            )
-                : Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.arrow_back_ios),
-                      onPressed: () {
-                        scrollLeft();
-                      },
-                    ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        controller: _scrollController,
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 16), // Add initial padding
-                            ...widget.quizzes.map((quiz) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 16.0),
-                                child: QuizCard(
-                                  quiz: quiz,
-                                  state:"Attempt Now",
-                                  screenWidth: widget.screenWidth,
-                                  path: "assets/image/liveadapter.png",
-                                  Color1:Colors.red,
-                                  onTap: (questionId) {context.go(
-                                    '/examdetails?examId=$questionId',
+            ),
+          )
+              : Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.arrow_back_ios),
+                    onPressed: () {
+                      scrollLeft(controller);
+                    },
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      controller: controller,
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 16), // Add initial padding
+                          ...quizzes.map((quiz) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 16.0),
+                              child: QuizCard(
+                                quiz: quiz,
+                                state: "Attempt Now",
+                                screenWidth: widget.screenWidth,
+                                path: "assets/image/liveadapter.png",
+                                Color1: Colors.red,
+                                onTap: (questionId) {
+                                  context.go(
+                                    '/fmge/examdetails?examId=$questionId',
                                     extra: {
                                       'title': quiz.title,
                                       'quizId': questionId,
                                       'dueDate': quiz.to.toString(),
                                     },
                                   );
-                                    String duedata=quiz.to.toString();
-
-                                    print('Tapped on question with ID: $duedata');
-                                  },
-                                ),
-                              );
-                            }).toList(),
-                          ],
-                        ),
+                                  String dueDate = quiz.to.toString();
+                                  print('Tapped on question with ID: $dueDate');
+                                },
+                              ),
+                            );
+                          }).toList(),
+                        ],
                       ),
                     ),
-                    IconButton(
-                      icon: Icon(Icons.arrow_forward_ios),
-                      onPressed: () {
-                        scrollRight();
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.arrow_forward_ios),
+                    onPressed: () {
+                      scrollRight(controller);
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
+
+
 class QuizPG {
   final String title;
   final String speciality;
   final DateTime to;
   final DateTime from;
   final String qid;
+  final String type;
 
-  QuizPG({required this.title, required this.speciality, required this.to,required this.from,required this.qid});
+  QuizPG({required this.title, required this.speciality, required this.to,required this.from,required this.qid,  required this.type,});
 
   factory QuizPG.fromMap(Map<String, dynamic> data) {
     return QuizPG(
@@ -682,7 +759,8 @@ class QuizPG {
         speciality: data['speciality'] ?? '',
         to: (data['to'] as Timestamp).toDate(),
         qid:data['qid'] ?? ' ',
-        from:(data['from'] as Timestamp).toDate()
+        from:(data['from'] as Timestamp).toDate(),
+      type: data['type'] ?? '',
     );
   }
 }
@@ -709,7 +787,7 @@ class QuizService {
 
   Future<List<QuizPG>> fetchQuizzes(List<String> excludeIds) async {
     List<QuizPG> quizzes = [];
-    CollectionReference quizzCollection = db.collection('PGupload').doc('Weekley').collection('Quiz');
+    CollectionReference quizzCollection = db.collection('Fmge').doc('Weekley').collection('Quiz');
     Query query = quizzCollection;
 
     QuerySnapshot querySnapshot = await query.get();
@@ -722,8 +800,9 @@ class QuizService {
         Timestamp fromTimestamp = document.get('from');
         String qid=document.get('qid');
         DateTime from = fromTimestamp.toDate();
-        if (speciality.compareTo("Exam")==0)
-          quizzes.add(QuizPG(title: title, speciality: speciality, to: to,from:from,qid:qid));
+        String type = document.get('type');
+        if (speciality.compareTo("exam")==0)
+          quizzes.add(QuizPG(title: title, speciality: speciality, to: to,from:from,qid:qid,type: type, ));
       }
     }
 
@@ -763,7 +842,7 @@ class QuizCard extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(0.0), // Adjust the padding as needed
                 child: Image.asset(
-                   path, // Replace with actual image path
+                  path, // Replace with actual image path
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: isMobile ? 120 : double.maxFinite, // Adjust the height for mobile
@@ -794,7 +873,10 @@ class QuizCard extends StatelessWidget {
                             fontSize: isMobile ? screenWidth * 0.03 : screenWidth * 0.013,
                             fontFamily: 'Inter',
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
+
                         Text(
                           'Due Date: ${DateFormat('d MMM yy').format(quiz.to)}',
                           style: TextStyle(
@@ -808,7 +890,7 @@ class QuizCard extends StatelessWidget {
 
                     ),
 
-                   Expanded(child:
+                    Expanded(child:
                     Align(
                       alignment: Alignment.bottomRight,
                       child: Text(
@@ -821,7 +903,7 @@ class QuizCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                   ),
+                    ),
                   ],
                 ),
               ),

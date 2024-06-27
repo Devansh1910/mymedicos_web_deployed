@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mymedicosweb/Home/components/Recommended.dart';
 import 'package:mymedicosweb/Landing/components/HeroImage.dart';
 import 'package:mymedicosweb/Profile/Usersdetails.dart';
@@ -74,7 +75,7 @@ class _HomeScreen2State extends State<HomeScreen2> {
       } else {
         // If the user is not logged in, navigate to the login screen
         // Replace '/login' with your actual login screen route name
-        Navigator.of(context).pushReplacementNamed('/login');
+        context.go('/login');
       }
     } catch (error) {
       print("Error initializing user: $error");
@@ -117,7 +118,7 @@ class _HomeScreen2State extends State<HomeScreen2> {
                   onPressed: () {
                     logOut();
                     // Navigate to the home screen when user confirms
-                    Navigator.of(context).popUntil(ModalRoute.withName('/'));
+                    context.go('/');
                   },
                   child: Text("Logout"),
                 ),

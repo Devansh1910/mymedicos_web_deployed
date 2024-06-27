@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart'; // Import flutter_svg
+import 'package:go_router/go_router.dart';
 import 'package:mymedicosweb/Landing/components/GridImagenText.dart';
 import 'package:mymedicosweb/components/Newsletter.dart';
 import 'package:mymedicosweb/components/Footer.dart';
@@ -28,9 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _navigateToSignUp() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const SignUpScreen()),
-    );
+    context.go('/register');
   }
   Future<void> _launchURL(String url) async {
     if (await canLaunch(url)) {
@@ -112,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 4), // Space between buttons
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/login');
+                    context.go('/login');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 51, 51, 51),

@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:mymedicosweb/Profile/Usersdetails.dart';
 import 'package:mymedicosweb/login/components/login_check.dart';
 import 'package:mymedicosweb/login/sign_up.dart';
@@ -214,6 +216,7 @@ class _LoginFormState extends State<LoginForm> {
   final List<FocusNode> otpFocusNodes = List.generate(6, (_) => FocusNode());
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String verificationId = '';
+  String countryCode = '+91';
 
   @override
   void initState() {
@@ -244,17 +247,13 @@ class _LoginFormState extends State<LoginForm> {
       isLoading = true;
     });
 
-    String phoneNumber = "+91${phoneController.text}";
+    String phoneNumber = "$countryCode${phoneController.text}";
     bool isUserRegistered = await checkIfUserRegistered(phoneNumber);
     if (!isUserRegistered) {
       setState(() {
         isLoading = false;
       });
-      Navigator.push(
-        // ignore: use_build_context_synchronously
-        context,
-        MaterialPageRoute(builder: (context) => const SignUpScreen()),
-      );
+      context.go('/register');
       return;
     } else {
       sendOtp();
@@ -292,7 +291,7 @@ class _LoginFormState extends State<LoginForm> {
     }
 
     // Append country code
-    phoneNumber = "+91$phoneNumber";
+    phoneNumber = "$countryCode$phoneNumber";
 
     await _auth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
@@ -354,11 +353,11 @@ class _LoginFormState extends State<LoginForm> {
 
     try {
       await _auth.signInWithCredential(credential);
-      String phoneNumber = "+91${phoneController.text}";
+      String phoneNumber = "$countryCode${phoneController.text}";
       Provider.of<UserNotifier>(context, listen: false).logIn(phoneNumber);
       fetchUserDetailsAndNavigate(context);
 
-      Navigator.pushNamed(context, '/homescreen');
+      context.go('/homescreen');
       print('Phone number verified successfully!');
     } catch (e) {
       print('Failed to verify OTP: $e');
@@ -390,7 +389,6 @@ class _LoginFormState extends State<LoginForm> {
   Widget build(BuildContext context) {
     return RawKeyboardListener(
       focusNode: FocusNode(),
-
       onKey: (event) {
         if (event is RawKeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
           if (isOtpSent) {
@@ -443,45 +441,20 @@ class _LoginFormState extends State<LoginForm> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      SizedBox(
-                        height: 40, // Adjust the height as needed
-                        width: 40, // Adjust the width as needed
-                        child: SvgPicture.asset(
-                            'assets/login/indiaflag.svg'), // Update with the correct path to your image
-                      ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        '+91', // Display the country code
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextFormField(
-                          key: Key('phoneTextField'),
-                          controller: phoneController,
-                          keyboardType: TextInputType.number,
-                          // Set keyboard type to number
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly, // Only allow digits
-                            LengthLimitingTextInputFormatter(10),
-                            // Limit to 10 digits
-                          ],
-                          decoration: const InputDecoration(
-                            labelText: 'Phone Number',
-                            border: OutlineInputBorder(),
-                            hintText: 'Enter Phone Number',
-                            counterText: '', // This hides the counter, which otherwise shows up due to maxLength
-                          ),
-                          autofocus: true, // Automatically focuses and opens keyboard when the screen loads
-                        ),
-                      ),
-
-                    ],
+                  IntlPhoneField(
+                    controller: phoneController,
+                    decoration: const InputDecoration(
+                      labelText: 'Phone Number',
+                      border: OutlineInputBorder(),
+                      hintText: 'Enter Phone Number',
+                    ),
+                    initialCountryCode: 'IN',
+                    onChanged: (phone) {
+                      countryCode = phone.countryCode;
+                    },
+                    onCountryChanged: (country) {
+                      countryCode = country.dialCode;
+                    },
                   ),
                 ] else ...[
                   const Text(

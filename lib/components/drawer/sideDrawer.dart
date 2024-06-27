@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mymedicosweb/login/components/login_check.dart';
 
 import 'package:provider/provider.dart';
@@ -24,17 +25,6 @@ class _SideDrawerState extends State<SideDrawer> {
   }
 
   void _onItemTapped(int index, String routeName) {
-    if (index == 2) {
-      Fluttertoast.showToast(
-        msg: "This feature is currently not available",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.black,
-        textColor: Colors.white,
-        fontSize: 16.0,
-      );
-      return;
-    }
 
     if (_selectedIndex == index) {
       Fluttertoast.showToast(
@@ -51,7 +41,7 @@ class _SideDrawerState extends State<SideDrawer> {
     setState(() {
       _selectedIndex = index;
     });
-    Navigator.pushReplacementNamed(context, routeName);
+    context.go('$routeName');
   }
 
   void _confirmLogout() {
@@ -84,7 +74,7 @@ class _SideDrawerState extends State<SideDrawer> {
   void _logout() {
     final userNotifier = Provider.of<UserNotifier>(context, listen: false);
     userNotifier.logOut();
-    Navigator.pushReplacementNamed(context, '/login');
+    context.go('/');
   }
 
   @override
@@ -122,7 +112,7 @@ class _SideDrawerState extends State<SideDrawer> {
             title: Text('FMGE',style: TextStyle(fontFamily: 'Inter',color: Colors.black),),
             selected: _selectedIndex == 2,
             selectedTileColor: Colors.grey[300],
-            onTap: () => _onItemTapped(2, ''),
+            onTap: () => _onItemTapped(2, '/fmge'),
           ),
           ListTile(
             leading: Icon(Icons.person,color: Colors.black,),
